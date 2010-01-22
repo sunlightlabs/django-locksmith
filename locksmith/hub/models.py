@@ -9,14 +9,14 @@ KEY_STATUS = (
 
 class Api(models.Model):
     name = models.CharField(max_length=30)
-    key = models.CharField(max_length=32)
+    signing_key = models.CharField(max_length=32)
     url = models.URLField()
 
     def __unicode__(self):
         return self.name
 
     class Meta:
-        db_table = 'locksmith_api'
+        db_table = 'locksmith_hub_api'
 
 class Key(models.Model):
     key = models.CharField(max_length=32)
@@ -29,7 +29,7 @@ class Key(models.Model):
         return self.key
 
     class Meta:
-        db_table = 'locksmith_key'
+        db_table = 'locksmith_hub_key'
 
 class Report(models.Model):
     date = models.DateField()
@@ -40,4 +40,4 @@ class Report(models.Model):
     reported_time = models.DateTimeField(default=datetime.datetime.now)
 
     class Meta:
-        db_table = 'locksmith_report'
+        db_table = 'locksmith_hub_report'

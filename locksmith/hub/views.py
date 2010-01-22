@@ -8,8 +8,8 @@ from locksmith.hub.models import Api, Key, Report
 class ApiHub(ApiBase):
 
     def verify_signature(self, post):
-        api_obj = get_object_or_404(Api, name=post['api'])
-        return self.get_signature(post, api_obj.key) == post['signature']
+        api = get_object_or_404(Api, name=post['api'])
+        return self.get_signature(post, api.signing_key) == post['signature']
 
     def get_urls(self):
         urls = super(ApiHub, self).get_urls()
@@ -53,8 +53,9 @@ class ApiHub(ApiBase):
                                  status=request.POST['status'])
         # notify other servers
         for api in Api.objects.exclude(name=api_obj.name):
-            apicall('%s/create_key/' % api.url, api=api.name,
-                    key=key.key, email=key.email, status=key.status)
+            self.apicall('%s/create_key/' % api.url, api.signing_key,
+                         api=api.name, key=key.key, email=key.email,
+                         status=key.status)
 
         return HttpResponse('OK')
 
@@ -76,7 +77,8 @@ class ApiHub(ApiBase):
         # notify other servers
         endpoint = 'update_key' if get_by == 'key' else 'update_key_by_email'
         for api in Api.objects.exclude(name=api_obj.name):
-            apicall('%s/%s/' % (api.url, endpoint), api=api.name,
-                    key=key.key, email=key.email, status=key.status)
+            self.apicall('%s/%s/' % (api.url, endpoint), api.signing_key,
+                         api=api.name, key=key.key, email=key.email,
+                         status=key.status)
 
         return HttpResponse('OK')
