@@ -8,6 +8,8 @@ from locksmith.hub.models import Api, Key, Report
 
 class ApiHub(ApiBase):
 
+    KEY_MODEL = Key
+
     def verify_signature(self, post):
         api = get_object_or_404(Api, name=post['api'])
         return self.get_signature(post, api.signing_key) == post['signature']
@@ -61,19 +63,10 @@ class ApiHub(ApiBase):
         return HttpResponse('OK')
 
     def update_key(self, request, get_by='key'):
+
+        super(ApiHub, self).update_key(request, get_by)
+
         api_obj = get_object_or_404(Api, name=request.POST['api'])
-
-        # get the key
-        if get_by == 'key':
-            key = get_object_or_404(Key, key=request.POST['key'])
-        elif get_by == 'email':
-            key = get_object_or_404(Key, key=request.POST['email'])
-
-        # update key
-        key.key = request.POST['key']
-        key.email = request.POST['email']
-        key.status = request.POST['status']
-        key.save()
 
         # notify other servers
         endpoint = 'update_key' if get_by == 'key' else 'update_key_by_email'

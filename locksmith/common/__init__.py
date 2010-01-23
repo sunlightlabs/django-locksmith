@@ -9,6 +9,8 @@ from django.utils.importlib import import_module
 
 class ApiBase(object):
 
+    # KEY_MODEL
+
     ## signing internals
 
     def get_signature(self, params, signkey):
@@ -65,16 +67,32 @@ class ApiBase(object):
         return False
 
     def create_key(self, request):
-        pass
+        self.KEY_MODEL.objects.create(key=request.POST['key'],
+                                      email=request.POST['email'],
+                                      status=request.POST['status'])
+        return HttpResponse('OK')
 
     def update_key(self, request, get_by='key'):
-        pass
+        # get the key
+        if get_by == 'key':
+            key = get_object_or_404(self.KEY_MODEL, key=request.POST['key'])
+        elif get_by == 'email':
+            key = get_object_or_404(self.KEY_MODEL, email=request.POST['email'])
+
+        # update key
+        key.key = request.POST['key']
+        key.email = request.POST['email']
+        key.status = request.POST['status']
+        key.save()
+
+        return HttpResponse('OK')
 
 class ApiAuthBase(ApiBase):
 
     API_NAME = 'set-me'
     SIGNING_KEY = 'set-me'
     API_HUB_URL = 'http://set.me'
+    # KEY_MODEL
 
     def verify_signature(self, post):
         return self.get_signature(post, self.SIGNING_KEY) == post['signature']
