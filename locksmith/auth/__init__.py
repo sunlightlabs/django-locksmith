@@ -1,6 +1,8 @@
 from django.template.loader import render_to_string
+from django.shortcuts import render_to_response
 from django.conf import settings
 from django.forms import ModelForm
+from django.conf.urls.defaults import url
 from locksmith.common import ApiAuthBase
 from locksmith.auth.models import Key
 
@@ -18,7 +20,7 @@ class ApiAuth(ApiAuthBase):
     registration_complete_template = 'locksmith/registered.html'
     registration_confirmed_template = 'locksmith/confirmed.html'
 
-    def get_key_model_form():
+    def get_key_model_form(self):
         if not self.key_model_form:
             class Form(ModelForm):
                 class Meta:
@@ -34,7 +36,7 @@ class ApiAuth(ApiAuthBase):
             url(r'^confirm/(?P<key>[0-9af]{32})/$', self.confirm_registration,
                 name='api_confirm')]
 
-    def register(request):
+    def register(self, request):
         if request.method == 'POST':
             form = self.get_key_model_form()(request.POST)
             if form.is_valid():
@@ -57,7 +59,7 @@ class ApiAuth(ApiAuthBase):
             form = self.get_key_model_form()()
         return render_to_response(self.registration_template, {'form':form})
 
-    def confirm_registration(request, key):
+    def confirm_registration(self, request, key):
         context = {}
         try:
             context['key'] = key_obj = self.key_model.get(key=key)
