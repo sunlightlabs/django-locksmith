@@ -1,11 +1,6 @@
 import datetime
 from django.db import models
-
-KEY_STATUS = (
-    ('U', 'Unactivated'),
-    ('A', 'Active'),
-    ('S', 'Suspended')
-)
+from locksmith.common import KEY_STATUSES
 
 class Api(models.Model):
     name = models.CharField(max_length=30)
@@ -23,7 +18,7 @@ class Key(models.Model):
     email = models.EmailField()
     issued_by = models.ForeignKey(Api, related_name='keys')
     issued_on = models.DateTimeField(default=datetime.datetime.now)
-    status = models.CharField(max_length=1, choices=KEY_STATUS, default='U')
+    status = models.CharField(max_length=1, choices=KEY_STATUSES, default='U')
 
     def __unicode__(self):
         return self.key

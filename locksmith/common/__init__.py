@@ -7,9 +7,23 @@ from django.conf.urls.defaults import patterns, url
 from django.conf import settings
 from django.utils.importlib import import_module
 
+KEY_STATUSES = (
+    ('U', 'Unactivated'),
+    ('A', 'Active'),
+    ('S', 'Suspended')
+)
+
 class ApiBase(object):
 
-    # KEY_MODEL
+    key_model = None
+
+    _required_settings = ['key_model']
+
+    def __init__(self):
+        for setting in self._required_settings:
+            if not getattr(self, setting, None):
+                raise ImproperlyConfigured('%s must define a %s setting' %
+                                           (self.__class__.__name__, setting))
 
     ## signing internals
 
@@ -67,7 +81,7 @@ class ApiBase(object):
         return False
 
     def create_key(self, request):
-        self.KEY_MODEL.objects.create(key=request.POST['key'],
+        self.key_model.objects.create(key=request.POST['key'],
                                       email=request.POST['email'],
                                       status=request.POST['status'])
         return HttpResponse('OK')
@@ -75,9 +89,9 @@ class ApiBase(object):
     def update_key(self, request, get_by='key'):
         # get the key
         if get_by == 'key':
-            key = get_object_or_404(self.KEY_MODEL, key=request.POST['key'])
+            key = get_object_or_404(self.key_model, key=request.POST['key'])
         elif get_by == 'email':
-            key = get_object_or_404(self.KEY_MODEL, email=request.POST['email'])
+            key = get_object_or_404(self.key_model, email=request.POST['email'])
 
         # update key
         key.key = request.POST['key']
@@ -89,28 +103,29 @@ class ApiBase(object):
 
 class ApiAuthBase(ApiBase):
 
-    API_NAME = 'set-me'
-    SIGNING_KEY = 'set-me'
-    API_HUB_URL = 'http://set.me'
-    # KEY_MODEL
+    key_model = None
+    api_name = None
+    signing_key = None
+    api_hub_url = None
+    _required_settings = ('key_model', 'api_name', 'signing_key', 'api_hub_url')
 
     def verify_signature(self, post):
-        return self.get_signature(post, self.SIGNING_KEY) == post['signature']
+        return self.get_signature(post, self.signing_key) == post['signature']
 
     def publish_report(self, date, endpoint, key, calls):
-        url = self.API_HUB_URL + '/report_views/'
-        self.apicall(url, self.SIGNING_KEY, api=self.API_NAME, date=date,
+        url = self.api_hub_url + '/report_views/'
+        self.apicall(url, self.signing_key, api=self.api_name, date=date,
                      endpoint=endpoint, key=key, calls=calls)
 
     def publish_new_key(self, key, email, status):
-        url = self.API_HUB_URL + '/create_key/'
-        self.apicall(url, self.SIGNING_KEY, api=self.API_NAME, key=key,
+        url = self.api_hub_url + '/create_key/'
+        self.apicall(url, self.signing_key, api=self.api_name, key=key,
                      email=email, status=status)
 
     def publish_key_update(self, key, email, status, get_by='key', ):
         path = {'key':'/update_key/', 'email':'/update_key_by_email/'}[get_by]
-        url = self.API_HUB_URL + path
-        self.apicall(url, self.SIGNING_KEY, api=self.API_NAME, key=key,
+        url = self.api_hub_url + path
+        self.apicall(url, self.signing_key, api=self.api_name, key=key,
                      email=email, status=status)
 
 _api_instance = None

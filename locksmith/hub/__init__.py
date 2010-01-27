@@ -8,7 +8,7 @@ from locksmith.hub.models import Api, Key, Report
 
 class ApiHub(ApiBase):
 
-    KEY_MODEL = Key
+    key_model = Key
 
     def verify_signature(self, post):
         api = get_object_or_404(Api, name=post['api'])
