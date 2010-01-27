@@ -17,5 +17,3 @@ class Key(models.Model):
 
     class Meta:
         db_table = 'locksmith_auth_key'
-
-

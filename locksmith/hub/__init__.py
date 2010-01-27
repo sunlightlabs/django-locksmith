@@ -16,11 +16,10 @@ class ApiHub(ApiBase):
 
     def get_urls(self):
         urls = super(ApiHub, self).get_urls()
-        urls.append(
+        return urls + [
             url(r'^report_views/$', require_POST(self.report_views),
                 name='report_views')
-        )
-        return urls
+        ]
 
     def report_views(self, request):
         if not self.verify_signature(request.POST):

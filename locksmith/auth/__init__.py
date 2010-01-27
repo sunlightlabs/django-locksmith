@@ -1,11 +1,12 @@
 from django.template.loader import render_to_string
 from django.conf import settings
+from django.forms import ModelForm
 from locksmith.common import ApiAuthBase
 from locksmith.auth.models import Key
 
 class ApiAuth(ApiAuthBase):
     key_model = Key
-    key_model_form = KeyForm
+    key_model_form = None
 
     require_confirmation = False
 
@@ -17,9 +18,25 @@ class ApiAuth(ApiAuthBase):
     registration_complete_template = 'locksmith/registered.html'
     registration_confirmed_template = 'locksmith/confirmed.html'
 
+    def get_key_model_form():
+        if not self.key_model_form:
+            class Form(ModelForm):
+                class Meta:
+                    model = self.key_model
+                    fields = ('email',)
+            self.key_model_form = Form
+        return self.key_model_form
+
+    def get_urls(self):
+        urls = super(ApiAuth, self).get_urls()
+        return urls + [
+            url(r'^register/$', self.register, name='api_registration'),
+            url(r'^confirm/(?P<key>[0-9af]{32})/$', self.confirm_registration,
+                name='api_confirm')]
+
     def register(request):
         if request.method == 'POST':
-            form = self.key_model_form(request.POST)
+            form = self.get_key_model_form()(request.POST)
             if form.is_valid():
                 newkey = form.save(commit=False)
                 newkey.key = uuid.uuid4().hex
@@ -37,7 +54,7 @@ class ApiAuth(ApiAuthBase):
             return render_to_response(self.registration_complete_template,
                                       {'key': newkey})
         else:
-            form = self.key_model_form()
+            form = self.get_key_model_form()()
         return render_to_response(self.registration_template, {'form':form})
 
     def confirm_registration(request, key):
