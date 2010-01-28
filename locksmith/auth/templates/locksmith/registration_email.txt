@@ -1,8 +1,0 @@
-Thank you for registering for an API key.
-
-Please visit the following URL to verify your email address and activate your key
-http://services.sunlightlabs.com/api/confirmkey/%s/
-
-Your details are included below for your records:
-    Email: {{key.email}}
-    API Key: {{key.key}}

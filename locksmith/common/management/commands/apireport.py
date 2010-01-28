@@ -1,7 +1,9 @@
 import datetime
+from urlparse import urljoin
 from django.core.management.base import BaseCommand, CommandError
+from django.conf import settings
 from django.db.models import get_model, Count
-from locksmith.common import get_api_instance
+from locksmith.common import apicall
 
 APISTATS_APP = 'api'
 APISTATS_MODEL = 'LogEntry'
@@ -16,8 +18,6 @@ class Command(BaseCommand):
     requires_model_validation = False
 
     def handle(self, date=None, *args, **options):
-        api_instance = get_api_instance()
-
         if date:
             begin = datetime.datetime.strptime(date, '%Y-%m-%d')
         else:
@@ -32,7 +32,13 @@ class Command(BaseCommand):
         qs = Model.objects.filter(**{timestamp_fieldname : (begin, end)})
         results = qs.values(APISTATS_ENDPOINT_FIELD, APISTATS_USER_FIELD).annotate(calls=Count('id'))
 
+        endpoint = urljoin(settings.LOCKSMITH_HUB_URL, '/report_views/')
+
         for item in results:
-            api_instance.publish_report(date, item[APISTATS_ENDPOINT_FIELD],
-                                        item[APISTATS_USER_FIELD],
-                                        item['calls'])
+            data = {'api': settings.LOCKSMITH_API_NAME, 'date':date,
+                    'endpoint': item[APISTATS_ENDPOINT_FIELD],
+                    'key': item[APISTATS_USER_FIELD], 'calls': item['calls']}
+            apicall(endpoint, settings.LOCKSMITH_SIGNING_KEY,
+                    api=settings.LOCKSMITH_API_NAME, date=date,
+                    endpoint=item[APISTATS_ENDPOINT_FIELD],
+                    key=item[APISTATS_USER_FIELD], calls=item['calls'])

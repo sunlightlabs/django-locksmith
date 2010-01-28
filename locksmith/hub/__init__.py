@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404
 from django.conf.urls.defaults import url
 from django.views.decorators.http import require_POST
 
-from locksmith.common import ApiBase
+from locksmith.common import ApiBase, apicall, get_signature
 from locksmith.hub.models import Api, Key, Report
 
 class ApiHub(ApiBase):
@@ -12,7 +12,7 @@ class ApiHub(ApiBase):
 
     def verify_signature(self, post):
         api = get_object_or_404(Api, name=post['api'])
-        return self.get_signature(post, api.signing_key) == post['signature']
+        return get_signature(post, api.signing_key) == post['signature']
 
     def get_urls(self):
         urls = super(ApiHub, self).get_urls()
@@ -55,9 +55,8 @@ class ApiHub(ApiBase):
                                  status=request.POST['status'])
         # notify other servers
         for api in Api.objects.exclude(name=api_obj.name):
-            self.apicall('%s/create_key/' % api.url, api.signing_key,
-                         api=api.name, key=key.key, email=key.email,
-                         status=key.status)
+            apicall('%s/create_key/' % api.url, api.signing_key, api=api.name,
+                    key=key.key, email=key.email, status=key.status)
 
         return HttpResponse('OK')
 
@@ -70,9 +69,9 @@ class ApiHub(ApiBase):
         # notify other servers
         endpoint = 'update_key' if get_by == 'key' else 'update_key_by_email'
         for api in Api.objects.exclude(name=api_obj.name):
-            self.apicall('%s/%s/' % (api.url, endpoint), api.signing_key,
-                         api=api.name, key=key.key, email=key.email,
-                         status=key.status)
+            apicall('%s/%s/' % (api.url, endpoint), api.signing_key,
+                    api=api.name, key=key.key, email=key.email, 
+                    status=key.status)
 
         return HttpResponse('OK')
 

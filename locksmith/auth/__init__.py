@@ -1,12 +1,19 @@
+import uuid
 from django.template.loader import render_to_string
 from django.shortcuts import render_to_response
 from django.conf import settings
 from django.forms import ModelForm
 from django.conf.urls.defaults import url
-from locksmith.common import ApiAuthBase
+from locksmith.common import ApiBase, get_signature
 from locksmith.auth.models import Key
 
-class ApiAuth(ApiAuthBase):
+def send_mail(title, msg, sender, to):
+    print title
+    print msg
+    print sender
+    print to
+
+class ApiAuth(ApiBase):
     key_model = Key
     key_model_form = None
 
@@ -25,15 +32,18 @@ class ApiAuth(ApiAuthBase):
             class Form(ModelForm):
                 class Meta:
                     model = self.key_model
-                    fields = ('email',)
+                    exclude = ('key', 'status', 'issued_on', 'pub_status')
             self.key_model_form = Form
         return self.key_model_form
+
+    def verify_signature(self, post):
+        return get_signature(post, settings.LOCKSMITH_SIGNING_KEY) == post['signature']
 
     def get_urls(self):
         urls = super(ApiAuth, self).get_urls()
         return urls + [
             url(r'^register/$', self.register, name='api_registration'),
-            url(r'^confirm/(?P<key>[0-9af]{32})/$', self.confirm_registration,
+            url(r'^confirmkey/(?P<key>[0-9a-f]{32})/$', self.confirm_registration,
                 name='api_confirm')]
 
     def register(self, request):
@@ -47,14 +57,13 @@ class ApiAuth(ApiAuthBase):
                 else:
                     newkey.status = 'A'
                 newkey.save()
-                self.publish_new_key(key.key, key.email, key.status)
 
-            email_msg = render_to_string(self.registration_email_template,
-                                         {'key': newkey})
-            send_mail(self.registration_email_subject, email_msg,
-                      self.registration_email_from, [newkey.email])
-            return render_to_response(self.registration_complete_template,
-                                      {'key': newkey})
+                email_msg = render_to_string(self.registration_email_template,
+                                             {'key': newkey})
+                send_mail(self.registration_email_subject, email_msg,
+                          self.registration_email_from, [newkey.email])
+                return render_to_response(self.registration_complete_template,
+                                          {'key': newkey})
         else:
             form = self.get_key_model_form()()
         return render_to_response(self.registration_template, {'form':form})
@@ -62,13 +71,13 @@ class ApiAuth(ApiAuthBase):
     def confirm_registration(self, request, key):
         context = {}
         try:
-            context['key'] = key_obj = self.key_model.get(key=key)
+            context['key'] = key_obj = self.key_model.objects.get(key=key)
             if key_obj.status != 'U':
                 context['error'] = 'Key Already Activated'
             else:
                 key_obj.status = 'A'
+                key_obj.mark_for_update()
                 key_obj.save()
-                self.publish_key_update(key_obj.key, key_obj.email, key_obj.status)
         except self.key_model.DoesNotExist:
             context['error'] = 'Invalid Key'
         return render_to_response(self.registration_confirmed_template, context)
