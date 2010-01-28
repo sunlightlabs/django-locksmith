@@ -1,17 +1,12 @@
 import uuid
-from django.template.loader import render_to_string
-from django.shortcuts import render_to_response
 from django.conf import settings
-from django.forms import ModelForm
 from django.conf.urls.defaults import url
+from django.core.mail import send_mail
+from django.forms import ModelForm
+from django.shortcuts import render_to_response
+from django.template.loader import render_to_string
 from locksmith.common import ApiBase, get_signature
 from locksmith.auth.models import Key
-
-def send_mail(title, msg, sender, to):
-    print title
-    print msg
-    print sender
-    print to
 
 class ApiAuth(ApiBase):
     key_model = Key
