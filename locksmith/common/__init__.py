@@ -2,11 +2,12 @@ import hashlib
 import hmac
 import urllib, urllib2
 from urlparse import urljoin
-from django.core.exceptions import ImproperlyConfigured
-from django.views.decorators.http import require_POST
-from django.conf.urls.defaults import patterns, url
 from django.conf import settings
+from django.conf.urls.defaults import patterns, url
+from django.core.exceptions import ImproperlyConfigured
+from django.http import HttpResponse, HttpResponseBadRequest
 from django.utils.importlib import import_module
+from django.views.decorators.http import require_POST
 
 KEY_STATUSES = (
     ('U', 'Unactivated'),
