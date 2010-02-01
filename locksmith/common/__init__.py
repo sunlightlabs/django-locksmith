@@ -27,7 +27,7 @@ def apicall(url, signkey, **params):
     body = urllib.urlencode(data)
     urllib2.urlopen(url, body)
 
-class ApiBase(object):
+class ViewsBase(object):
 
     key_model = None
 

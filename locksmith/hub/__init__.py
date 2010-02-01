@@ -3,10 +3,10 @@ from django.shortcuts import get_object_or_404
 from django.conf.urls.defaults import url
 from django.views.decorators.http import require_POST
 
-from locksmith.common import ApiBase, apicall, get_signature
+from locksmith.common import ViewsBase, apicall, get_signature
 from locksmith.hub.models import Api, Key, Report
 
-class ApiHub(ApiBase):
+class HubViews(ViewsBase):
 
     key_model = Key
 
@@ -15,7 +15,7 @@ class ApiHub(ApiBase):
         return get_signature(post, api.signing_key) == post['signature']
 
     def get_urls(self):
-        urls = super(ApiHub, self).get_urls()
+        urls = super(HubViews, self).get_urls()
         return urls + [
             url(r'^report_views/$', require_POST(self.report_views),
                 name='report_views')
@@ -62,7 +62,7 @@ class ApiHub(ApiBase):
 
     def update_key(self, request, get_by='key'):
 
-        super(ApiHub, self).update_key(request, get_by)
+        super(HubViews, self).update_key(request, get_by)
 
         api_obj = get_object_or_404(Api, name=request.POST['api'])
 
@@ -75,4 +75,4 @@ class ApiHub(ApiBase):
 
         return HttpResponse('OK')
 
-site = ApiHub()
+site = HubViews()

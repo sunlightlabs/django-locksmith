@@ -5,10 +5,10 @@ from django.core.mail import send_mail
 from django.forms import ModelForm
 from django.shortcuts import render_to_response
 from django.template.loader import render_to_string
-from locksmith.common import ApiBase, get_signature
+from locksmith.common import ViewsBase, get_signature
 from locksmith.auth.models import Key
 
-class ApiAuth(ApiBase):
+class AuthViews(ViewsBase):
     key_model = Key
     key_model_form = None
 
@@ -35,7 +35,7 @@ class ApiAuth(ApiBase):
         return get_signature(post, settings.LOCKSMITH_SIGNING_KEY) == post['signature']
 
     def get_urls(self):
-        urls = super(ApiAuth, self).get_urls()
+        urls = super(AuthViews, self).get_urls()
         return urls + [
             url(r'^register/$', self.register, name='api_registration'),
             url(r'^confirmkey/(?P<key>[0-9a-f]{32})/$', self.confirm_registration,
