@@ -1,8 +1,6 @@
 import hashlib
 import hmac
 import urllib, urllib2
-from urlparse import urljoin
-from django.conf import settings
 
 KEY_STATUSES = (
     ('U', 'Unactivated'),
