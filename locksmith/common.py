@@ -1,0 +1,24 @@
+import hashlib
+import hmac
+import urllib, urllib2
+from urlparse import urljoin
+from django.conf import settings
+
+KEY_STATUSES = (
+    ('U', 'Unactivated'),
+    ('A', 'Active'),
+    ('S', 'Suspended')
+)
+
+def get_signature(params, signkey):
+    # sorted k,v pairs of everything but signature
+    data = sorted([(k,v) for k,v in params.iteritems() if k != 'signature'])
+    qs = urllib.urlencode(data)
+    return hmac.new(str(signkey), qs, hashlib.sha1).hexdigest()
+
+def apicall(url, signkey, **params):
+    params['signature'] = get_signature(params, signkey)
+    data = sorted([(k,v) for k,v in params.iteritems()])
+    body = urllib.urlencode(data)
+    urllib2.urlopen(url, body)
+

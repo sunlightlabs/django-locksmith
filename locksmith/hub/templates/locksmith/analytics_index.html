@@ -1,0 +1,7 @@
+
+<table>
+{% for api in apis %}
+<tr>
+    <td>{{api.name}}</td><td>{{api.calls}}</td><td>{{api.keys.count}}</td>
+{% endfor %}
+</table>

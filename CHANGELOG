@@ -1,0 +1,13 @@
+==========================
+django-locksmith changelog
+==========================
+
+0.2.0
+=====
+    - removal of locksmith.common as a sub-app
+    - move of registration to hub
+    - move from class based views back to traditional views
+
+0.1.0
+=====
+    - initial version with class based views and decentralized authority
