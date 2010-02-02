@@ -9,9 +9,6 @@ from django.views.decorators.http import require_POST
 from locksmith.common import get_signature
 from locksmith.hub.models import Api, Key, KeyForm, Report
 
-def send_mail(a,b,c,d,**params):
-    print a,b,c,d
-
 def verify_signature(post):
     api = get_object_or_404(Api, name=post['api'])
     return get_signature(post, api.signing_key) == post['signature']
@@ -51,8 +48,10 @@ def register(request):
 
             email_msg = render_to_string('locksmith/registration_email.txt',
                                          {'key': newkey})
-            send_mail('Email Subject', email_msg,
-                      settings.DEFAULT_FROM_EMAIL, [newkey.email])
+            email_subject = getattr(settings, LOCKSMITH_EMAIL_SUBJECT,
+                                    'API Registration')
+            send_mail(email_subject, email_msg, settings.DEFAULT_FROM_EMAIL, 
+                      [newkey.email])
             return render_to_response('locksmith/registered.html',
                                       {'key': newkey})
     else:
