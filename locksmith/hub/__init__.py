@@ -1,6 +1,7 @@
-from django.http import HttpResponse, HttpResponseBadRequest
-from django.shortcuts import get_object_or_404
 from django.conf.urls.defaults import url
+from django.db.models import Sum
+from django.http import HttpResponse, HttpResponseBadRequest
+from django.shortcuts import get_object_or_404, render_to_response
 from django.views.decorators.http import require_POST
 
 from locksmith.common import ViewsBase, apicall, get_signature
@@ -18,7 +19,8 @@ class HubViews(ViewsBase):
         urls = super(HubViews, self).get_urls()
         return urls + [
             url(r'^report_views/$', require_POST(self.report_views),
-                name='report_views')
+                name='report_views'),
+            url(r'^$', self.analytics_index, name='analytics_index'),
         ]
 
     def report_views(self, request):
@@ -74,5 +76,12 @@ class HubViews(ViewsBase):
                     status=key.status)
 
         return HttpResponse('OK')
+
+    # analytics views
+
+    def analytics_index(self, request):
+        apis = Api.objects.all().annotate(calls=Sum('reports__calls'))
+        return render_to_response('locksmith/analytics_index.html',
+                                  {'apis':apis})
 
 site = HubViews()
