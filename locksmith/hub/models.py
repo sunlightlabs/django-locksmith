@@ -1,7 +1,7 @@
 import datetime
 from django.db import models
 from django.db.models.signals import post_save
-from django.forms import ModelForm
+from django.forms import ModelForm, ValidationError
 from locksmith.common import KEY_STATUSES
 
 UNPUBLISHED, PUBLISHED, NEEDS_UPDATE = range(3)
@@ -81,6 +81,6 @@ class KeyForm(ModelForm):
         exclude = ('key', 'issued_on', 'status', 'pub_status')
 
     def clean_email(self):
-        if ApiKey.objects.filter(email=self.cleaned_data['email']).count():
+        if Key.objects.filter(email=self.cleaned_data['email']).count():
             raise ValidationError('Email address already registered')
         return self.cleaned_data['email']

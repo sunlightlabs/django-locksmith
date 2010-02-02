@@ -1,9 +1,16 @@
+import uuid
+from django.conf import settings
+from django.core.mail import send_mail
 from django.db.models import Sum
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, render_to_response
+from django.template.loader import render_to_string
 from django.views.decorators.http import require_POST
 from locksmith.common import get_signature
 from locksmith.hub.models import Api, Key, KeyForm, Report
+
+def send_mail(a,b,c,d,**params):
+    print a,b,c,d
 
 def verify_signature(post):
     api = get_object_or_404(Api, name=post['api'])
@@ -50,7 +57,7 @@ def register(request):
                                       {'key': newkey})
     else:
         form = KeyForm()
-    return render_to_response('locksmith/registration.html', {'form':form})
+    return render_to_response('locksmith/register.html', {'form':form})
 
 def confirm_registration(request, key):
     context = {}
