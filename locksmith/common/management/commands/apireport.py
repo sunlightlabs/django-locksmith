@@ -32,7 +32,7 @@ class Command(BaseCommand):
         qs = LogModel.objects.filter(**{timestamp_fieldname : (begin, end)})
         results = qs.values(ENDPOINT_FIELD, USER_FIELD).annotate(calls=Count('id'))
 
-        endpoint = urljoin(settings.LOCKSMITH_HUB_URL, 'report_views/')
+        endpoint = urljoin(settings.LOCKSMITH_HUB_URL, 'report_calls/')
 
         # report results
         for item in results:

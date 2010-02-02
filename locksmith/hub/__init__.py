@@ -18,12 +18,12 @@ class HubViews(ViewsBase):
     def get_urls(self):
         urls = super(HubViews, self).get_urls()
         return urls + [
-            url(r'^report_views/$', require_POST(self.report_views),
-                name='report_views'),
+            url(r'^report_calls/$', require_POST(self.report_calls),
+                name='report_calls'),
             url(r'^$', self.analytics_index, name='analytics_index'),
         ]
 
-    def report_views(self, request):
+    def report_calls(self, request):
         if not self.verify_signature(request.POST):
             return HttpResponseBadRequest('bad signature')
 
