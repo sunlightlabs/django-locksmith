@@ -9,16 +9,16 @@ def verify_signature(post):
     return get_signature(post, settings.LOCKSMITH_SIGNING_KEY) == post['signature']
 
 @require_POST
-def create_key(self, request):
+def create_key(request):
     if not verify_signature(request.POST):
         return HttpResponseBadRequest('bad signature')
-    Key.objects.create(key=request.POST['key'],
-                                  email=request.POST['email'],
-                                  status=request.POST['status'])
+    ApiKey.objects.create(key=request.POST['key'],
+                          email=request.POST['email'],
+                          status=request.POST['status'])
     return HttpResponse('OK')
 
 @require_POST
-def update_key(self, request, get_by='key'):
+def update_key(request, get_by='key'):
     if not verify_signature(request.POST):
         return HttpResponseBadRequest('bad signature')
     # get the key
