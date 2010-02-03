@@ -23,9 +23,9 @@ def update_key(request, get_by='key'):
         return HttpResponseBadRequest('bad signature')
     # get the key
     if get_by == 'key':
-        key = get_object_or_404(Key, key=request.POST['key'])
+        key = get_object_or_404(ApiKey, key=request.POST['key'])
     elif get_by == 'email':
-        key = get_object_or_404(Key, email=request.POST['email'])
+        key = get_object_or_404(ApiKey, email=request.POST['email'])
 
     # update key
     key.key = request.POST['key']
