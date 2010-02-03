@@ -48,9 +48,9 @@ def register(request):
 
             email_msg = render_to_string('locksmith/registration_email.txt',
                                          {'key': newkey})
-            email_subject = getattr(settings, LOCKSMITH_EMAIL_SUBJECT,
+            email_subject = getattr(settings, 'LOCKSMITH_EMAIL_SUBJECT',
                                     'API Registration')
-            send_mail(email_subject, email_msg, settings.DEFAULT_FROM_EMAIL, 
+            send_mail(email_subject, email_msg, settings.DEFAULT_FROM_EMAIL,
                       [newkey.email])
             return render_to_response('locksmith/registered.html',
                                       {'key': newkey})
