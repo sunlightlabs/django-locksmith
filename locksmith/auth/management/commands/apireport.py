@@ -26,6 +26,7 @@ class Command(BaseCommand):
             begin = datetime.datetime.now() - datetime.timedelta(days=1)
             date = begin.strftime('%Y-%m-%d')
         end = begin + datetime.timedelta(days=1)
+        print 'pushing logs for %s' % date
 
         # construct database query
         timestamp_fieldname = '%s__range' % DATE_FIELD
