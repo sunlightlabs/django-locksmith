@@ -1,3 +1,4 @@
+import datetime
 from urlparse import urljoin
 import urllib2
 from django.core.management.base import NoArgsCommand
