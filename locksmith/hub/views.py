@@ -136,11 +136,19 @@ def api_analytics(request, apiname):
 
     return render_to_response('locksmith/api_analytics.html', c)
 
-'''
-    /keys/
-        list of all keys in sortable table w/ details and calls by api
-    /keys/----/
-        details
-        call graph (area)
-        methods (bars)
-'''
+def keys_analytics(request, apiname):
+    keys = Key.objects.all()
+    pass
+
+def key_analytics(request, key):
+    key = get_object_or_404(Key, key=key)
+    endpoint_q = key.reports.values('api__name', 'endpoint').annotate(calls=Sum('calls')).order_by('-calls')
+    endpoints = [{'endpoint':'.'.join((d['api__name'], d['endpoint'])),
+                  'calls': d['calls']} for d in endpoint_q]
+    date_q = key.reports.values('date').annotate(calls=Sum('calls')).order_by('date')
+
+    c = {'key': key}
+    c['endpoints'], c['endpoint_calls'] = dictlist_to_lists(endpoints, 'endpoint', 'calls')
+    c['timeline'] = date_q
+
+    return render_to_response('locksmith/key_analytics.html', c)

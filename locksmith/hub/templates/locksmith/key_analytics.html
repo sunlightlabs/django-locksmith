@@ -1,0 +1,118 @@
+{% extends "locksmith/base.html" %}
+{% load humanize %}
+{% load charthelpers %}
+
+{% block content %}
+<h1>Statistics for {{key.key}}</h1>
+
+<dl>
+    <dt>Email</dt> <dd>{{key.email}}</dd>
+    <dt>Status</dt> <dd>{{key.get_status_display}}</dd>
+    <dt>Organization Name</dd> <dd>{{key.org_name}}</dd>
+    <dt>Organization URL</dt> <dd>{{key.org_url}}</dd>
+    <dt>Usage</dt> <dd>{{key.usage}}</dd>
+    <dt>Issue Date</dt> <dd>{{key.issued_on}}</dd>
+    {% for ps in key.pub_statuses.all %}
+        <dt>Publication Status {{ps.api.name}}</dt> <dd> {{ps.get_status_display}} </dd>
+    {% endfor %}
+</dl>
+
+<div id="timeline" style="height:500px;">
+</div>
+
+<div id="endpoints" style="width: 800px;">
+</div>
+
+<script>
+var chart = new Highcharts.Chart({
+   chart: {
+      renderTo: 'endpoints',
+      defaultSeriesType: 'bar'
+   },
+   title: {
+      text: 'API Calls by Method'
+   },
+   xAxis: {
+      categories: {{endpoints|safe}},
+      title: {
+         text: null
+      },
+     labels: {enabled: false}
+   },
+   yAxis: { min: 0, title: { text: null },
+   },
+   tooltip: {
+      formatter: function() {
+         return '<b>'+ this.x +'</b><br/>'+ this.y;
+      }
+   },
+   legend: { enabled: false },
+   credits: { enabled: false },
+   series: [{
+       data: {{endpoint_calls|safe}}
+   }]
+});
+
+
+var chart = new Highcharts.Chart({
+   chart: {
+      renderTo: 'timeline',
+   },
+   title: { text: 'API Calls' },
+   xAxis: {
+      type: 'datetime',
+      title: {
+         text: null
+      }
+   },
+   yAxis: { title: { text: null }, min: 0,
+      max: 10000,
+      showFirstLabel: false
+   },
+   tooltip: {
+      formatter: function() {
+         return '<b>'+ (this.point.name || this.series.name) +'</b><br/>'+ Highcharts.dateFormat('%Y-%m-%d', this.x) + ': ' + this.y + ' calls';
+      }
+   },
+   legend: { enabled: false },
+   plotOptions: {
+      area: {
+         fillColor: {
+            linearGradient: [0, 0, 0, 300],
+            stops: [
+               [0, 'rgba(0,0,255,255)'],
+               [1, 'rgba(0,0,0,0)']
+            ]
+         },
+         lineWidth: 1,
+         marker: {
+            enabled: false,
+            states: {
+               hover: {
+                  enabled: true,
+                  radius: 3
+               }
+            }
+         },
+         shadow: false,
+         states: {
+            hover: {
+               lineWidth: 1
+            }
+         }
+      }
+  },
+  credits: {enabled: false},
+   series: [{
+      type: 'area',
+      name: 'calls',
+      data: [
+      {% for o in timeline %}
+      [{{o.date|jsdate}}, {{o.calls}}]
+      {% if not forloop.last %} , {% endif %}
+      {% endfor %}
+      ]
+   }]
+});
+</script>
+{% endblock %}

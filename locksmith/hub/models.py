@@ -34,7 +34,7 @@ class Key(models.Model):
     issued_on = models.DateTimeField(default=datetime.datetime.now, editable=False)
 
     def __unicode__(self):
-        return self.key
+        return '%s %s [%s]' % (self.key, self.email, self.status)
 
     def mark_for_update(self):
         self.pub_statuses.exclude(status=UNPUBLISHED).update(status=NEEDS_UPDATE)

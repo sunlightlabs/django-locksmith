@@ -10,6 +10,7 @@ analytics = patterns('locksmith.hub.views',
     url(r'^report_calls/$', 'report_calls', name='report_calls'),
     url(r'^$', 'analytics_index', name='analytics_index'),
     url(r'^api/(?P<apiname>\w+)/$', 'api_analytics', name='api_analytics'),
+    url(r'^key/(?P<key>\w+)/$', 'key_analytics', name='key_analytics'),
 )
 
 urlpatterns = patterns('locksmith.hub.views',
