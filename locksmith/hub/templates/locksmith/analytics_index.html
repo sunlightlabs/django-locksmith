@@ -1,5 +1,6 @@
 {% extends "locksmith/base.html" %}
 {% load humanize %}
+{% load charthelpers %}
 
 {% block content %}
 <h1>Overview</h1>
@@ -51,7 +52,7 @@ var chart = new Highcharts.Chart({
        type: 'area',
        data: [
           {% for o in cumulative %}
-          [Date.UTC({{o.0.year}}, {{o.0.month|add:"-1"}}, {{o.0.day}}), {{o.1}}]
+          [{{o.0|jsdate}}, {{o.1}}]
           {% if not forloop.last %} , {% endif %}
           {% endfor %}
        ]

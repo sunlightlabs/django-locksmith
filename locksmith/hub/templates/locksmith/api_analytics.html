@@ -1,5 +1,6 @@
 {% extends "locksmith/base.html" %}
 {% load humanize %}
+{% load charthelpers %}
 
 {% block content %}
 <h1>Statistics for {{api.name}}</h1>
@@ -126,7 +127,7 @@ var chart = new Highcharts.Chart({
       name: 'calls',
       data: [
       {% for o in timeline %}
-      [Date.UTC({{o.date.year}}, {{o.date.month|add:"-1"}}, {{o.date.day}}), {{o.calls}}]
+      [{{o.date|jsdate}}, {{o.calls}}]
       {% if not forloop.last %} , {% endif %}
       {% endfor %}
       ]
