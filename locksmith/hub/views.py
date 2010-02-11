@@ -3,7 +3,7 @@ import uuid
 from collections import defaultdict
 from django.conf import settings
 from django.core.mail import send_mail
-from django.db.models import Sum, Count
+from django.db.models import Sum, Max
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
@@ -160,9 +160,10 @@ def api_analytics(request, apiname, year=None, month=None):
     return render_to_response('locksmith/api_analytics.html', c,
                               context_instance=RequestContext(request))
 
-def keys_analytics(request, apiname):
-    keys = Key.objects.all()
-    pass
+def key_list(request):
+    keys = Key.objects.all().annotate(calls=Sum('reports__calls'), latest_call=Max('reports__date'))
+    return render_to_response('locksmith/keys_list.html', {'keys': keys},
+                              context_instance=RequestContext(request))
 
 def key_analytics(request, key):
     key = get_object_or_404(Key, key=key)

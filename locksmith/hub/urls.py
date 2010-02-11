@@ -12,6 +12,7 @@ analytics = patterns('locksmith.hub.views',
     url(r'^api/(?P<apiname>\w+)/$', 'api_analytics', name='api_analytics'),
     url(r'^api/(?P<apiname>\w+)/(?P<year>20[01]\d)/$', 'api_analytics', name='api_analytics_year'),
     url(r'^api/(?P<apiname>\w+)/(?P<year>20[01]\d)/(?P<month>[01]?\d)/$', 'api_analytics', name='api_analytics_month'),
+    url(r'^key/$', 'key_list', name='key_list'),
     url(r'^key/(?P<key>\w+)/$', 'key_analytics', name='key_analytics'),
 )
 
