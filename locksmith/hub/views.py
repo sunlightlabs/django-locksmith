@@ -6,6 +6,7 @@ from django.core.mail import send_mail
 from django.db.models import Sum, Count
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, render_to_response
+from django.template import RequestContext
 from django.template.loader import render_to_string
 from django.views.decorators.http import require_POST
 from locksmith.common import get_signature
@@ -55,10 +56,12 @@ def register(request):
             send_mail(email_subject, email_msg, settings.DEFAULT_FROM_EMAIL,
                       [newkey.email])
             return render_to_response('locksmith/registered.html',
-                                      {'key': newkey})
+                                      {'key': newkey},
+                                      context_instance=RequestContext(request))
     else:
         form = KeyForm()
-    return render_to_response('locksmith/register.html', {'form':form})
+    return render_to_response('locksmith/register.html', {'form':form},
+                              context_instance=RequestContext(request))
 
 def confirm_registration(request, key):
     context = {}
@@ -72,7 +75,8 @@ def confirm_registration(request, key):
             key_obj.save()
     except Key.DoesNotExist:
         context['error'] = 'Invalid Key'
-    return render_to_response('locksmith/confirmed.html', context)
+    return render_to_response('locksmith/confirmed.html', context,
+                              context_instance=RequestContext(request))
 
 # analytics views
 
@@ -102,7 +106,8 @@ def analytics_index(request):
     cumulative = cumulative_by_date(Key, 'issued_on')
 
     return render_to_response('locksmith/analytics_index.html',
-                              {'apis':apis, 'cumulative':cumulative,})
+                              {'apis':apis, 'cumulative':cumulative,},
+                              context_instance=RequestContext(request))
 
 def dictlist_to_lists(dl, *keys):
     ''' convert a list of dictionaries to a dictionary of lists
@@ -134,7 +139,8 @@ def api_analytics(request, apiname):
     c['users'], c['user_calls'] = dictlist_to_lists(user_q, 'key__email', 'calls')
     c['timeline'] = date_q
 
-    return render_to_response('locksmith/api_analytics.html', c)
+    return render_to_response('locksmith/api_analytics.html', c,
+                              context_instance=RequestContext(request))
 
 def keys_analytics(request, apiname):
     keys = Key.objects.all()
@@ -151,4 +157,5 @@ def key_analytics(request, key):
     c['endpoints'], c['endpoint_calls'] = dictlist_to_lists(endpoints, 'endpoint', 'calls')
     c['timeline'] = date_q
 
-    return render_to_response('locksmith/key_analytics.html', c)
+    return render_to_response('locksmith/key_analytics.html', c,
+                              context_instance=RequestContext(request))
