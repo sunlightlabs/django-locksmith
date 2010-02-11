@@ -1,0 +1,35 @@
+{% extends "locksmith/base.html" %}
+
+{% block extrahead %}
+    <script type="text/javascript" charset="utf-8" src="{{ MEDIA_URL }}jquery.tablesorter.min.js"></script>
+    <script type="text/javascript">
+    $(document).ready(function() {
+        $('#keys').tablesorter();
+    });
+</script> 
+{% endblock %}
+
+{% block content %}
+<table id="keys">
+    <thead>
+        <tr>
+            <th>Key</th>
+            <th>Email</th>
+            <th>Issued Date</th>
+            <th>Total Calls</th>
+            <th>Latest Call</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for key in keys %}
+        <tr>
+            <td><a href="{% url key_analytics key.key %}">{{key.key}}</a></td>
+            <td><a href="{% url key_analytics key.key %}">{{key.email}}</a></td>
+            <td>{{key.issued_on}}</td>
+            <td>{{key.calls}}</td>
+            <td>{{key.latest_call}}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
