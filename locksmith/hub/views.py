@@ -128,15 +128,33 @@ def dictlist_to_lists(dl, *keys):
             lists[i].append(x)
     return lists
 
-def api_analytics(request, apiname):
+def api_analytics(request, apiname, year=None, month=None):
     api = get_object_or_404(Api, name=apiname)
     endpoint_q = api.reports.values('endpoint').annotate(calls=Sum('calls')).order_by('-calls')
-    user_q = api.reports.values('key__email').exclude(key__status='S').annotate(calls=Sum('calls')).order_by('-calls')[:50]
+    user_q = api.reports.values('key__email').exclude(key__status='S').annotate(calls=Sum('calls')).order_by('-calls')
     date_q = api.reports.values('date').annotate(calls=Sum('calls')).order_by('date')
 
-    c = {'api': api}
+    date_constraint = {}
+    if year:
+        date_constraint['date__year'] = year
+        if month:
+            date_constraint['date__month'] = month
+        endpoint_q = endpoint_q.filter(**date_constraint)
+        user_q = user_q.filter(**date_constraint)
+        date_q = date_q.filter(**date_constraint)
+
+    dates = api.reports.filter(**date_constraint).dates('date', 'month')
+    monthlies = []
+    for d in dates:
+        item = Report.objects.filter(date__year=d.year, date__month=d.month).aggregate(calls=Sum('calls'))
+        item['date'] = d
+        monthlies.append(item)
+
+    c = {'api': api, 'year': year, 'month': month}
     c['endpoints'], c['endpoint_calls'] = dictlist_to_lists(endpoint_q, 'endpoint', 'calls')
-    c['users'], c['user_calls'] = dictlist_to_lists(user_q, 'key__email', 'calls')
+    c['users'], c['user_calls'] = dictlist_to_lists(user_q[:50], 'key__email', 'calls')
+    #c['months'], c['month_calls'] = dictlist_to_lists(monthlies, 'date', 'calls')
+    c['monthlies'] = monthlies
     c['timeline'] = date_q
 
     return render_to_response('locksmith/api_analytics.html', c,

@@ -3,7 +3,18 @@
 {% load charthelpers %}
 
 {% block content %}
-<h1>Statistics for {{api.name}}</h1>
+<h1>Statistics for {{api.name}}
+    {% if month %} for {{month}}/{{year}} 
+    {% else %} {% if year %} for {{year}} {% endif %} {% endif %}
+</h1>
+
+{% if not month %}
+<table id="monthly">
+{% for m in monthlies %}
+<tr> <td><a href="{% url api_analytics_month api.name m.date.year m.date.month %}">{{m.date|date:"b 'y"}}</a></td><td>{{m.calls|intcomma}}</td> </tr>
+{% endfor %}
+</table>
+{% endif %}
 
 <div id="timeline" style="height:500px;">
 </div>
@@ -82,10 +93,10 @@ var chart = new Highcharts.Chart({
       type: 'datetime',
       title: {
          text: null
-      }
+     },
+     showFirstLabel: false
    },
    yAxis: { title: { text: null }, min: 0,
-      max: 80000,
       showFirstLabel: false
    },
    tooltip: {
