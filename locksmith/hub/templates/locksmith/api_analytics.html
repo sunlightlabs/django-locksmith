@@ -1,0 +1,136 @@
+{% extends "locksmith/base.html" %}
+{% load humanize %}
+
+{% block content %}
+<h1>Statistics for {{api.name}}</h1>
+
+<div id="timeline" style="height:500px;">
+</div>
+
+<div id="users" style="width:800px;">
+</div>
+
+<div id="endpoints" style="width: 800px;">
+</div>
+
+<script>
+var chart = new Highcharts.Chart({
+   chart: {
+      renderTo: 'endpoints',
+      defaultSeriesType: 'bar'
+   },
+   title: {
+      text: 'API Calls by Method'
+   },
+   xAxis: {
+      categories: {{endpoints|safe}},
+      title: {
+         text: null
+      },
+     labels: {enabled: false}
+   },
+   yAxis: { min: 0, title: { text: null },
+   },
+   tooltip: {
+      formatter: function() {
+         return '<b>'+ this.x +'</b><br/>'+ this.y;
+      }
+   },
+   legend: { enabled: false },
+   credits: { enabled: false },
+   series: [{
+       data: {{endpoint_calls|safe}}
+   }]
+});
+
+var chart = new Highcharts.Chart({
+   chart: {
+      renderTo: 'users',
+      defaultSeriesType: 'column'
+   },
+   title: {
+      text: 'API Calls by User'
+   },
+   xAxis: {
+      categories: {{users|safe}},
+      title: {
+         text: null
+      },
+     labels: {enabled: false}
+   },
+   yAxis: { min: 0, title: { text: null }
+   },
+   tooltip: {
+      formatter: function() {
+         return '<b>'+ this.x +'</b><br/>'+ this.y;
+      }
+   },
+   legend: { enabled: false },
+   credits: { enabled: false },
+   series: [{
+       data: {{user_calls|safe}}
+   }]
+});
+
+var chart = new Highcharts.Chart({
+   chart: {
+      renderTo: 'timeline',
+   },
+   title: { text: 'API Calls' },
+   xAxis: {
+      type: 'datetime',
+      title: {
+         text: null
+      }
+   },
+   yAxis: { title: { text: null }, min: 0,
+      max: 80000,
+      showFirstLabel: false
+   },
+   tooltip: {
+      formatter: function() {
+         return '<b>'+ (this.point.name || this.series.name) +'</b><br/>'+ Highcharts.dateFormat('%Y-%m-%d', this.x) + ': ' + this.y + ' calls';
+      }
+   },
+   legend: { enabled: false },
+   plotOptions: {
+      area: {
+         fillColor: {
+            linearGradient: [0, 0, 0, 300],
+            stops: [
+               [0, 'rgba(0,0,255,255)'],
+               [1, 'rgba(0,0,0,0)']
+            ]
+         },
+         lineWidth: 1,
+         marker: {
+            enabled: false,
+            states: {
+               hover: {
+                  enabled: true,
+                  radius: 3
+               }
+            }
+         },
+         shadow: false,
+         states: {
+            hover: {
+               lineWidth: 1
+            }
+         }
+      }
+  },
+  credits: {enabled: false},
+   series: [{
+      type: 'area',
+      name: 'calls',
+      data: [
+      {% for o in timeline %}
+      [Date.UTC({{o.date.year}}, {{o.date.month|add:"-1"}}, {{o.date.day}}), {{o.calls}}]
+      {% if not forloop.last %} , {% endif %}
+      {% endfor %}
+      ]
+   }]
+});
+</script>
+{% endblock %}

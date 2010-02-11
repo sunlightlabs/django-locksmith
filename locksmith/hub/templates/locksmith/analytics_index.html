@@ -1,7 +1,61 @@
+{% extends "locksmith/base.html" %}
+{% load humanize %}
 
+{% block content %}
+<h1>Overview</h1>
 <table>
+<thead>
+    <tr> <th>API</th> <th> total </th> <th> last 365 days </th> <th> last 30 days </th> </tr>
+</thead>
 {% for api in apis %}
 <tr>
-    <td>{{api.name}}</td><td>{{api.calls}}</td><td>{{api.keys.count}}</td>
+    <td><a href="{% url api_analytics api.name %}">{{api.name}}</a></td>
+    <td>{{api.total_calls|default:0|intcomma}}</td>
+    <td>{{api.year_calls|default:0|intcomma}}</td>
+    <td>{{api.month_calls|default:0|intcomma}}</td>
+</tr>
 {% endfor %}
 </table>
+
+<div id="timeline" style="width: 450px;">
+</div>
+
+<script>
+var chart = new Highcharts.Chart({
+   chart: {
+      renderTo: 'timeline',
+      //defaultSeriesType: 'line'
+      zoomType: 'x'
+   },
+   title: { text: 'Keys Issued' },
+   xAxis: {
+/*      categories: {{dates|safe}},
+      labels: {enabled: false},*/
+      title: { text: 'Month' },
+      type: 'datetime',
+      maxZoom: 60*24*3600000
+   },
+   yAxis: {
+      title: { text: 'Total Keys' },
+      min: 0
+   },
+   legend: { enabled: false },
+   credits: { enabled: false },
+   tooltip: {
+      formatter: function() {
+         return '<b>'+ (this.point.name || this.series.name) +'</b><br/>'+ Highcharts.dateFormat("%b '%y", this.x) + ': ' + this.y + ' keys';
+      }
+   },
+   series: [{
+       name: 'Keys',
+       type: 'area',
+       data: [
+          {% for o in cumulative %}
+          [Date.UTC({{o.0.year}}, {{o.0.month|add:"-1"}}, {{o.0.day}}), {{o.1}}]
+          {% if not forloop.last %} , {% endif %}
+          {% endfor %}
+       ]
+    }]
+});
+</script>
+{% endblock %}
