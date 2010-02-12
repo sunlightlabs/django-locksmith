@@ -9,6 +9,7 @@ from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
 from django.template.loader import render_to_string
 from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
 from locksmith.common import get_signature
 from locksmith.hub.models import Api, Key, KeyForm, Report
 
@@ -95,6 +96,7 @@ def cumulative_by_date(model, datefield):
 
     return cumulative[1:]
 
+@login_required
 def analytics_index(request):
     apis = Api.objects.all().annotate(total_calls=Sum('reports__calls'))
     month_ago = datetime.datetime.now() - datetime.timedelta(30)
@@ -128,6 +130,7 @@ def dictlist_to_lists(dl, *keys):
             lists[i].append(x)
     return lists
 
+@login_required
 def api_analytics(request, apiname, year=None, month=None):
     api = get_object_or_404(Api, name=apiname)
     endpoint_q = api.reports.values('endpoint').annotate(calls=Sum('calls')).order_by('-calls')
@@ -160,11 +163,13 @@ def api_analytics(request, apiname, year=None, month=None):
     return render_to_response('locksmith/api_analytics.html', c,
                               context_instance=RequestContext(request))
 
+@login_required
 def key_list(request):
     keys = Key.objects.all().annotate(calls=Sum('reports__calls'), latest_call=Max('reports__date'))
     return render_to_response('locksmith/keys_list.html', {'keys': keys},
                               context_instance=RequestContext(request))
 
+@login_required
 def key_analytics(request, key):
     key = get_object_or_404(Key, key=key)
     endpoint_q = key.reports.values('api__name', 'endpoint').annotate(calls=Sum('calls')).order_by('-calls')
