@@ -81,7 +81,27 @@ def confirm_registration(request, key):
 
 # analytics views
 
-def cumulative_by_date(model, datefield):
+def _dictlist_to_lists(dl, *keys):
+    ''' convert a list of dictionaries to a dictionary of lists
+
+    >>> dl = [{'a': 'test', 'b': 3}, {'a': 'zaz', 'b': 444},
+              {'a': 'wow', 'b': 300}]
+    >>> _dictlist_to_lists(dl)
+    (['test', 'zaz', 'wow'], [3, 444, 300])
+    '''
+    lists = []
+    for k in keys:
+        lists.append([])
+    for item in dl:
+        for i, key in enumerate(keys):
+            x = item[key]
+            if isinstance(x, unicode):
+                x = str(x)
+            lists[i].append(x)
+    return lists
+
+
+def _cumulative_by_date(model, datefield):
     by_date = defaultdict(int)
     first_date = None
     for obj in model.objects.all().order_by(datefield):
@@ -105,30 +125,11 @@ def analytics_index(request):
         api.month_calls = api.reports.filter(date__gte=month_ago).aggregate(calls=Sum('calls'))['calls']
         api.year_calls = api.reports.filter(date__gte=year_ago).aggregate(calls=Sum('calls'))['calls']
 
-    cumulative = cumulative_by_date(Key, 'issued_on')
+    cumulative = _cumulative_by_date(Key, 'issued_on')
 
     return render_to_response('locksmith/analytics_index.html',
                               {'apis':apis, 'cumulative':cumulative,},
                               context_instance=RequestContext(request))
-
-def dictlist_to_lists(dl, *keys):
-    ''' convert a list of dictionaries to a dictionary of lists
-
-    >>> dl = [{'a': 'test', 'b': 3}, {'a': 'zaz', 'b': 444},
-              {'a': 'wow', 'b': 300}]
-    >>> dictlist_to_lists(dl)
-    (['test', 'zaz', 'wow'], [3, 444, 300])
-    '''
-    lists = []
-    for k in keys:
-        lists.append([])
-    for item in dl:
-        for i, key in enumerate(keys):
-            x = item[key]
-            if isinstance(x, unicode):
-                x = str(x)
-            lists[i].append(x)
-    return lists
 
 @login_required
 def api_analytics(request, apiname, year=None, month=None):
@@ -154,9 +155,8 @@ def api_analytics(request, apiname, year=None, month=None):
         monthlies.append(item)
 
     c = {'api': api, 'year': year, 'month': month}
-    c['endpoints'], c['endpoint_calls'] = dictlist_to_lists(endpoint_q, 'endpoint', 'calls')
-    c['users'], c['user_calls'] = dictlist_to_lists(user_q[:50], 'key__email', 'calls')
-    #c['months'], c['month_calls'] = dictlist_to_lists(monthlies, 'date', 'calls')
+    c['endpoints'], c['endpoint_calls'] = _dictlist_to_lists(endpoint_q, 'endpoint', 'calls')
+    c['users'], c['user_calls'] = _dictlist_to_lists(user_q[:50], 'key__email', 'calls')
     c['monthlies'] = monthlies
     c['timeline'] = date_q
 
@@ -178,7 +178,7 @@ def key_analytics(request, key):
     date_q = key.reports.values('date').annotate(calls=Sum('calls')).order_by('date')
 
     c = {'key': key}
-    c['endpoints'], c['endpoint_calls'] = dictlist_to_lists(endpoints, 'endpoint', 'calls')
+    c['endpoints'], c['endpoint_calls'] = _dictlist_to_lists(endpoints, 'endpoint', 'calls')
     c['timeline'] = date_q
 
     return render_to_response('locksmith/key_analytics.html', c,
