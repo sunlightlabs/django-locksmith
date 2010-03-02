@@ -13,16 +13,13 @@ from django.contrib.auth.decorators import login_required
 from locksmith.common import get_signature
 from locksmith.hub.models import Api, Key, KeyForm, Report
 
-def verify_signature(post):
-    api = get_object_or_404(Api, name=post['api'])
-    return get_signature(post, api.signing_key) == post['signature']
-
 @require_POST
 def report_calls(request):
-    if not verify_signature(request.POST):
+    api_obj = get_object_or_404(Api, name=request.POST['api'])
+
+    if get_signature(post, api_obj.signing_key) != post['signature']:
         return HttpResponseBadRequest('bad signature')
 
-    api_obj = get_object_or_404(Api, name=request.POST['api'])
     key_obj = get_object_or_404(Key, key=request.POST['key'])
 
     calls = int(request.POST['calls'])
@@ -36,7 +33,6 @@ def report_calls(request):
             report.calls = calls
             report.save()
     except Exception, e:
-        print e
         raise
 
     return HttpResponse('OK')
@@ -118,17 +114,28 @@ def _cumulative_by_date(model, datefield):
 
 @login_required
 def analytics_index(request):
+    total_calls = total_month_calls = total_year_calls = total_ytd_calls = 0
     apis = Api.objects.all().annotate(total_calls=Sum('reports__calls'))
-    month_ago = datetime.datetime.now() - datetime.timedelta(30)
-    year_ago = datetime.datetime.now() - datetime.timedelta(365)
+    now = datetime.datetime.now()
+    month_ago = now - datetime.timedelta(30)
+    year_ago = now - datetime.timedelta(365)
     for api in apis:
         api.month_calls = api.reports.filter(date__gte=month_ago).aggregate(calls=Sum('calls'))['calls']
         api.year_calls = api.reports.filter(date__gte=year_ago).aggregate(calls=Sum('calls'))['calls']
+        api.ytd_calls = api.reports.filter(date__year=now.year).aggregate(calls=Sum('calls'))['calls']
+        total_calls += api.total_calls
+        total_month_calls += api.month_calls
+        total_year_calls += api.year_calls
+        total_ytd_calls += api.ytd_calls
 
     cumulative = _cumulative_by_date(Key, 'issued_on')
 
     return render_to_response('locksmith/analytics_index.html',
-                              {'apis':apis, 'cumulative':cumulative,},
+                              {'apis':apis, 'cumulative':cumulative,
+                               'total_calls': total_calls,
+                               'total_month_calls':total_month_calls,
+                               'total_year_calls':total_year_calls,
+                               'total_ytd_calls':total_ytd_calls},
                               context_instance=RequestContext(request))
 
 @login_required

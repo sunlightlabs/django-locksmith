@@ -6,7 +6,7 @@
 <h1>Overview</h1>
 <table>
 <thead>
-    <tr> <th>API</th> <th> total </th> <th> last 365 days </th> <th> last 30 days </th> </tr>
+    <tr> <th>API</th> <th> total calls </th> <th> last 365 days </th> <th> last 30 days </th> <th> year to date </th> </tr>
 </thead>
 {% for api in apis %}
 <tr>
@@ -14,8 +14,16 @@
     <td>{{api.total_calls|default:0|intcomma}}</td>
     <td>{{api.year_calls|default:0|intcomma}}</td>
     <td>{{api.month_calls|default:0|intcomma}}</td>
+    <td>{{api.ytd_calls|default:0|intcomma}}</td>
 </tr>
 {% endfor %}
+<tr>
+    <td>Totals</td>
+    <td>{{total_calls|default:0|intcomma}}</td>
+    <td>{{total_year_calls|default:0|intcomma}}</td>
+    <td>{{total_month_calls|default:0|intcomma}}</td>
+    <td>{{total_ytd_calls|default:0|intcomma}}</td>
+</tr>
 </table>
 
 <div id="timeline" style="width: 450px;">
