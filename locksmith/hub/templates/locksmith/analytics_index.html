@@ -26,6 +26,14 @@
 </tr>
 </table>
 
+<table>
+    <tr><th colspan=2>Keys Issued</th></tr>
+    <tr><th>Last 30 Days</th><td>{{keys_month}}</td></tr>
+    <tr><th>Last 365 Days</th><td>{{keys_year}}</td></tr>
+    <tr><th>This Year</th><td>{{keys_ytd}}</td></tr>
+    <tr><th>Total</th><td>{{keys_total}}</td></tr>
+</table>
+
 <div id="timeline" style="width: 450px;">
 </div>
 
@@ -61,7 +69,7 @@ var chart = new Highcharts.Chart({
        name: 'Keys',
        type: 'area',
        data: [
-          {% for o in cumulative %}
+          {% for o in keys_cumulative %}
           [{{o.0|jsdate}}, {{o.1}}]
           {% if not forloop.last %} , {% endif %}
           {% endfor %}
