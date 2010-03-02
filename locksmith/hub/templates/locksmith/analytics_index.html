@@ -4,15 +4,17 @@
 
 {% block content %}
 <h1>Overview</h1>
+
+<div id="calls">
+<h2> Calls </h2>
 <table>
 <thead>
-    <tr> <th>API</th> <th> total calls </th> <th> last 365 days </th> <th> last 30 days </th> <th> year to date </th> </tr>
+    <tr> <th>API</th> <th> total calls </th> <th> last 30 days </th> <th> year to date </th> </tr>
 </thead>
 {% for api in apis %}
 <tr>
     <td><a href="{% url api_analytics api.name %}">{{api.name}}</a></td>
     <td>{{api.total_calls|default:0|intcomma}}</td>
-    <td>{{api.year_calls|default:0|intcomma}}</td>
     <td>{{api.month_calls|default:0|intcomma}}</td>
     <td>{{api.ytd_calls|default:0|intcomma}}</td>
 </tr>
@@ -20,16 +22,17 @@
 <tr>
     <td>Totals</td>
     <td>{{total_calls|default:0|intcomma}}</td>
-    <td>{{total_year_calls|default:0|intcomma}}</td>
     <td>{{total_month_calls|default:0|intcomma}}</td>
     <td>{{total_ytd_calls|default:0|intcomma}}</td>
 </tr>
 </table>
+</div>
 
+<div id="keys">
+<h2>Keys</h2>
 <table>
     <tr><th colspan=2>Keys Issued</th></tr>
     <tr><th>Last 30 Days</th><td>{{keys_month}}</td></tr>
-    <tr><th>Last 365 Days</th><td>{{keys_year}}</td></tr>
     <tr><th>This Year</th><td>{{keys_ytd}}</td></tr>
     <tr><th>Total</th><td>{{keys_total}}</td></tr>
 </table>
@@ -38,6 +41,8 @@
 </div>
 
 <a href="{% url key_list %}">View all Keys</a>
+
+</div>
 
 <script>
 var chart = new Highcharts.Chart({
@@ -77,4 +82,5 @@ var chart = new Highcharts.Chart({
     }]
 });
 </script>
+
 {% endblock %}

@@ -117,27 +117,22 @@ def analytics_index(request):
     c = {}
     c['total_calls'] = 0
     c['total_month_calls'] = 0
-    c['total_year_calls'] = 0
     c['total_ytd_calls'] = 0
 
     now = datetime.datetime.now()
     month_ago = now - datetime.timedelta(30)
-    year_ago = now - datetime.timedelta(365)
 
     apis = Api.objects.all().annotate(total_calls=Sum('reports__calls'))
     for api in apis:
         api.month_calls = api.reports.filter(date__gte=month_ago).aggregate(calls=Sum('calls'))['calls']
-        api.year_calls = api.reports.filter(date__gte=year_ago).aggregate(calls=Sum('calls'))['calls']
         api.ytd_calls = api.reports.filter(date__year=now.year).aggregate(calls=Sum('calls'))['calls']
         c['total_calls'] += api.total_calls
         c['total_month_calls'] += api.month_calls
-        c['total_year_calls'] += api.year_calls
         c['total_ytd_calls'] += api.ytd_calls
     c['apis'] = apis
 
     c['keys_total'] = Key.objects.all().count()
     c['keys_month'] = Key.objects.filter(issued_on__gte=month_ago).count()
-    c['keys_year'] = Key.objects.filter(issued_on__gte=year_ago).count()
     c['keys_ytd'] = Key.objects.filter(issued_on__year=now.year).count()
     c['keys_cumulative'] = _cumulative_by_date(Key, 'issued_on')
 
@@ -178,8 +173,16 @@ def api_analytics(request, apiname, year=None, month=None):
 
 @login_required
 def key_list(request):
-    keys = Key.objects.all().annotate(calls=Sum('reports__calls'), latest_call=Max('reports__date'))
-    return render_to_response('locksmith/keys_list.html', {'keys': keys},
+
+    min_calls = int(request.GET.get('min_calls', 1))
+
+    keys = Key.objects.all().annotate(calls=Sum('reports__calls'),
+                                      latest_call=Max('reports__date'))
+    keys = keys.filter(calls__gte=min_calls)
+
+    context = {'keys': keys, 'min_calls': min_calls}
+
+    return render_to_response('locksmith/keys_list.html', context,
                               context_instance=RequestContext(request))
 
 @login_required

@@ -10,11 +10,16 @@
 {% endblock %}
 
 {% block content %}
+
+<form action="." method="GET">
+    Min Calls: <input name="min_calls" value="{{min_calls}}" />
+    <input type="submit" value="apply filters" />
+</form>
+
 <table id="keys">
     <thead>
         <tr>
-            <th>Key</th>
-            <th>Email</th>
+            <th>User</th>
             <th>Issued Date</th>
             <th>Total Calls</th>
             <th>Latest Call</th>
@@ -23,9 +28,8 @@
     <tbody>
         {% for key in keys %}
         <tr>
-            <td><a href="{% url key_analytics key.key %}">{{key.key}}</a></td>
-            <td><a href="{% url key_analytics key.key %}">{{key.email}}</a></td>
-            <td>{{key.issued_on}}</td>
+            <td><a href="{% url key_analytics key.key %}">{{key.email}} [{{key.key|slice:":6"}}..]</a></td>
+            <td>{{key.issued_on|date:"Y-m-d"}}</td>
             <td>{{key.calls}}</td>
             <td>{{key.latest_call}}</td>
         </tr>

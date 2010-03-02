@@ -11,7 +11,7 @@
     <dt>Organization Name</dd> <dd>{{key.org_name}}</dd>
     <dt>Organization URL</dt> <dd>{{key.org_url}}</dd>
     <dt>Usage</dt> <dd>{{key.usage}}</dd>
-    <dt>Issue Date</dt> <dd>{{key.issued_on}}</dd>
+    <dt>Issue Date</dt> <dd>{{key.issued_on|date}}</dd>
     {% for ps in key.pub_statuses.all %}
         <dt>Publication Status {{ps.api.name}}</dt> <dd> {{ps.get_status_display}} </dd>
     {% endfor %}
