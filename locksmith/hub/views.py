@@ -17,7 +17,7 @@ from locksmith.hub.models import Api, Key, KeyForm, Report
 def report_calls(request):
     api_obj = get_object_or_404(Api, name=request.POST['api'])
 
-    if get_signature(post, api_obj.signing_key) != request.POST['signature']:
+    if get_signature(request.POST, api_obj.signing_key) != request.POST['signature']:
         return HttpResponseBadRequest('bad signature')
 
     key_obj = get_object_or_404(Key, key=request.POST['key'])
