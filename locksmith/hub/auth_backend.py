@@ -7,20 +7,26 @@ class LocksmithBackend:
     """
 
     def authenticate(self, username=None, password=None):
+        # figure out if authenticate works
         try:
-            key = Key.objects.get(email=username, key=password)
-            user, created = User.objects.get_or_create(email=username,
-                                                       defaults={'username':username[:30]})
-            if created:
-                user.set_password(password)
-                return user
+            key = Key.objects.get(email=username)
 
-            if user.check_password(password):
-                return user
+            if key.key == password:
+                user, created = User.objects.get_or_create(email=username,
+                                   defaults={'username':username[:30]})
+                if created:
+                    user.set_password(password)
+                    return user
             else:
-                return None
+                try:
+                    user = User.objects.get(email=username)
+                    if user.check_password(password):
+                        return user
+                except User.DoesNotExist:
+                    return None
         except Key.DoesNotExist:
             return None
+
 
     def get_user(self, user_id):
         try:
