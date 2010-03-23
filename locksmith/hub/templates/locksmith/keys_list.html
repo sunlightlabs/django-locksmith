@@ -27,7 +27,7 @@
     </thead>
     <tbody>
         {% for key in keys %}
-        <tr>
+        <tr class="{% cycle "even" "odd" %}">
             <td><a href="{% url key_analytics key.key %}">{{key.email}} [{{key.key|slice:":6"}}..]</a></td>
             <td>{{key.issued_on|date:"Y-m-d"}}</td>
             <td>{{key.calls}}</td>
