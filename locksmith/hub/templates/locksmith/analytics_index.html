@@ -46,23 +46,10 @@
 
 <script>
 var chart = new Highcharts.Chart({
-   chart: {
-      renderTo: 'timeline',
-      //defaultSeriesType: 'line'
-      zoomType: 'x'
-   },
+   chart: { renderTo: 'timeline', zoomType: 'x' },
    title: { text: 'Keys Issued' },
-   xAxis: {
-/*      categories: {{dates|safe}},
-      labels: {enabled: false},*/
-      title: { text: 'Month' },
-      type: 'datetime',
-      maxZoom: 60*24*3600000
-   },
-   yAxis: {
-      title: { text: 'Total Keys' },
-      min: 0
-   },
+   xAxis: { title: { text: 'Month' }, type: 'datetime', maxZoom: 60*24*3600000 },
+   yAxis: { title: { text: 'Total Keys' }, min: 0 },
    legend: { enabled: false },
    credits: { enabled: false },
    tooltip: {
