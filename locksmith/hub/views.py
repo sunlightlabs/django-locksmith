@@ -10,6 +10,7 @@ from django.template import RequestContext
 from django.template.loader import render_to_string
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import PasswordChangeForm
 from locksmith.common import get_signature
 from locksmith.hub.models import Api, Key, KeyForm, Report
 
@@ -75,7 +76,26 @@ def confirm_registration(request, key):
     return render_to_response('locksmith/confirmed.html', context,
                               context_instance=RequestContext(request))
 
-# analytics views
+
+@login_required
+def profile(request):
+    context = {}
+
+    if request.method == 'POST':
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            form.save()
+    else:
+        form = PasswordChangeForm(request.user)
+
+    key = Key.objects.get(email=request.user.email)
+
+    context['form'] = form
+    context['key'] = key
+    return render_to_response('locksmith/profile.html', context,
+                              context_instance=RequestContext(request))
+
+# analytics utils
 
 def _dictlist_to_lists(dl, *keys):
     ''' convert a list of dictionaries to a dictionary of lists
@@ -111,6 +131,8 @@ def _cumulative_by_date(model, datefield):
         d += datetime.timedelta(31)
 
     return cumulative[1:]
+
+# analytics views
 
 @login_required
 def analytics_index(request):

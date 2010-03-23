@@ -2,6 +2,7 @@ from django.conf.urls.defaults import *
 
 accounts = patterns('locksmith.hub.views',
     url(r'^register/$', 'register', name='api_registration'),
+    url(r'^profile/$', 'profile', name='profile'),
     url(r'^confirmkey/(?P<key>[0-9a-f]{32})/$', 'confirm_registration',
         name='api_confirm'),
 )

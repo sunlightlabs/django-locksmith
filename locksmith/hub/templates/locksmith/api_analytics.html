@@ -11,7 +11,7 @@
 {% if not month %}
 <table id="monthly">
 {% for m in monthlies %}
-<tr> <td><a href="{% url api_analytics_month api.name m.date.year m.date.month %}">{{m.date|date:"b 'y"}}</a></td><td>{{m.calls|intcomma}}</td> </tr>
+<tr class="{% cycle "even" "odd" %}"> <td><a href="{% url api_analytics_month api.name m.date.year m.date.month %}">{{m.date|date:"b 'y"}}</a></td><td>{{m.calls|intcomma}}</td> </tr>
 {% endfor %}
 </table>
 {% endif %}
