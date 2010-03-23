@@ -9,8 +9,8 @@ class LocksmithBackend:
     def authenticate(self, username=None, password=None):
         try:
             key = Key.objects.get(email=username, key=password)
-            user, created = User.objects.get_or_create(username=username,
-                                                       defaults={'email':username})
+            user, created = User.objects.get_or_create(email=username,
+                                                       defaults={'username':username[:30]})
             if created:
                 user.set_password(password)
                 return user

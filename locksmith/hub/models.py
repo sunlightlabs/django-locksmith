@@ -1,7 +1,7 @@
 import datetime
 from django.db import models
 from django.db.models.signals import post_save
-from django.forms import ModelForm, ValidationError
+from django.forms import ModelForm, ValidationError, BooleanField
 from locksmith.common import KEY_STATUSES
 
 UNPUBLISHED, PUBLISHED, NEEDS_UPDATE = range(3)
@@ -80,7 +80,14 @@ class KeyForm(ModelForm):
         model = Key
         exclude = ('key', 'issued_on', 'status', 'pub_status')
 
+    terms_of_service = BooleanField(required=False)
+
     def clean_email(self):
         if Key.objects.filter(email=self.cleaned_data['email']).count():
             raise ValidationError('Email address already registered')
         return self.cleaned_data['email']
+
+    def clean(self):
+        if not self.cleaned_data['terms_of_service']:
+            raise ValidationError('Please read and agree to the Terms of Service')
+        return self.cleaned_data
