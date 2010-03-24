@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}API Registration{% endblock title %}
+
+{% block content %}
+
+<h2 class="withTip">Sign Up</h2>
+<p class="tip">Please fill out the form below and an API key will be emailed to you.</p>
+
+<form method="post" action=".">
+    {% if form.non_field_errors %}
+    <ul class="error">{{form.non_field_errors.as_ul}}</ul>
+    {% endif %}
+    <ul>
+        {% for field in form.visible_fields %}
+        {% if field.name != 'terms_of_service' %}
+        <p class="error">{{field.errors}}</p>
+        <li>{{field.label_tag}} {{field}}</li> 
+        {% endif %}
+        {% endfor %}
+    <li id="signup_cues">
+        <label><input class="checkbox" type="checkbox" name="terms_of_service" />I agree to the <a href="#tos"> Terms of Service</a></label>
+    </li>
+    <li>
+        <button class="signUp" id="user_submit" type="submit" value="Sign Up" name="commit">
+            <span>Sign Up</span>
+        </button>
+    </li>
+    </ul>
+</form>
+
+{% endblock content %}

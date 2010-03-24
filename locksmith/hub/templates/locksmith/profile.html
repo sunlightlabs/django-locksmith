@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Profile{% endblock title %}
+
+{% block content %}
+
+<h2>Profile</h2>
+<dl>
+    <dt>Email:</dt><dd>{{key.email}}</dd>
+    <dt>Key:</dt><dd>{{key.key}}</dd>
+    <dt>Organization Name:</dt><dd>{{key.org_name|default:"none"}}</dd>
+    <dt>Organization URL:</dt><dd>{{key.org_url|default:"none"}}</dd>
+    <dt>Usage:</dt><dd>{{key.usage|default:"none"}}</dd>
+    <dt>Signup Time:</dt><dd>{{key.issued_on}}</dd>
+</dl>
+
+<h3> Edit Password </h3>
+
+{% if password_is_key %}
+<p class="tip"> Currently your password is set to the value of your API key, you will most likely want to change it.</p>
+{% endif %}
+
+<form method="post" action=".">
+    <ul>
+        {{ form.as_ul }}
+    <li>
+    <button id="user_submit" type="submit" value="Edit Password" name="commit">
+        <span>Edit Password</span>
+    </button>
+    </li>
+    </ul>
+</form>
+
+{% endblock content %}

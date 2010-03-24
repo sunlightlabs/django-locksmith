@@ -1,0 +1,15 @@
+{% extends "locksmith/base.html" %}
+{% block title %}API Key Confirmation{% endblock title %}
+
+{% block content %}
+
+{% if error %}
+    <h2>Error Activating Key</h2>
+    Could not activate key: <em>{{error}}</em>.
+{% else %}
+    <h2>Key Successfully Activated!</h2>
+
+    Your API key has been successfully activated, you may now use the API.
+{% endif %}
+
+{% endblock content %}

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}API Registration Successful!{% endblock title %}
+
+{% block content %}
+<h2>API Registration Successful</h2>
+
+<dl>
+    <dt>Email:</dt><dd>{{key.email}}</dd>
+    <dt>Organization Name:</dt><dd>{{key.org_name}}</dd>
+    <dt>Organization URL:</dt><dd>{{key.org_url}}</dd>
+    <dt>Usage:</dt><dd>{{key.usage}}</dd>
+    <dt>Signup Time:</dt><dd>{{key.issued_on}}</dd>
+</dl>
+
+{% endblock content %}
