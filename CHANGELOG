@@ -2,6 +2,11 @@
 django-locksmith changelog
 ==========================
 
+0.3.0
+=====
+    - allow login using email/key
+    - profile view
+
 0.2.0
 =====
     - removal of locksmith.common as a sub-app

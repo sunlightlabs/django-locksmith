@@ -94,6 +94,7 @@ def profile(request):
 
     context['form'] = form
     context['key'] = key
+    context['password_is_key'] = request.user.check_password(key.key)
     return render_to_response('locksmith/profile.html', context,
                               context_instance=RequestContext(request))
 
