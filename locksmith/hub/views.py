@@ -11,6 +11,7 @@ from django.template.loader import render_to_string
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib import messages
 from locksmith.common import get_signature
 from locksmith.hub.models import Api, Key, KeyForm, Report
 
@@ -85,6 +86,7 @@ def profile(request):
         form = PasswordChangeForm(request.user, request.POST)
         if form.is_valid():
             form.save()
+            messages.info(request, 'Password Changed.')
     else:
         form = PasswordChangeForm(request.user)
 
