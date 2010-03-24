@@ -9,7 +9,7 @@ from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
 from django.template.loader import render_to_string
 from django.views.decorators.http import require_POST
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib import messages
 from locksmith.common import get_signature
@@ -17,8 +17,18 @@ from locksmith.hub.models import Api, Key, KeyForm, Report
 
 @require_POST
 def report_calls(request):
+    '''
+        POST endpoint for APIs to report their statistics
+
+        requires parameters: api, key, calls, date, endpoint & signature
+
+        if 'api' or 'key' parameter is invalid returns a 404
+        if signature is bad returns a 400
+        returns a 200 with content 'OK' if call succeeds
+    '''
     api_obj = get_object_or_404(Api, name=request.POST['api'])
 
+    # check the signature
     if get_signature(request.POST, api_obj.signing_key) != request.POST['signature']:
         return HttpResponseBadRequest('bad signature')
 
@@ -26,6 +36,7 @@ def report_calls(request):
 
     calls = int(request.POST['calls'])
     try:
+        # use get_or_create to update unique #calls for (date,api,key,endpoint)
         report,c = Report.objects.get_or_create(date=request.POST['date'],
                                                 api=api_obj,
                                                 key=key_obj,
@@ -40,6 +51,11 @@ def report_calls(request):
     return HttpResponse('OK')
 
 def register(request):
+    '''
+        API registration view
+
+        displays/validates form and sends email on successful submission
+    '''
     if request.method == 'POST':
         form = KeyForm(request.POST)
         if form.is_valid():
@@ -63,6 +79,11 @@ def register(request):
                               context_instance=RequestContext(request))
 
 def confirm_registration(request, key):
+    '''
+        API key confirmation
+
+        visiting this URL marks a Key as ready for use
+    '''
     context = {}
     try:
         context['key'] = key_obj = Key.objects.get(key=key)
@@ -80,6 +101,9 @@ def confirm_registration(request, key):
 
 @login_required
 def profile(request):
+    '''
+        Viewing of signup details and editing of password
+    '''
     context = {}
 
     if request.method == 'POST':
@@ -121,6 +145,9 @@ def _dictlist_to_lists(dl, *keys):
 
 
 def _cumulative_by_date(model, datefield):
+    '''
+        Given a model and date field, generate monthly cumulative totals.
+    '''
     by_date = defaultdict(int)
     first_date = None
     for obj in model.objects.all().order_by(datefield):
@@ -135,9 +162,11 @@ def _cumulative_by_date(model, datefield):
 
     return cumulative[1:]
 
-# analytics views
+# analytics views -- all require staff permission
 
-@login_required
+staff_required = user_passes_test(lambda u: u.is_staff)
+
+@staff_required
 def analytics_index(request):
     c = {}
     c['total_calls'] = 0
@@ -164,7 +193,7 @@ def analytics_index(request):
     return render_to_response('locksmith/analytics_index.html', c,
                               context_instance=RequestContext(request))
 
-@login_required
+@staff_required
 def api_analytics(request, apiname, year=None, month=None):
     api = get_object_or_404(Api, name=apiname)
     endpoint_q = api.reports.values('endpoint').annotate(calls=Sum('calls')).order_by('-calls')
@@ -196,7 +225,7 @@ def api_analytics(request, apiname, year=None, month=None):
     return render_to_response('locksmith/api_analytics.html', c,
                               context_instance=RequestContext(request))
 
-@login_required
+@staff_required
 def key_list(request):
 
     min_calls = int(request.GET.get('min_calls', 1))
@@ -210,7 +239,7 @@ def key_list(request):
     return render_to_response('locksmith/keys_list.html', context,
                               context_instance=RequestContext(request))
 
-@login_required
+@staff_required
 def key_analytics(request, key):
     key = get_object_or_404(Key, key=key)
     endpoint_q = key.reports.values('api__name', 'endpoint').annotate(calls=Sum('calls')).order_by('-calls')

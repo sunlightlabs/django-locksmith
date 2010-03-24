@@ -12,6 +12,9 @@ PUB_STATUSES = (
 )
 
 class Api(models.Model):
+    '''
+        API that Keys are issued to and Reports come from
+    '''
     name = models.CharField(max_length=30)
     signing_key = models.CharField(max_length=32)
     url = models.URLField()
@@ -23,6 +26,9 @@ class Api(models.Model):
         db_table = 'locksmith_hub_api'
 
 class Key(models.Model):
+    '''
+        API key to be handed out to Apis
+    '''
     key = models.CharField(max_length=32)
     email = models.EmailField()
     status = models.CharField(max_length=1, choices=KEY_STATUSES, default='U')
@@ -37,12 +43,18 @@ class Key(models.Model):
         return '%s %s [%s]' % (self.key, self.email, self.status)
 
     def mark_for_update(self):
+        '''
+            Note that a change has been made so all Statuses need update
+        '''
         self.pub_statuses.exclude(status=UNPUBLISHED).update(status=NEEDS_UPDATE)
 
     class Meta:
         db_table = 'locksmith_hub_key'
 
 class KeyPublicationStatus(models.Model):
+    '''
+        Status of Key with respect to an API
+    '''
     key = models.ForeignKey(Key, related_name='pub_statuses')
     api = models.ForeignKey(Api, related_name='pub_statuses')
     status = models.IntegerField(default=UNPUBLISHED, choices=PUB_STATUSES)
@@ -51,6 +63,9 @@ class KeyPublicationStatus(models.Model):
         db_table = 'locksmith_hub_keypublicationstatus'
 
 class Report(models.Model):
+    '''
+        Daily Analytics Report
+    '''
     date = models.DateField()
     api = models.ForeignKey(Api, related_name='reports')
     key = models.ForeignKey(Key, related_name='reports')
@@ -73,7 +88,7 @@ def kps_callback(sender, instance, created, **kwargs):
 post_save.connect(kps_callback, sender=Api)
 post_save.connect(kps_callback, sender=Key)
 
-# forms
+# Key registration form
 
 class KeyForm(ModelForm):
     class Meta:
