@@ -15,8 +15,8 @@ All code is under a BSD-style license, see LICENSE for details.
 Requirements
 ============
 
-python >= 2.5
-Django >= 1.2b1
+* python >= 2.5
+* Django >= 1.2b1
 
 locksmith.hub
 ==============
