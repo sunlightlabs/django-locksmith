@@ -21,8 +21,8 @@
     <td>{{api.ytd_calls|default:0|intcomma}}</td>
 </tr>
 {% endfor %}
-<tr>
-    <td>Totals</td>
+<tr class="{% cycle "even" "odd" %}">
+    <th>Totals</th>
     <td>{{total_calls|default:0|intcomma}}</td>
     <td>{{total_month_calls|default:0|intcomma}}</td>
     <td>{{total_ytd_calls|default:0|intcomma}}</td>
@@ -38,11 +38,11 @@
     <tr><th>This Year</th><td>{{keys_ytd}}</td></tr>
     <tr><th>Total</th><td>{{keys_total}}</td></tr>
 </table>
+<a href="{% url key_list %}">View all Keys</a>
 
 <div id="timeline" style="width: 450px;">
 </div>
 
-<a href="{% url key_list %}">View all Keys</a>
 
 </div>
 

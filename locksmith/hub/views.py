@@ -212,7 +212,7 @@ def api_analytics(request, apiname, year=None, month=None):
     dates = api.reports.filter(**date_constraint).dates('date', 'month')
     monthlies = []
     for d in dates:
-        item = Report.objects.filter(date__year=d.year, date__month=d.month).aggregate(calls=Sum('calls'))
+        item = api.reports.filter(date__year=d.year, date__month=d.month).aggregate(calls=Sum('calls'))
         item['date'] = d
         monthlies.append(item)
 

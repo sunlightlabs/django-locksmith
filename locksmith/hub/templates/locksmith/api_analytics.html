@@ -5,16 +5,21 @@
 {% block bodyclass %}analytics{% endblock %}
 
 {% block content %}
-<h1>Statistics for {{api.name}}
+<h2>Statistics for {{api.name}}
     {% if month %} for {{month}}/{{year}} 
     {% else %} {% if year %} for {{year}} {% endif %} {% endif %}
-</h1>
+</h2>
 
 {% if not month %}
 <table id="monthly">
+<thead>
+    <tr> <th> Month </th> <th> Calls </th> </tr>
+</thead>
+<tbody>
 {% for m in monthlies %}
 <tr class="{% cycle "even" "odd" %}"> <td><a href="{% url api_analytics_month api.name m.date.year m.date.month %}">{{m.date|date:"b 'y"}}</a></td><td>{{m.calls|intcomma}}</td> </tr>
 {% endfor %}
+</tbody>
 </table>
 {% endif %}
 
@@ -41,7 +46,7 @@ var chart = new Highcharts.Chart({
       title: {
          text: null
       },
-     labels: {enabled: false}
+     labels: {enabled: true}
    },
    yAxis: { min: 0, title: { text: null },
    },
