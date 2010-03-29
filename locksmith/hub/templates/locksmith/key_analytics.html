@@ -5,7 +5,7 @@
 {% block bodyclass %}analytics{% endblock %}
 
 {% block content %}
-<h1>Statistics for {{key.key}}</h1>
+<h2>Statistics for {{key.key}}</h2>
 
 <dl>
     <dt>Email</dt> <dd>{{key.email}}</dd>
@@ -14,9 +14,14 @@
     <dt>Organization URL</dt> <dd>{{key.org_url}}</dd>
     <dt>Usage</dt> <dd>{{key.usage}}</dd>
     <dt>Issue Date</dt> <dd>{{key.issued_on|date}}</dd>
-    {% for ps in key.pub_statuses.all %}
-        <dt>Publication Status {{ps.api.name}}</dt> <dd> {{ps.get_status_display}} </dd>
-    {% endfor %}
+</dl>
+
+
+<h3>Publication Status</h3>
+<dl>
+{% for ps in key.pub_statuses.all %}
+<dt>{{ps.api.name}}</dt> <dd> {{ps.get_status_display}} </dd>
+{% endfor %}
 </dl>
 
 <div id="timeline" style="height:500px;">
