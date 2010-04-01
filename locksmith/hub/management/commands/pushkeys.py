@@ -26,7 +26,7 @@ class Command(NoArgsCommand):
                 actions[kps.status] += 1
                 kps.status = PUBLISHED
                 kps.save()
-            except urllib2.HTTPError:
+            except urllib2.HTTPError, e:
                 failed += 1
 
         if verbosity == 1:

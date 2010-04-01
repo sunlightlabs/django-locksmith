@@ -17,7 +17,7 @@ class Api(models.Model):
     '''
     name = models.CharField(max_length=30)
     signing_key = models.CharField(max_length=32)
-    url = models.URLField()
+    url = models.URLField(verify_exists=False)
 
     def __unicode__(self):
         return self.name
