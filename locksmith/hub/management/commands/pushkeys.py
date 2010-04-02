@@ -16,7 +16,9 @@ class Command(NoArgsCommand):
         actions = {UNPUBLISHED: 0, NEEDS_UPDATE: 0}
         failed = 0
 
-        dirty = KeyPublicationStatus.objects.exclude(status=PUBLISHED).select_related()
+        # get all non-published keys belonging to APIs with push_enabled
+        dirty = KeyPublicationStatus.objects.exclude(status=PUBLISHED).filter(
+                                                    api__push_enabled=True).select_related()
 
         for kps in dirty:
             endpoint = urljoin(kps.api.url, endpoints[kps.status])
