@@ -30,7 +30,7 @@ class Command(BaseCommand):
 
         # construct database query
         timestamp_fieldname = '%s__range' % DATE_FIELD
-        qs = LogModel.objects.filter(**{timestamp_fieldname : (begin, end)})
+        qs = LogModel.objects.filter(**{timestamp_fieldname : (begin, end)}).order_by()
         results = qs.values(ENDPOINT_FIELD, USER_FIELD).annotate(calls=Count('id'))
 
         endpoint = urljoin(settings.LOCKSMITH_HUB_URL, 'report_calls/')
