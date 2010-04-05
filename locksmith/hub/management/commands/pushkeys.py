@@ -14,7 +14,7 @@ class Command(NoArgsCommand):
         verbosity = int(options.get('verbosity', 1))
         endpoints = {UNPUBLISHED: 'create_key/', NEEDS_UPDATE: 'update_key/'}
         actions = {UNPUBLISHED: 0, NEEDS_UPDATE: 0}
-        failed = 0
+        failures = []
 
         # get all non-published keys belonging to APIs with push_enabled
         dirty = KeyPublicationStatus.objects.exclude(status=PUBLISHED).filter(
@@ -29,11 +29,16 @@ class Command(NoArgsCommand):
                 kps.status = PUBLISHED
                 kps.save()
             except urllib2.HTTPError, e:
-                failed += 1
+                msg = 'endpoint=%s, signing_key=%s, api=%s, key=%s, email=%s, status=%s'
+                msg = msg % (endpoint, kps.api.signing_key, kps.api.name,
+                             kps.key.key, kps.key.email, kps.key.status)
+                failures.append(msg)
+
 
         if verbosity == 1:
-            if failed and datetime.datetime.now().minute < 2:
-                mail_managers('%s failures during pushkeys' % failed, '')
+            if failures and datetime.datetime.now().minute < 2:
+                msg = '--------------\n\n'.join(failures)
+                mail_managers('%s failures during pushkeys' % len(failures), msg)
         elif verbosity == 2:
             print 'Published %s new keys, updated %s keys. (%s failures)' % (
                 actions[UNPUBLISHED], actions[NEEDS_UPDATE], failed)

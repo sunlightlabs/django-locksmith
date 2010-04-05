@@ -6,6 +6,10 @@ django-locksmith changelog
 =====
     - allow login using email/key
     - profile view
+    - cleaned up admin views
+    - analytics are staff-only
+    - documentation
+    - bugfixes in management commands
 
 0.2.0
 =====
