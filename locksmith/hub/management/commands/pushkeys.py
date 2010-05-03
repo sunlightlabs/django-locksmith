@@ -29,9 +29,9 @@ class Command(NoArgsCommand):
                 kps.status = PUBLISHED
                 kps.save()
             except urllib2.HTTPError, e:
-                msg = 'endpoint=%s, signing_key=%s, api=%s, key=%s, email=%s, status=%s'
+                msg = 'endpoint=%s, signing_key=%s, api=%s, key=%s, email=%s, status=%s\n error: %s'
                 msg = msg % (endpoint, kps.api.signing_key, kps.api.name,
-                             kps.key.key, kps.key.email, kps.key.status)
+                             kps.key.key, kps.key.email, kps.key.status, e.read())
                 failures.append(msg)
 
 
@@ -41,5 +41,7 @@ class Command(NoArgsCommand):
                 mail_managers('%s failures during pushkeys' % len(failures), msg)
         elif verbosity == 2:
             print 'Published %s new keys, updated %s keys. (%s failures)' % (
-                actions[UNPUBLISHED], actions[NEEDS_UPDATE], failed)
+                actions[UNPUBLISHED], actions[NEEDS_UPDATE], len(failures))
+            for f in failures:
+                print f
 
