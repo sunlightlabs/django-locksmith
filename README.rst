@@ -56,12 +56,21 @@ locksmith.auth provides URL endpoints and a management command that aim to make 
 Installation
 ------------
 
-There are only two requirements to start using locksmith.auth:
+To start using locksmith.auth:
 
 * add 'locksmith.auth' to ``INSTALLED_APPS``
 * add a line like: (r'^api/', include('locksmith.auth.urls')) to urls.py
 
-If you have a Django model that is used to store your statistics you can define the following variables so that running ``./manage.py apireport`` can automatically generate statistics to send to the hub instance.
+Add the following settings to your settings.py:
+
+``LOCKSMITH_HUB_URL``
+    URL to your locksmith.hub instance
+``LOCKSMITH_SIGNING_KEY``
+    signing key for this locksmith.auth instance
+``LOCKSMITH_API_NAME``
+    name of this locksmith.auth instance
+
+The following settings are optional and can be used to enable reporting statistics via ``./manage.py apireport``:
 
 ``LOCKSMITH_STATS_APP``
     application of the API log model (default: api)
@@ -74,7 +83,13 @@ If you have a Django model that is used to store your statistics you can define 
 ``LOCKSMITH_STATS_USER_FIELD``
     name of the key field on the log model (default: caller_key)
 
-You can optionally enable the ``APIKeyMiddleware`` by adding ``'locksmith.auth.middleware.APIKeyMiddleware`` to your ``MIDDLEWARE_CLASSES``.
+You can optionally enable the ``APIKeyMiddleware`` by adding ``'locksmith.auth.middleware.APIKeyMiddleware'`` to your ``MIDDLEWARE_CLASSES``.  This middleware makes use of two more optional settings:
+
+``LOCKSMITH_QS_PARAM``
+    Query String parameter to check for API key (default: apikey)
+``LOCKSMITH_HTTP_HEADER``
+    HTTP header to check for API key (default: HTTP_X_APIKEY)
+
 
 Usage
 -----
@@ -93,7 +108,7 @@ See the ``LOCKSMITH_STATS_*`` settings documented above for details on having ``
 connecting a locksmith.hub and locksmith.auth instance
 ------------------------------------------------------
 
-Assuming that you have a ``locksmith.hub`` instance and a ``locksmith.auth`` instance running as indicated above, the final step is to connect the two so that API signups become actual usable keys and analytics get back 
+Assuming that you have a ``locksmith.hub`` instance and a ``locksmith.auth`` instance running as indicated above, the final step is to connect the two so that API signups become actual usable keys and analytics get back.
 
 # hub: Add a new ``locksmith.hub.Api`` instance for the new API (choosing a name and signing key)
 # hub: Push all existing keys to the new API's ``locksmith.auth`` endpoints by calling ``./manage.py pushkeys``
