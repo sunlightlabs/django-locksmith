@@ -180,9 +180,9 @@ def analytics_index(request):
     for api in apis:
         api.month_calls = api.reports.filter(date__gte=month_ago).aggregate(calls=Sum('calls'))['calls']
         api.ytd_calls = api.reports.filter(date__year=now.year).aggregate(calls=Sum('calls'))['calls']
-        c['total_calls'] += api.total_calls
-        c['total_month_calls'] += api.month_calls
-        c['total_ytd_calls'] += api.ytd_calls
+        c['total_calls'] += api.total_calls or 0
+        c['total_month_calls'] += api.month_calls or 0
+        c['total_ytd_calls'] += api.ytd_calls or 0
     c['apis'] = apis
 
     c['keys_total'] = Key.objects.all().count()
