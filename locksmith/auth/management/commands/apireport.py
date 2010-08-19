@@ -15,22 +15,21 @@ LogModel = get_model(APP, MODEL)
 
 class Command(BaseCommand):
     help = "Push a given day's logs up to the analytics hub"
-    args = '[date]'
+    args = '[date:YYYY-MM-DD]'
     requires_model_validation = False
 
     def handle(self, date=None, *args, **options):
-        # calculate begin & end
         if date:
-            begin = datetime.datetime.strptime(date, '%Y-%m-%d')
+            # ensure that date entered can be parsed
+            entered_date = datetime.datetime.strptime(date, '%Y-%m-%d')
         else:
-            begin = datetime.datetime.now() - datetime.timedelta(days=1)
-            date = begin.strftime('%Y-%m-%d')
-        end = begin + datetime.timedelta(days=1)
+            # set date to yesterday if not passed in
+            yesterday = datetime.datetime.now() - datetime.timedelta(days=1)
+            date = yesterday.strftime('%Y-%m-%d')
         print 'pushing logs for %s' % date
 
         # construct database query
-        timestamp_fieldname = '%s__range' % DATE_FIELD
-        qs = LogModel.objects.filter(**{timestamp_fieldname : (begin, end)}).order_by()
+        qs = LogModel.objects.extra(where=["date_trunc('day', {0}) = '{1}'".format(DATE_FIELD, date)]).order_by()
         results = qs.values(ENDPOINT_FIELD, USER_FIELD).annotate(calls=Count('id'))
 
         endpoint = urljoin(settings.LOCKSMITH_HUB_URL, 'report_calls/')
