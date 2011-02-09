@@ -13,7 +13,7 @@ class LocksmithBackend:
         try:
             # if user exists with this email try and log in
             user = User.objects.get(email=username)
-            if user.check_password(username, password):
+            if user.check_password(password):
                 return user
 
         except User.DoesNotExist:
