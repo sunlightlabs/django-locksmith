@@ -3,7 +3,7 @@
 from distutils.core import setup
 
 setup(name='django-locksmith',
-      version='0.3.1',
+      version='0.4.0',
       description='Django apps for API authentication and centralized authorization',
       author='James Turk',
       author_email='jturk@sunlightfoundation.com',
@@ -12,7 +12,9 @@ setup(name='django-locksmith',
       packages=['locksmith', 'locksmith.auth', 'locksmith.auth.management',
                 'locksmith.auth.management.commands', 'locksmith.hub',
                 'locksmith.hub.management', 'locksmith.hub.management.commands',
-                'locksmith.hub.templatetags'],
+                'locksmith.hub.templatetags', 'locksmith.mongoauth',
+                'locksmith.mongoauth.management',
+                'locksmith.mongoauth.management.commands'],
       package_data={'locksmith': ['media/scripts/*.js'],
                     'locksmith.hub': ['templates/locksmith/*.html']},
 )
