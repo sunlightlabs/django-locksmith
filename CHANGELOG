@@ -2,6 +2,11 @@
 django-locksmith changelog
 ==========================
 
+0.4.1
+=====
+    - fixes for mongoauth backend
+    - document mongoauth settings
+
 0.4.0
 =====
     - addition of mongoauth backend
