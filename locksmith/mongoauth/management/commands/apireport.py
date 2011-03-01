@@ -25,7 +25,7 @@ class Command(BaseCommand):
         results = qs.values(ENDPOINT_FIELD, USER_FIELD).annotate(calls=Count('id'))
 
         results = db.logs.group(['key', 'method'],
-                               {"timestamp" {"$gte": dt_begin, "$lt": dt_end},
+                               {"timestamp" {"$gte": dt_begin, "$lt": dt_end}},
                                {"count": 0},
                                "function (obj, prev) {prev.count += 1;}")
 
