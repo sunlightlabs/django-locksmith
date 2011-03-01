@@ -14,7 +14,7 @@ class APIKeyMiddleware(object):
             apikey = db.keys.find_one({'_id':key})
             if apikey:
                 request.apikey = apikey
-                db.log.insert({'key': key,
-                               'method': request.path,
-                               'query_string': request.META['QUERY_STRING'],
-                               'timestamp': datetime.datetime.utcnow()})
+                db.logs.insert({'key': key,
+                                'method': request.path,
+                                'query_string': request.META['QUERY_STRING'],
+                                'timestamp': datetime.datetime.utcnow()})

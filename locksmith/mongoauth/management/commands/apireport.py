@@ -25,7 +25,7 @@ class Command(BaseCommand):
         qs = LogModel.objects.extra(where=["date_trunc('day', {0}) = '{1}'".format(DATE_FIELD, date)]).order_by()
         results = qs.values(ENDPOINT_FIELD, USER_FIELD).annotate(calls=Count('id'))
 
-        results = db.log.group(['key', 'method'],
+        results = db.logs.group(['key', 'method'],
                                {"timestamp" {"$gte": dt_begin, "$lt": dt_end},
                                {"count": 0},
                                "function (obj, prev) {prev.count += 1;}")
