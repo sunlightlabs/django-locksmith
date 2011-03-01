@@ -34,4 +34,4 @@ class Command(BaseCommand):
             apicall(endpoint, settings.LOCKSMITH_SIGNING_KEY,
                     api=settings.LOCKSMITH_API_NAME, date=date,
                     endpoint=item['method'], key=item['key'],
-                    calls=item['count'].split('.')[0])
+                    calls=int(item['count']))
