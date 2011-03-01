@@ -4,11 +4,15 @@ django-locksmith
 
 Django utilities for shared api authentication & analytics.
 
-django-locksmith provides two Django applications, locksmith.auth and locksmith.hub.
+django-locksmith provides a few Django applications, locksmith.hub, locksmith.auth, and locksmith.mongoauth.
+
 locksmith.hub is an application that facilitates signup and has generic analytics support that supports reports from any API
+
 locksmith.auth provides mechanisms for being issued an API key from a hub server and authenticating API calls.  It also includes a management command to submit nightly reports to a locksmith.hub instance.
 
-django-locksmith is a project of Sunlight Labs (c) 2010.  Written by James Turk <jturk@sunlightfoundation.com>.
+locksmith.mongoauth provies the same interface as locksmith.auth but instead of using Django's ORM it relies upon pymongo and uses a mongodb database.  Like locksmith.auth it includes a way to submit nightly usage reports to a locksmith.hub instance.
+
+django-locksmith is a project of Sunlight Labs (c) 2011.  Written by James Turk <jturk@sunlightfoundation.com>.
 
 All code is under a BSD-style license, see LICENSE for details.
 
@@ -16,7 +20,7 @@ Requirements
 ============
 
 * python >= 2.5
-* Django >= 1.2b1
+* Django >= 1.2
 
 locksmith.hub
 ==============

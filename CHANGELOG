@@ -2,6 +2,10 @@
 django-locksmith changelog
 ==========================
 
+0.4.0
+=====
+    - addition of mongoauth backend
+
 0.3.1
 =====
     - fix login using email

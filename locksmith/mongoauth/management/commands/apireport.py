@@ -10,15 +10,14 @@ class Command(BaseCommand):
     requires_model_validation = False
 
     def handle(self, date=None, *args, **options):
-        if date:
-            # ensure that date entered can be parsed
-            dt_begin = datetime.datetime.strptime(date, '%Y-%m-%d')
-        else:
+        if not date:
             # set date to yesterday if not passed in
-            dt_begin = datetime.datetime.now() - datetime.timedelta(days=1)
+            yesterday = datetime.datetime.now() - datetime.timedelta(days=1)
             date = yesterday.strftime('%Y-%m-%d')
+
         print 'pushing logs for %s' % date
 
+        dt_begin = datetime.datetime.strptime(date, '%Y-%m-%d')
         dt_end = dt_begin + datetime.timedelta(days=1)
 
         # construct database query
