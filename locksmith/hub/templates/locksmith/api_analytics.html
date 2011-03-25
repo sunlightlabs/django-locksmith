@@ -27,6 +27,12 @@
 </div>
 
 <div id="users" style="width:800px;">
+    <table>
+        <tr><th>User</th><th>Calls</th></tr>
+        {% for uc in user_calls %}
+        <tr><td>{{uc.user}}</td><td>{{uc.calls}}</td>
+        {% endfor %}
+    </table>
 </div>
 
 <div id="endpoints" style="width: 800px;">
@@ -59,35 +65,6 @@ var chart = new Highcharts.Chart({
    credits: { enabled: false },
    series: [{
        data: {{endpoint_calls|safe}}
-   }]
-});
-
-var chart = new Highcharts.Chart({
-   chart: {
-      renderTo: 'users',
-      defaultSeriesType: 'column'
-   },
-   title: {
-      text: 'API Calls by User'
-   },
-   xAxis: {
-      categories: {{users|safe}},
-      title: {
-         text: null
-      },
-     labels: {enabled: false}
-   },
-   yAxis: { min: 0, title: { text: null }
-   },
-   tooltip: {
-      formatter: function() {
-         return '<b>'+ this.x +'</b><br/>'+ this.y;
-      }
-   },
-   legend: { enabled: false },
-   credits: { enabled: false },
-   series: [{
-       data: {{user_calls|safe}}
    }]
 });
 

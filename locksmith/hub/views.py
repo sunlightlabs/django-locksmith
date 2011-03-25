@@ -218,7 +218,8 @@ def api_analytics(request, apiname, year=None, month=None):
 
     c = {'api': api, 'year': year, 'month': month}
     c['endpoints'], c['endpoint_calls'] = _dictlist_to_lists(endpoint_q, 'endpoint', 'calls')
-    c['users'], c['user_calls'] = _dictlist_to_lists(user_q[:50], 'key__email', 'calls')
+    #c['users'], c['user_calls'] = _dictlist_to_lists(user_q[:50], 'key__email', 'calls')
+    c['user_calls'] = user_q[:50]
     c['monthlies'] = monthlies
     c['timeline'] = date_q
 
