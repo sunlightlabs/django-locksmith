@@ -26,16 +26,16 @@
 <div id="timeline" style="height:500px;">
 </div>
 
+<div id="endpoints" style="width: 800px;">
+</div>
+
 <div id="users" style="width:800px;">
     <table>
         <tr><th>User</th><th>Calls</th></tr>
         {% for uc in user_calls %}
-        <tr><td>{{uc.user}}</td><td>{{uc.calls}}</td>
+        <tr><td>{{uc.key__email}}</td><td>{{uc.calls}}</td>
         {% endfor %}
     </table>
-</div>
-
-<div id="endpoints" style="width: 800px;">
 </div>
 
 <script>
