@@ -48,8 +48,9 @@ def submit_report(log_path, log_regex, log_date_format, log_date, log_custom_tra
         if last_loop:
             break
     
-    # submit totals to hug
+    # submit totals to hub
     submit_date = log_date.strftime('%Y-%m-%d')
+    total_submitted = 0
     for api_key in totals:
         for endpoint in totals[api_key]:
             apicall(
@@ -61,3 +62,5 @@ def submit_report(log_path, log_regex, log_date_format, log_date, log_custom_tra
                 key = api_key,
                 calls = totals[api_key][endpoint]
             )
+            total_submitted += totals[api_key][endpoint]
+    return total_submitted

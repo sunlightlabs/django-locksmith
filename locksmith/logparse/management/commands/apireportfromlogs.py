@@ -26,7 +26,7 @@ class Command(BaseCommand):
         
         print 'pushing logs for %s' % parsed_date.strftime('%Y-%m-%d')
         
-        submit_report(
+        total_submitted = submit_report(
             log_path = LOG_PATH,
             log_regex = LOG_REGEX,
             log_date_format = LOG_DATE_FORMAT,
@@ -36,3 +36,5 @@ class Command(BaseCommand):
             locksmith_signing_key = settings.LOCKSMITH_SIGNING_KEY,
             locksmith_endpoint = urljoin(settings.LOCKSMITH_HUB_URL, 'report_calls/')
         )
+        
+        print 'submitted %s hits' % total_submitted
