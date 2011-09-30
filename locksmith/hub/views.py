@@ -50,6 +50,22 @@ def report_calls(request):
 
     return HttpResponse('OK')
 
+@require_POST
+def reset_keys(request, apiname):
+    '''
+        POST endpoint to reset API keys for a given API
+        (triggering a request for new keys)
+    '''
+    api_obj = get_object_or_404(Api, name=request.POST['api'])
+
+    # check the signature
+    if get_signature(request.POST, api_obj.signing_key) != request.POST['signature']:
+        return HttpResponseBadRequest('bad signature')
+
+    api_obj.pub_statuses.update(status=0)
+
+    return HttpResponse('OK')
+
 def register(request):
     '''
         API registration view
