@@ -51,7 +51,7 @@ def report_calls(request):
     return HttpResponse('OK')
 
 @require_POST
-def reset_keys(request, apiname):
+def reset_keys(request):
     '''
         POST endpoint to reset API keys for a given API
         (triggering a request for new keys)
