@@ -34,6 +34,7 @@ class Key(models.Model):
     email = models.EmailField()
     status = models.CharField(max_length=1, choices=KEY_STATUSES, default='U')
 
+    name = models.CharField('Name', max_length=100, blank=True)
     org_name = models.CharField('Organization Name', max_length=100, blank=True)
     org_url = models.CharField('Organization URL', blank=True, max_length=200)
     usage = models.TextField('Intended Usage', blank=True)
