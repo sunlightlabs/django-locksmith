@@ -66,7 +66,11 @@ def reset_keys(request):
 
     return HttpResponse('OK')
 
-def register(request):
+def register(request,
+             email_template='locksmith/registration_email.txt',
+             registration_template='locksmith/register.html',
+             registered_template='locksmith/registered.html',
+            ):
     '''
         API registration view
 
@@ -80,21 +84,19 @@ def register(request):
             newkey.status = 'U'
             newkey.save()
 
-            email_msg = render_to_string('locksmith/registration_email.txt',
-                                         {'key': newkey})
+            email_msg = render_to_string(email_template, {'key': newkey})
             email_subject = getattr(settings, 'LOCKSMITH_EMAIL_SUBJECT',
                                     'API Registration')
             send_mail(email_subject, email_msg, settings.DEFAULT_FROM_EMAIL,
                       [newkey.email])
-            return render_to_response('locksmith/registered.html',
-                                      {'key': newkey},
+            return render_to_response(registered_template, {'key': newkey},
                                       context_instance=RequestContext(request))
     else:
         form = KeyForm()
-    return render_to_response('locksmith/register.html', {'form':form},
+    return render_to_response(registration_template, {'form':form},
                               context_instance=RequestContext(request))
 
-def confirm_registration(request, key):
+def confirm_registration(request, key, template="locksmith/confirmed.html"):
     '''
         API key confirmation
 
@@ -111,7 +113,7 @@ def confirm_registration(request, key):
             key_obj.save()
     except Key.DoesNotExist:
         context['error'] = 'Invalid Key'
-    return render_to_response('locksmith/confirmed.html', context,
+    return render_to_response(template, context,
                               context_instance=RequestContext(request))
 
 
