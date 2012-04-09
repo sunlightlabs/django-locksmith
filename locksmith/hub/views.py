@@ -94,7 +94,7 @@ def register(request,
     return render_to_response(registration_template, {'form':form},
                               context_instance=RequestContext(request))
 
-def send_key_email(key, email_template, html_template):
+def send_key_email(key, email_template):
     email_msg = render_to_string(email_template, {'key': key})
     email_subject = getattr(settings, 'LOCKSMITH_EMAIL_SUBJECT',
                             'API Registration')
