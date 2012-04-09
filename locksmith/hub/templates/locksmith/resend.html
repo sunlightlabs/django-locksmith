@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}API Registration{% endblock title %}
+
+{% block content %}
+
+{% if key %}
+
+<h2 class="withTip">Success!</h2>
+<p class="tip">Your key has been resent, check your email.</p>
+
+{% else %}
+
+<h2 class="withTip">Resend Key</h2>
+<p class="tip">Please fill out the form below to get your key resent.</p>
+
+<form method="post" action=".">
+    {% if nokey %}
+    <ul class="error">
+        <li>No key found with that email address, try again or <a href="{% url api_registration %}">register for a new key</a>.</li>
+    </ul>
+    {% endif %}
+    <ul>
+        {% for field in form.visible_fields %}
+        <p class="error">{{field.errors}}</p>
+        <li>{{field.label_tag}} {{field}}</li> 
+        {% endfor %}
+    <li>
+        <button id="try_query" id="user_submit" type="submit" value="Submit" name="submit">
+            <span>Submit</span>
+        </button>
+    </li>
+    </ul>
+</form>
+
+{% endif %}
+
+{% endblock content %}
