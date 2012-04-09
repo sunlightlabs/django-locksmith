@@ -5,7 +5,7 @@ from django.conf import settings
 from django.core.mail import send_mail
 from django.db.models import Sum, Max
 from django.http import HttpResponse, HttpResponseBadRequest
-from django.shortcuts import get_object_or_404, render_to_response
+from django.shortcuts import get_object_or_404, render_to_response, render
 from django.template import RequestContext
 from django.template.loader import render_to_string
 from django.views.decorators.http import require_POST
@@ -13,7 +13,8 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib import messages
 from locksmith.common import get_signature
-from locksmith.hub.models import Api, Key, KeyForm, Report
+from locksmith.hub.models import Api, Key, KeyForm, Report, ResendForm
+
 
 @require_POST
 def report_calls(request):
@@ -66,6 +67,7 @@ def reset_keys(request):
 
     return HttpResponse('OK')
 
+
 def register(request,
              email_template='locksmith/registration_email.txt',
              registration_template='locksmith/register.html',
@@ -84,17 +86,48 @@ def register(request,
             newkey.status = 'U'
             newkey.save()
 
-            email_msg = render_to_string(email_template, {'key': newkey})
-            email_subject = getattr(settings, 'LOCKSMITH_EMAIL_SUBJECT',
-                                    'API Registration')
-            send_mail(email_subject, email_msg, settings.DEFAULT_FROM_EMAIL,
-                      [newkey.email])
+            send_key_email(newkey, email_template)
             return render_to_response(registered_template, {'key': newkey},
                                       context_instance=RequestContext(request))
     else:
         form = KeyForm()
     return render_to_response(registration_template, {'form':form},
                               context_instance=RequestContext(request))
+
+def send_key_email(key, email_template, html_template):
+    email_msg = render_to_string(email_template, {'key': key})
+    email_subject = getattr(settings, 'LOCKSMITH_EMAIL_SUBJECT',
+                            'API Registration')
+    send_mail(email_subject, email_msg, settings.DEFAULT_FROM_EMAIL,
+              [key.email])
+
+
+def resend(request,
+           reg_email_template='locksmith/registration_email.txt',
+           resend_email_template='locksmith/resend_email.txt',
+           resend_template='locksmith/resend.html',
+          ):
+    resp = {}
+
+    if request.method == 'POST':
+        form = ResendForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+        try:
+            key = Key.objects.get(email=email)
+            if key.status == 'U':
+                send_key_email(key, reg_email_template)
+            else:
+                send_key_email(key, resend_email_template)
+            resp['key'] = key
+        except Key.DoesNotExist:
+            resp['nokey'] = True
+        resp['form'] = form
+    else:
+        resp['form'] = ResendForm()
+
+    return render(request, resend_template, resp)
+
 
 def confirm_registration(request, key, template="locksmith/confirmed.html"):
     '''

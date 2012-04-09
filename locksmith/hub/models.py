@@ -1,7 +1,7 @@
 import datetime
 from django.db import models
 from django.db.models.signals import post_save
-from django.forms import ModelForm, ValidationError, BooleanField
+from django.forms import Form, ModelForm, ValidationError, BooleanField, EmailField
 from locksmith.common import KEY_STATUSES
 
 UNPUBLISHED, PUBLISHED, NEEDS_UPDATE = range(3)
@@ -108,3 +108,6 @@ class KeyForm(ModelForm):
         if not self.cleaned_data['terms_of_service']:
             raise ValidationError('Please read and agree to the Terms of Service')
         return self.cleaned_data
+
+class ResendForm(Form):
+    email = EmailField()
