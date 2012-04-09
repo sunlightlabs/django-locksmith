@@ -8,8 +8,10 @@
 
 <form method="post" action=".">
     {% if form.non_field_errors %}
-    <ul class="error">{{form.non_field_errors.as_ul}}</ul>
-    <ul class="error">Already registered? <a href="{% url resend %}">Resend Key</a></ul>
+    <ul class="error">
+        {{form.non_field_errors.as_ul}}
+        <li>Already registered? <a href="{% url resend %}">Resend Key</a></li>
+    </ul>
     {% endif %}
     <ul>
         {% for field in form.visible_fields %}
