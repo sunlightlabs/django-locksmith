@@ -3,6 +3,7 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.forms import Form, ModelForm, ValidationError, BooleanField, EmailField
 from locksmith.common import KEY_STATUSES
+from locksmith.hub.tasks import push_key
 
 UNPUBLISHED, PUBLISHED, NEEDS_UPDATE = range(3)
 PUB_STATUSES = (
@@ -49,6 +50,7 @@ class Key(models.Model):
             Note that a change has been made so all Statuses need update
         '''
         self.pub_statuses.exclude(status=UNPUBLISHED).update(status=NEEDS_UPDATE)
+        push_key.delay(self)
 
     class Meta:
         db_table = 'locksmith_hub_key'
