@@ -15,6 +15,5 @@ def push_key(key):
                     key=kps.key.key, email=kps.key.email, status=kps.key.status)
         except:
             push_key.retry()
-        actions[kps.status] += 1
         kps.status = PUBLISHED
         kps.save()
