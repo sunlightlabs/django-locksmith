@@ -1,5 +1,4 @@
-from locksmith.common import apicall
-from locksmith.hub.models import UNPUBLISHED, PUBLISHED, NEEDS_UPDATE
+from locksmith.common import apicall, UNPUBLISHED, PUBLISHED, NEEDS_UPDATE
 
 from celery.task import task
 
