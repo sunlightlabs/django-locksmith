@@ -14,8 +14,8 @@ def push_key(key):
             apicall(endpoint, kps.api.signing_key, api=kps.api.name,
                     key=kps.key.key, email=kps.key.email, status=kps.key.status)
             print 'sent key to', kps.api.key
-        except:
-            print 'failure, retrying'
+        except Exception as e:
+            print 'retrying:', e
             push_key.retry()
         kps.status = PUBLISHED
         kps.save()
