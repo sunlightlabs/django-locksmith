@@ -2,15 +2,9 @@ import datetime
 from django.db import models
 from django.db.models.signals import post_save
 from django.forms import Form, ModelForm, ValidationError, BooleanField, EmailField
-from locksmith.common import KEY_STATUSES
+from locksmith.common import (KEY_STATUSES, PUB_STATUSES, UNPUBLISHED,
+                              NEEDS_UPDATE, PUBLISHED)
 from locksmith.hub.tasks import push_key
-
-UNPUBLISHED, PUBLISHED, NEEDS_UPDATE = range(3)
-PUB_STATUSES = (
-    (UNPUBLISHED, 'Unpublished'),
-    (PUBLISHED, 'Published'),
-    (NEEDS_UPDATE, 'Needs Update'),
-)
 
 class Api(models.Model):
     '''

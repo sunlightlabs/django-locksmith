@@ -8,6 +8,14 @@ KEY_STATUSES = (
     ('S', 'Suspended')
 )
 
+UNPUBLISHED, PUBLISHED, NEEDS_UPDATE = range(3)
+PUB_STATUSES = (
+    (UNPUBLISHED, 'Unpublished'),
+    (PUBLISHED, 'Published'),
+    (NEEDS_UPDATE, 'Needs Update'),
+)
+
+
 def get_signature(params, signkey):
     # sorted k,v pairs of everything but signature
     data = sorted([(k,v) for k,v in params.iteritems() if k != 'signature'])
