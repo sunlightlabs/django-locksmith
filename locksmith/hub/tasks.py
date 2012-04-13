@@ -1,3 +1,4 @@
+from urlparse import urljoin
 from locksmith.common import apicall, UNPUBLISHED, PUBLISHED, NEEDS_UPDATE
 
 from celery.task import task
