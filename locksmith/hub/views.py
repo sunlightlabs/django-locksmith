@@ -113,15 +113,15 @@ def resend(request,
         form = ResendForm(request.POST)
         if form.is_valid():
             email = form.cleaned_data['email']
-        try:
-            key = Key.objects.get(email=email)
-            if key.status == 'U':
-                send_key_email(key, reg_email_template)
-            else:
-                send_key_email(key, resend_email_template)
-            resp['key'] = key
-        except Key.DoesNotExist:
-            resp['nokey'] = True
+            try:
+                key = Key.objects.get(email=email)
+                if key.status == 'U':
+                    send_key_email(key, reg_email_template)
+                else:
+                    send_key_email(key, resend_email_template)
+                resp['key'] = key
+            except Key.DoesNotExist:
+                resp['nokey'] = True
         resp['form'] = form
     else:
         resp['form'] = ResendForm()
