@@ -3,7 +3,7 @@
 from distutils.core import setup
 
 setup(name='django-locksmith',
-      version='0.5.0',
+      version='0.6.0',
       description='Django apps for API authentication and centralized authorization',
       author='James Turk',
       author_email='jturk@sunlightfoundation.com',
