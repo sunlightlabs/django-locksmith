@@ -14,6 +14,7 @@ from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib import messages
 from locksmith.common import get_signature
 from locksmith.hub.models import Api, Key, KeyForm, Report, ResendForm
+from locksmith.hub.tasks import push_key
 
 
 @require_POST
@@ -63,7 +64,9 @@ def reset_keys(request):
     if get_signature(request.POST, api_obj.signing_key) != request.POST['signature']:
         return HttpResponseBadRequest('bad signature')
 
-    api_obj.pub_statuses.update(status=0)
+    api_obj.pub_statuses.update(status=UNPUBLISHED)
+    for key in Key.objects.all():
+        push_key.delay(key)
 
     return HttpResponse('OK')
 
