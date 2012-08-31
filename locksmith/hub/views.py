@@ -12,7 +12,7 @@ from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib import messages
-from locksmith.common import get_signature
+from locksmith.common import get_signature, UNPUBLISHED
 from locksmith.hub.models import Api, Key, KeyForm, Report, ResendForm
 from locksmith.hub.tasks import push_key
 
