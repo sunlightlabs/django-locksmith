@@ -197,11 +197,11 @@ def _dictlist_to_lists(dl, *keys):
             lists[i].append(x)
     return lists
 
-def cycle_generator(cycle, step=1, begin=(0, 0), end=None):
+def _cycle_generator(cycle, step=1, begin=(0, 0), end=None):
     '''
         Generates pairs of values representing a cycle. E.g. clock hours for a day could
         could be generated with:
-            divmod_cycle_generator(cycle=(1, 12), step=1, begin=(0, 1), end=(23, 12))
+            _cycle_generator(cycle=(1, 12), step=1, begin=(0, 1), end=(23, 12))
                 => (0, 1), (0, 2) ... (0, 12), (1, 1), (1, 2)
     '''
     (cycle_begin, cycle_end) = cycle
@@ -235,7 +235,7 @@ def _cumulative_by_date(model, datefield):
     
     accumulator = 0 
     cumulative_counts = []
-    for (year, month) in cycle_generator(cycle=(1, 12), begin=earliest_month, end=latest_month):
+    for (year, month) in _cycle_generator(cycle=(1, 12), begin=earliest_month, end=latest_month):
         mcount = monthly_counts.get((year, month), 0)
         accumulator += mcount
         cumulative_counts.append([datetime.date(year, month, 1), accumulator])
