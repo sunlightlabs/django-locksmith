@@ -197,24 +197,50 @@ def _dictlist_to_lists(dl, *keys):
             lists[i].append(x)
     return lists
 
+def cycle_generator(cycle, step=1, begin=(0, 0), end=None):
+    '''
+        Generates pairs of values representing a cycle. E.g. clock hours for a day could
+        could be generated with:
+            divmod_cycle_generator(cycle=(1, 12), step=1, begin=(0, 1), end=(23, 12))
+                => (0, 1), (0, 2) ... (0, 12), (1, 1), (1, 2)
+    '''
+    (cycle_begin, cycle_end) = cycle
+    (major, minor) = begin
+    (end_major, end_minor) = end if end is not None else (None, None)
+
+    while True:
+        if end is not None and (major > end_major or (major == end_major and minor > end_minor)):
+            return
+        yield (major, minor)
+        minor += step
+        if minor > cycle_end:
+            major += 1
+            minor = cycle_begin
 
 def _cumulative_by_date(model, datefield):
     '''
         Given a model and date field, generate monthly cumulative totals.
     '''
-    by_date = defaultdict(int)
-    first_date = None
+    monthly_counts = defaultdict(int)
     for obj in model.objects.all().order_by(datefield):
-        if not first_date:
-            first_date = getattr(obj, datefield).replace(day=1)
-        by_date[getattr(obj, datefield).strftime('%Y-%m')] += 1
-    cumulative = [[None, 0]]
-    d = first_date
-    for i,k in enumerate(sorted(by_date.iterkeys())):
-        cumulative.append([d, by_date[k] + cumulative[i][1]])
-        d += datetime.timedelta(31)
+        datevalue = getattr(obj, datefield)
+        monthkey = (datevalue.year, datevalue.month)
+        monthly_counts[monthkey] += 1
 
-    return cumulative[1:]
+    if len(monthly_counts) == 0:
+        return []
+
+    earliest_month = min(monthly_counts.iterkeys())
+    latest_month = max(monthly_counts.iterkeys())
+    
+    accumulator = 0 
+    cumulative_counts = []
+    for (year, month) in cycle_generator(cycle=(1, 12), begin=earliest_month, end=latest_month):
+        mcount = monthly_counts.get((year, month), 0)
+        accumulator += mcount
+        cumulative_counts.append([datetime.date(year, month, 1), accumulator])
+
+    return cumulative_counts
 
 # analytics views -- all require staff permission
 
