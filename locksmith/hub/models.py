@@ -60,6 +60,11 @@ class KeyPublicationStatus(models.Model):
     class Meta:
         db_table = 'locksmith_hub_keypublicationstatus'
 
+    def __unicode__(self):
+        return u'api={0!r} key={1!r} status={2}'.format(self.api.name,
+                                                        self.key.key,
+                                                        self.status)
+
 class Report(models.Model):
     '''
         Daily Analytics Report
@@ -80,7 +85,7 @@ def kps_callback(sender, instance, created, **kwargs):
         if sender == Api:
             for key in Key.objects.all():
                 KeyPublicationStatus.objects.create(key=key, api=instance)
-        elif sender == Key:
+        elif isinstance(instance, Key):
             for api in Api.objects.all():
                 KeyPublicationStatus.objects.create(key=instance, api=api)
 post_save.connect(kps_callback, sender=Api)
