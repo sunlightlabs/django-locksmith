@@ -9,27 +9,30 @@ def push_key(key):
     endpoints = {UNPUBLISHED: 'create_key/', NEEDS_UPDATE: 'update_key/'}
     dirty = key.pub_statuses.exclude(status=PUBLISHED).filter(
               api__push_enabled=True).select_related()
+
+    # Retrying immediately on failure would allow a broken or unresponsive
+    # api to prevent other, properly functioning apis from receiving the key.
+    # Thus we use retry_flag to delay the task retry until after attempting
+    # to push to all apis.
+    retry_flag = False
     for kps in dirty:
         endpoint = urljoin(kps.api.url, endpoints[kps.status])
         try:
             apicall(endpoint, kps.api.signing_key, api=kps.api.name,
                     key=kps.key.key, email=kps.key.email, status=kps.key.status)
             print 'sent key {k} to {a}'.format(k=key.key, a=kps.api.name)
-        except urllib2.HTTPError as e:
-            ctx = {
-                'a': str(kps.api.name),
-                'k': str(key.key),
-                'body': str(e.read())
-            }
-            print 'Caught HTTPError while pushing key {k} to {a}: {body}'.format(**ctx)
+            kps.status = PUBLISHED
+            kps.save()
+
         except Exception as e:
             ctx = {
                 'a': str(kps.api.name),
                 'k': str(key.key),
-                'e': str(e)
+                'e': str(e.read()) if isinstance(e, urllib2.HTTPError) else str(e)
             }
             print 'Caught exception while pushing key {k} to {a}: {e}'.format(**ctx)
-            print 'retrying'
-            push_key.retry()
-        kps.status = PUBLISHED
-        kps.save()
+            print 'Will retry'
+            retry_flag = True
+
+    if retry_flag:
+        push_key.retry()
