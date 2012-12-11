@@ -1,3 +1,4 @@
+import urllib2
 from urlparse import urljoin
 from locksmith.common import apicall, UNPUBLISHED, PUBLISHED, NEEDS_UPDATE
 
@@ -13,9 +14,22 @@ def push_key(key):
         try:
             apicall(endpoint, kps.api.signing_key, api=kps.api.name,
                     key=kps.key.key, email=kps.key.email, status=kps.key.status)
-            print 'sent key to', kps.api.name
+            print 'sent key {k} to {a}'.format(k=key.key, a=kps.api.name)
+        except urllib2.HTTPError as e:
+            ctx = {
+                'a': str(kps.api.name),
+                'k': str(key.key),
+                'body': str(e.read())
+            }
+            print 'Caught HTTPError while pushing key {k} to {a}: {body}'.format(**ctx)
         except Exception as e:
-            print 'retrying:', e
+            ctx = {
+                'a': str(kps.api.name),
+                'k': str(key.key),
+                'e': str(e)
+            }
+            print 'Caught exception while pushing key {k} to {a}: {e}'.format(**ctx)
+            print 'retrying'
             push_key.retry()
         kps.status = PUBLISHED
         kps.save()
