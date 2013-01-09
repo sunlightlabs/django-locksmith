@@ -15,10 +15,9 @@ PUB_STATUSES = (
     (NEEDS_UPDATE, 'Needs Update'),
 )
 
-
 def get_signature(params, signkey):
     # sorted k,v pairs of everything but signature
-    data = sorted([(k,v) for k,v in params.iteritems() if k != 'signature'])
+    data = sorted([(k,v.encode('utf-8')) for k,v in params.iteritems() if k != 'signature'])
     qs = urllib.urlencode(data)
     return hmac.new(str(signkey), qs, hashlib.sha1).hexdigest()
 
