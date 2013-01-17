@@ -19,7 +19,15 @@ analytics = patterns('locksmith.hub.views',
     url(r'^key/(?P<key>\w+)/$', 'key_analytics', name='key_analytics'),
 )
 
+analytics_data = patterns('locksmith.hub.dataviews',
+    url(r'^data/api/(?P<api_id>\d+)/calls/$', 'calls_to_api'),
+    url(r'^data/api/(?P<api_name>[-\w]+)/calls/$', 'calls_to_api'),
+    url(r'^data/apis/calls/$', 'api_calls'),
+    url(r'^data/keys/issued/$', 'keys_issued'),
+)
+
 urlpatterns = patterns('locksmith.hub.views',
     url(r'^accounts/', include(accounts)),
     url(r'^analytics/', include(analytics)),
+    url(r'^analytics/', include(analytics_data)),
 )
