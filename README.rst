@@ -21,6 +21,7 @@ Requirements
 
 * python >= 2.5
 * Django >= 1.2
+* django-taggit
 
 locksmith.hub
 ==============

@@ -2,6 +2,19 @@ import hashlib
 import hmac
 import urllib, urllib2
 
+API_OPERATING_STATUSES = (
+    (1, 'Normal'),
+    (2, 'Degraded Service'),
+    (3, 'Service Disription'),
+    (4, 'Undergoing Maintenance')
+)
+
+API_STATUSES = (
+    (1, 'Active'),
+    (2, 'Deprecated'),
+    (3, 'Disabled')
+)
+
 KEY_STATUSES = (
     ('U', 'Unactivated'),
     ('A', 'Active'),
