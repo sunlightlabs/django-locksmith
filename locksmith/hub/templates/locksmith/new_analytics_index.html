@@ -1,0 +1,84 @@
+{% extends "locksmith/base.html" %}
+{% load humanize %}
+{% load charthelpers %}
+
+{% block bodyclass %}analytics{% endblock %}
+
+{% block extrahead %}
+    {{ block.super }}
+
+    <script type="text/javascript">
+        var options = {{ json_options|safe }};
+    </script>
+{% endblock %}
+
+{% block content %}
+<div class="well well-small">
+    Internal Keys: <button class="btn" id="toggle-internal-keys"></button>
+    Deprecated APIs: <button class="btn" id="toggle-deprecated-apis"></button>
+</div>
+{% comment %}
+<div class="well well-small">
+    <div class="pull-left">
+        <span>Deprecated APIs:</span>
+        <button class="btn" id="deprecated-api-btn"></button>
+        <span>Internal Keys:</span>
+        <button type="button"
+            class="btn btn-primary" id="internal-keys-btn"
+            data-active-text="Ignored"
+            data-inactive-text="Included"
+            data-toggle="button"
+            >Ignored</button>
+    </div>
+    <div class="clearfix"></div>
+</div>
+{% endcomment %}
+
+<h2>Overview</h2>
+
+<div id="calls">
+
+
+    <script type="text/jquery-template" id="calls-by-api-row-tmpl">
+        <tr>
+            <td class="api-name"></td>
+            <td class="calls-all-time"></td>
+            <td class="calls-30d"></td>
+            <td class="calls-ytd"></td>
+        </tr>
+    </script>
+
+<h3> Calls </h3>
+<table class="table table-striped table-bordered">
+<thead>
+    <tr > <th>API</th> <th> total calls </th> <th> last 30 days </th> <th> year to date </th> </tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+</div>
+
+<div id="keys">
+<h3>Keys</h3>
+<table>
+    <tr><th colspan=2>Keys Issued</th></tr>
+    <tr><th>Last 30 Days</th><td>{{keys_month}}</td></tr>
+    <tr><th>This Year</th><td>{{keys_ytd}}</td></tr>
+    <tr><th>Total</th><td>{{keys_total}}</td></tr>
+</table>
+<a href="{% url key_list %}">View all Keys</a>
+
+<div id="timeline" style="width: 450px;">
+</div>
+
+
+</div>
+
+{% endblock %}
+
+{% block extrabody %}
+    {{ block.super }}
+    <script type="text/javascript" src="{{STATIC_URL}}scripts/date-en-US.js"></script>
+    <script type="text/javascript" src="{{STATIC_URL}}scripts/analytics.js"></script>
+{% endblock %}
+

@@ -55,6 +55,14 @@ def parse_bool_param(request, param, default=None):
     return request_param_type_guard(request, param, parse_bool, default)
 
 @login_required
+def apis_list(request):
+    apis = Api.objects.all()
+    result = [{'id': api.id, 'name': api.name, 'deprecated': api.push_enabled}
+              for api in apis]
+    return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
+
+
+@login_required
 def calls_to_api(request,
                  api_id=None, api_name=None):
 
@@ -96,23 +104,25 @@ def api_calls(request):
 
     qry = Report.objects
     if ignore_deprecated == True:
-        qry = qry.filter(api__push_enabled=True)
+        qry = qry.filter(api__push_enabled=False)
     if begin_date:
         qry = qry.filter(date__gte=begin_date)
     if end_date:
         qry = qry.filter(date__lte=end_date)
-    qry = qry.values('api__id', 'api__name').annotate(calls=Sum('calls'))
+    agg_qry = qry.aggregate(calls=Sum('calls'))
+    by_api_qry = qry.values('api__id', 'api__name').annotate(calls=Sum('calls'))
 
     def obj_for_group(grp):
         return {
             'api_id': grp['api__id'],
             'api_name': grp['api__name'],
-            'calls': grp['calls']
+            'calls': grp['calls'] or 0
         }
 
     result = {
+        'calls': agg_qry['calls'] or 0,
         'by_api': [obj_for_group(grp)
-                   for grp in qry]
+                   for grp in by_api_qry]
     }
     if begin_date is not None:
         result['begin_date'] = begin_date.isoformat()

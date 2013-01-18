@@ -1,3 +1,4 @@
+import json
 import datetime
 import uuid
 from collections import defaultdict
@@ -253,6 +254,25 @@ def _cumulative_by_date(model, datefield):
 # analytics views -- all require staff permission
 
 staff_required = user_passes_test(lambda u: u.is_staff)
+
+@staff_required
+def new_analytics_index(request): #, ignore_internal_keys, ignore_deprecated_apis):
+    ignore_internal_keys = request.GET.get('ignore_internal_keys', True)
+    ignore_deprecated_apis = request.GET.get('ignore_deprecated_apis', True)
+
+    #TODO: Calls by API
+    #TODO: Keys issued
+    #TODO: Line chart of keys issued over time
+    options = {
+        'ignore_internal_keys': ignore_internal_keys,
+        'ignore_deprecated_apis': ignore_deprecated_apis
+    }
+    ctx = {
+        'options': options,
+        'json_options': json.dumps(options),
+    }
+    return render(request, 'locksmith/new_analytics_index.html', ctx)
+
 
 @staff_required
 def analytics_index(request):

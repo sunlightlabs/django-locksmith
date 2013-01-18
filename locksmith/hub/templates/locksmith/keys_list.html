@@ -3,7 +3,7 @@
 {% block bodyclass %}analytics{% endblock %}
 
 {% block extrahead %}
-    <script type="text/javascript" charset="utf-8" src="{{ MEDIA_URL }}jquery.tablesorter.min.js"></script>
+    <script type="text/javascript" charset="utf-8" src="{{ STATIC_URL }}jquery.tablesorter.min.js"></script>
     <script type="text/javascript">
     $(document).ready(function() {
         $('#keys').tablesorter();

@@ -1,7 +1,13 @@
 {% extends "base.html" %}
 
 {% block extrahead %}
-    <script src="{{MEDIA_URL}}scripts/jquery.min.js" type="text/javascript"></script>
-    <script src="{{MEDIA_URL}}scripts/highcharts.js" type="text/javascript"></script>
-    <script src="{{MEDIA_URL}}scripts/excanvas.compiled.js" type="text/javascript"></script>
+    <link href="{{STATIC_URL}}bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
+{% endblock %}
+
+{% block extrabody %}
+    {{ block.super }}
+    <script src="{{STATIC_URL}}scripts/jquery-1.8.3.min.js" type="text/javascript"></script>
+    <script src="{{STATIC_URL}}scripts/highcharts.js" type="text/javascript"></script>
+    <script src="{{STATIC_URL}}scripts/excanvas.compiled.js" type="text/javascript"></script>
+    <script src="{{STATIC_URL}}bootstrap/js/bootstrap.js" type="text/javascript"></script>
 {% endblock %}
