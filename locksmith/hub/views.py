@@ -169,6 +169,14 @@ def profile(request):
         form = PasswordChangeForm(request.user)
 
     key = Key.objects.get(email=request.user.email)
+    
+    #analytics
+    endpoint_q = key.reports.values('api__name', 'endpoint').annotate(calls=Sum('calls')).order_by('-calls')
+    endpoints = [{'endpoint':'.'.join((d['api__name'], d['endpoint'])),
+                  'calls': d['calls']} for d in endpoint_q]
+    date_q = key.reports.values('date').annotate(calls=Sum('calls')).order_by('date')
+    context['endpoints'], context['endpoint_calls'] = _dictlist_to_lists(endpoints, 'endpoint', 'calls')
+    context['timeline'] = date_q
 
     context['form'] = form
     context['key'] = key
