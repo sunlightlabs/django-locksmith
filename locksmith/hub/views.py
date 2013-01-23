@@ -256,16 +256,23 @@ def _cumulative_by_date(model, datefield):
 staff_required = user_passes_test(lambda u: u.is_staff)
 
 @staff_required
-def new_analytics_index(request): #, ignore_internal_keys, ignore_deprecated_apis):
+def new_analytics_index(request,
+                        keys_issued_display='chart', keys_issued_interval='yearly',
+                        api_calls_display='chart'):
     ignore_internal_keys = request.GET.get('ignore_internal_keys', True)
     ignore_deprecated_apis = request.GET.get('ignore_deprecated_apis', True)
+    ignore_inactive_keys = request.GET.get('ignore_inactive_keys', True)
 
     #TODO: Calls by API
     #TODO: Keys issued
     #TODO: Line chart of keys issued over time
     options = {
         'ignore_internal_keys': ignore_internal_keys,
-        'ignore_deprecated_apis': ignore_deprecated_apis
+        'ignore_deprecated_apis': ignore_deprecated_apis,
+        'ignore_inactive_keys': ignore_inactive_keys,
+        'api_calls_display': api_calls_display,
+        'keys_issued_display': keys_issued_display,
+        'keys_issued_interval': keys_issued_interval
     }
     ctx = {
         'options': options,

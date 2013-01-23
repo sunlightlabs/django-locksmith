@@ -4,13 +4,20 @@ import datetime
 import dateutil.parser
 
 from django.conf import settings
-from django.db.models import Sum, Count
+from django.db.models import Sum, Count, Min, Max
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFound
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from locksmith.hub.models import Api, Key, Report
 from unusual.http import BadRequest
 
+
+def _keys_issued_date_range():
+    return Key.objects.aggregate(earliest=Min('issued_on'), latest=Max('issued_on'))
+
+def _years():
+    extents = _keys_issued_date_range()
+    return range(extents['earliest'].year, extents['latest'].year + 1)
 
 @login_required
 def calls_by_api(request,
@@ -57,7 +64,7 @@ def parse_bool_param(request, param, default=None):
 @login_required
 def apis_list(request):
     apis = Api.objects.all()
-    result = [{'id': api.id, 'name': api.name, 'deprecated': api.push_enabled}
+    result = [{'id': api.id, 'name': api.name, 'deprecated': not api.push_enabled}
               for api in apis]
     return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
 
@@ -104,7 +111,7 @@ def api_calls(request):
 
     qry = Report.objects
     if ignore_deprecated == True:
-        qry = qry.filter(api__push_enabled=False)
+        qry = qry.filter(api__push_enabled=True)
     if begin_date:
         qry = qry.filter(date__gte=begin_date)
     if end_date:
@@ -130,7 +137,6 @@ def api_calls(request):
         result['end_date'] = end_date.isoformat()
     return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
 
-
 @login_required
 def keys_issued(request):
     begin_date = parse_date_param(request, 'begin_date')
@@ -143,7 +149,7 @@ def keys_issued(request):
     if end_date:
         qry = qry.filter(issued_on__lte=end_date)
     if ignore_inactive:
-        qry = qry.filter(status__in='A')
+        qry = qry.filter(status='A')
     qry = qry.aggregate(issued=Count('pk'))
 
     result = {
@@ -153,5 +159,61 @@ def keys_issued(request):
         result['begin_date'] = begin_date.isoformat()
     if end_date is not None:
         result['end_date'] = end_date.isoformat()
+
+    return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
+
+@login_required
+def keys_issued_yearly(request):
+    ignore_inactive = parse_bool_param(request, 'ignore_inactive', False)
+
+    date_extents = _keys_issued_date_range()
+    earliest_year = date_extents['earliest'].year
+    latest_year = date_extents['latest'].year
+
+    qry = Key.objects
+    if ignore_inactive:
+        qry = qry.filter(status='A')
+
+    result = {
+        'earliest_year': earliest_year,
+        'latest_year': latest_year,
+        'yearly': []
+    }
+    for year in range(earliest_year, latest_year + 1):
+        yr_fro = datetime.date(year, 1, 1)
+        yr_to = datetime.date(year, 12, 31)
+        yr_agg = (qry.filter(issued_on__gte=yr_fro,
+                             issued_on__lte=yr_to)
+                     .aggregate(issued=Count('pk')))
+        result['yearly'].append({'year': year,
+                                 'issued': yr_agg['issued']})
+    return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
+    
+@login_required
+def keys_issued_monthly(request, year):
+    year = int(year)
+    ignore_inactive = parse_bool_param(request, 'ignore_inactive', False)
+
+    qry = Key.objects.extra(select={'month': 'extract(month from issued_on)::int'})
+    qry = qry.filter(issued_on__gte=datetime.date(year, 1, 1),
+                     issued_on__lte=datetime.date(year, 12, 31))
+    if ignore_inactive:
+        qry = qry.filter(status='A')
+
+    monthly_agg = qry.values('month').annotate(issued=Count('pk'))
+    monthly = {}
+    for agg in monthly_agg:
+        monthly[agg['month']] = agg['issued']
+    for month in range(1, 13):
+        if month not in monthly:
+            monthly[month] = 0
+
+    agg = qry.aggregate(issued=Count('pk'))
+
+    result = {
+        'year': year,
+        'issued': agg['issued'],
+        'monthly': [{'month': m, 'issued': cnt} for (m, cnt) in monthly.items()]
+    }
     return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
 

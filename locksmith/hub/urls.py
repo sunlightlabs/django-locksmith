@@ -26,6 +26,8 @@ analytics_data = patterns('locksmith.hub.dataviews',
     url(r'^data/api/(?P<api_name>[-\w]+)/calls/$', 'calls_to_api'),
     url(r'^data/apis/calls/$', 'api_calls'),
     url(r'^data/keys/issued/$', 'keys_issued'),
+    url(r'^data/keys/issued/yearly/$', 'keys_issued_yearly'),
+    url(r'^data/keys/issued/(?P<year>\d+)/$', 'keys_issued_monthly'),
 )
 
 urlpatterns = patterns('locksmith.hub.views',
