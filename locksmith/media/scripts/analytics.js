@@ -108,6 +108,8 @@ $(document).ready(function(){
                     .x(function(api){ return api['calls'] || 0; }));
 
             $("#api-calls-chart rect.bar").click(function(event){
+                var url = '/analytics/api/' + $(this).attr('data-y');
+                window.location = url;
                 console.log("TODO: navigate to api page for:", $(this).attr("data-y"));
             });
         });
@@ -169,9 +171,9 @@ $(document).ready(function(){
         if (options.keys_issued_display !== 'table')
             return;
 
-        fetch_keys_issued_all_time()
+        return fetch_keys_issued_all_time()
         .then(function(keys_issued){
-            $("#keys-issued-table #keys-issued-all-time").text(keys_issued['issued'].toString());
+            $("#keys-issued-all-time").text(keys_issued['issued'].toString());
         })
         .then(function(){
             var begin_date = new Date();
@@ -180,7 +182,6 @@ $(document).ready(function(){
         })
         .then(function(keys_issued){
             $("#keys-issued-30d").text(keys_issued['issued'].toString());
-            $("#keys-issued-table").show();
         })
         .then(function(){
             var begin_date = Date.today();
@@ -190,6 +191,7 @@ $(document).ready(function(){
         })
         .then(function(keys_issued){
             $("#keys-issued-ytd").text(keys_issued['issued'].toString());
+            $("#keys-issued-table").show();
         });
     };
 
@@ -304,10 +306,13 @@ $(document).ready(function(){
             $("#keys-issued-display-mode .btn").removeClass("active");
             var $chart_options = $("#keys-issued-chart-interval, #keys-issued-chart-cumulative");
             if (mode === 'table') {
-                $("#keys-issued-display-table").addClass("active");
-                $("#keys-issued-chart").hide();
-                $("#keys-issued-table").show();
-                $chart_options.hide();
+                display_keys_issued_table()
+                .then(function(){
+                    $("#keys-issued-display-table").addClass("active");
+                    $("#keys-issued-chart").hide();
+                    $("#keys-issued-table").show();
+                    $chart_options.hide();
+                });
             } else {
                 $("#keys-issued-display-chart").addClass("active");
                 $chart_options.show();
