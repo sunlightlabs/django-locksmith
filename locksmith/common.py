@@ -5,7 +5,7 @@ import urllib, urllib2
 API_OPERATING_STATUSES = (
     (1, 'Normal'),
     (2, 'Degraded Service'),
-    (3, 'Service Disription'),
+    (3, 'Service Disruption'),
     (4, 'Undergoing Maintenance')
 )
 
