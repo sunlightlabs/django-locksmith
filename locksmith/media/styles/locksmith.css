@@ -3,7 +3,7 @@ svg text {
     text-rendering: optimizeLegibility;
 }
 
-figure.analytics-chart { margin: 0 }
+figure.analytics-chart { position: relative; margin: 0 }
 .analytics-chart { height: 400px; fill: transparent; stroke: black; }
 .analytics-chart figcaption
     { font-weight: bold; font-size: 16px; color: rgb(0, 0, 0); letter-spacing: 110%; }
@@ -14,6 +14,7 @@ figure.analytics-chart { margin: 0 }
 .analytics-chart path.domain { stroke: rgb(200, 200, 200); fill: none; }
 .analytics-chart line.x.gridline { stroke: rgb(200, 200, 200); }
 .analytics-chart line.y.gridline { stroke: rgb(200, 200, 200); }
+.analytics-chart .tooltip { z-index: 9999; background-image; none; background-color: rgb(250, 250, 250); border: solid 2px rgb(80, 80, 200); }
 
 .reactive-settings .spacer { margin: 0 1em; color: rgb(200, 200, 200); }
 .reactive-settings .spacer-narrow { margin: 0 0.5em; }

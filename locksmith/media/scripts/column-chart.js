@@ -47,6 +47,22 @@ function columnChart() {
       _yAxis = yAxis;
       _xAxis = xAxis;
           
+      var tooltip = d3.select(this)
+                      .append('div')
+                      .attr('class', 'tooltip')
+                      .style('position', 'absolute')
+                      .text('tooltip usa FUCK YEAH');
+
+      var show_tooltip = function(d){
+          tooltip.style('visibility', 'visible')
+                 .style('opacity', '1.0')
+                 .style('top', event.offsetY + 10 + 'px')
+                 .style('left', event.offsetX + 10 + 'px')
+                 .text(xTickFormat(d[0]) + ': ' + yTickFormat(d[1]));
+      };
+      var hide_tooltip = function(d){
+          tooltip.style('visibility', 'hidden');
+      };
 
       // Select the svg element, if it exists.
       var svg = d3.select(this).selectAll("svg").data([data]);
@@ -71,13 +87,17 @@ function columnChart() {
       var bar = svg.select(".bars").selectAll(".bar").data(data);
       bar.enter().append("rect");
       bar.exit().remove();
-      bar .attr("class", function(d, i) { return d[1] < 0 ? "bar negative" : "bar positive"; })
-          .attr("x", function(d) { return X(d); })
-          .attr("y", function(d, i) { return d[1] < 0 ? Y0() : Y(d); })
-          .attr("data-dependent", function(d){ return d[1]; })
-          .attr("data-independent", function(d){ return d[0]; })
-          .attr("width", xScale.rangeBand())
-          .attr("height", function(d, i) { return Math.abs( Y(d) - Y0() ); });
+      bar.attr("class", function(d, i) { return d[1] < 0 ? "bar negative" : "bar positive"; })
+         .attr("x", function(d) { return X(d); })
+         .attr("y", function(d, i) { return d[1] < 0 ? Y0() : Y(d); })
+         .attr("data-dependent", function(d){ return d[1]; })
+         .attr("data-independent", function(d){ return d[0]; })
+         .attr("width", xScale.rangeBand())
+         .attr("height", function(d, i) { return Math.abs( Y(d) - Y0() ); })
+         .on('mouseover', show_tooltip)
+         .on('mousemove', show_tooltip)
+         .on('mouseout', hide_tooltip)
+         .on('click', hide_tooltip);
 
     // x axis at the bottom of the chart
      g.select(".x.axis")
