@@ -5,7 +5,7 @@ from collections import defaultdict
 from django.conf import settings
 from django.core.mail import send_mail
 from django.db.models import Sum, Max
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFound
 from django.shortcuts import get_object_or_404, render_to_response, render
 from django.template import RequestContext
 from django.template.loader import render_to_string
@@ -14,9 +14,8 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib import messages
 from locksmith.common import get_signature, UNPUBLISHED
-from locksmith.hub.models import Api, Key, KeyForm, Report, ResendForm
+from locksmith.hub.models import Api, Key, KeyForm, Report, ResendForm, resolve_model
 from locksmith.hub.tasks import push_key
-
 
 @require_POST
 def report_calls(request):
@@ -309,10 +308,38 @@ def analytics_index(request):
                               context_instance=RequestContext(request))
 
 @staff_required
+def new_api_analytics(request,
+                      api_calls_display='chart', api_calls_interval='yearly',
+                      api_id=None, api_name=None):
+    if api_id is None and api_name is None:
+        return HttpResponseBadRequest('Must specify API id or name.')
+
+    try:
+        api = resolve_model(Api, [('id', api_id), ('name', api_name)])
+    except Api.DoesNotExist:
+        return HttpResponseNotFound('The requested API was not found.')
+
+    ignore_internal_keys = request.GET.get('ignore_internal_keys', True)
+
+    options = {
+        'api': { 'id': api.id, 'name': api.name },
+        'ignore_internal_keys': ignore_internal_keys,
+        'api_calls_display': api_calls_display,
+        'api_calls_interval': api_calls_interval
+    }
+    ctx = {
+        'api': api,
+        'options': options,
+        'json_options': json.dumps(options),
+    }
+    return render(request, 'locksmith/new_api_analytics.html', ctx)
+
+
+@staff_required
 def api_analytics(request, apiname, year=None, month=None):
     api = get_object_or_404(Api, name=apiname)
     endpoint_q = api.reports.values('endpoint').annotate(calls=Sum('calls')).order_by('-calls')
-    user_q = api.reports.values('key__email').exclude(key__status='S').annotate(calls=Sum('calls')).order_by('-calls')
+    user_q = api.reports.values('key__email', 'key__key').exclude(key__status='S').annotate(calls=Sum('calls')).order_by('-calls')
     date_q = api.reports.values('date').annotate(calls=Sum('calls')).order_by('date')
 
     date_constraint = {}
@@ -340,6 +367,16 @@ def api_analytics(request, apiname, year=None, month=None):
 
     return render_to_response('locksmith/api_analytics.html', c,
                               context_instance=RequestContext(request))
+
+@staff_required
+def new_key_list(request):
+    options = {
+    }
+    ctx = {
+        'options': options,
+        'json_options': json.dumps(options),
+    }
+    return render(request, "locksmith/new_keys_list.html", ctx)
 
 @staff_required
 def key_list(request):

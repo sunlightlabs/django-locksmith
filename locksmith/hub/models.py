@@ -6,6 +6,23 @@ from locksmith.common import (KEY_STATUSES, API_OPERATING_STATUSES, API_STATUSES
                               NEEDS_UPDATE, PUBLISHED)
 from locksmith.hub.tasks import push_key
 from taggit.managers import TaggableManager
+    
+def resolve_model(model, fields):
+    """
+    model: Model class
+    fields: List of 2-tuples of the form (field, value) in order of descending priority
+    """
+    for (f, v) in fields:
+        if v is not None:
+            try:
+                kwargs = {f: v}
+                obj = model.objects.get(**kwargs)
+                return obj
+            except model.DoesNotExist:
+                pass
+            except model.MultipleObjectsReturned:
+                pass
+    raise model.DoesNotExist()
 
 class Api(models.Model):
     '''

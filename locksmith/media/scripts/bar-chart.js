@@ -4,8 +4,8 @@ function barChart () {
       width = 420,
       height = 420,
       yRoundBands = 0.2,
-      xValue = function(d) { return d[0]; },
-      yValue = function(d) { return d[1]; },
+      xValue = function(d) { return d[1]; },
+      yValue = function(d) { return d[0]; },
       yScale = d3.scale.ordinal(),
       xScale = d3.scale.linear(),
       xAxis = d3.svg.axis().scale(xScale).orient("bottom").ticks(5),
@@ -64,8 +64,8 @@ function barChart () {
       bar .attr("class", function(d, i) { return d[0] < 0 ? "bar negative" : "bar positive"; })
           .attr("y", function(d) { return Y(d); })
           .attr("x", function(d, i) { return X0(); })
-          .attr("data-y", function(d){ return d[1]; })
-          .attr("data-x", function(d){ return d[0]; })
+          .attr("data-dependent", function(d){ return yValue(d); })
+          .attr("data-independent", function(d){ return xValue(d); })
           .attr("height", yScale.rangeBand())
           .attr("width", function(d, i) { return Math.abs( X(d) - X0() ); });
 
@@ -143,6 +143,30 @@ function barChart () {
   chart.y = function(_) {
     if (!arguments.length) return yValue;
     yValue = _;
+    return chart;
+  };
+
+  chart.xTickFormat = function(_) {
+    if (!arguments.length) return xTickFormat;
+    xTickFormat = _;
+    return chart;
+  };
+
+  chart.yTickFormat = function(_) {
+    if (!arguments.length) return yTickFormat;
+    yTickFormat = _;
+    return chart;
+  };
+
+  chart.xMin = function(_) {
+    if (!arguments.length) return xMin;
+    xMin = _;
+    return chart;
+  };
+
+  chart.xMax = function(_) {
+    if (!arguments.length) return xMax;
+    xMax = _;
     return chart;
   };
 

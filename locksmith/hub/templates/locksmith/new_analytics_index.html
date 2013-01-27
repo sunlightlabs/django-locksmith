@@ -10,24 +10,8 @@
     <script type="text/javascript">
         var options = {{ json_options|safe }};
     </script>
-    <link rel="stylesheet" type="text/css" src="{{STATIC_URL}}scripts/xcharts/xcharts.css">
     <link href='http://fonts.googleapis.com/css?family=Droid+Sans:400,700' rel='stylesheet' type='text/css'>
-    <link href='http://fonts.googleapis.com/css?family=Fruktur' rel='stylesheet' type='text/css'>
-    <style type="text/css">
-        svg text {
-            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-            font-family: 'Droid Sans';
-        }
-        figure { position: relative; }
-        #api-calls-chart { height: 400px; fill: transparent; stroke: black; }
-        #keys-issued-chart { height: 400px; fill: transparent; stroke: black; }
-        #keys-issued-chart figcaption { font-weight: bold; font-size: 16px; color: rgb(0, 0, 0); letter-spacing: 110%; }
-
-        g.bars rect.bar { fill: white; stroke: rgb(80, 80, 220); }
-        g.axis > g > text { stroke: none; fill: #6C6764; font-weight: normal; text-rendering: optimizeLegibility; font-size: 12px; }
-        line.x.gridline { stroke: rgb(200, 200, 200); }
-        line.y.gridline { stroke: rgb(200, 200, 200); }
-    </style>
+    <link href="{{STATIC_URL}}styles/locksmith.css" rel="stylesheet" type="text/css">
 {% endblock %}
 
 {% block content %}
@@ -35,53 +19,50 @@
     Internal Keys: <button class="btn" id="toggle-internal-keys"></button>
     Deprecated APIs: <button class="btn" id="toggle-deprecated-apis"></button>
 </div>
-{% comment %}
-<div class="well well-small">
-    <div class="pull-left">
-        <span>Deprecated APIs:</span>
-        <button class="btn" id="deprecated-api-btn"></button>
-        <span>Internal Keys:</span>
-        <button type="button"
-            class="btn btn-primary" id="internal-keys-btn"
-            data-active-text="Ignored"
-            data-inactive-text="Included"
-            data-toggle="button"
-            >Ignored</button>
-    </div>
-    <div class="clearfix"></div>
-</div>
-{% endcomment %}
 
 <h2>Overview</h2>
 
 <div id="calls">
+    <h3> Calls By API </h3>
+
     <div class="well well-small">
-        <div class="btn-toolbar" id="api-calls-chart-options">
-            <div class="pull-right btn-group" data-toggle="buttons-radio"
-                 id="api-calls-display-mode">
-                <button class="btn" id="api-calls-display-table">Table</button>
-                <button class="btn" id="api-calls-display-chart">Chart</button>
+        <div class="btn-toolbar">
+            <div class="pull-right btn-group" data-toggle="buttons-radio">
+                 <button class="btn" data-setting="display.mode" data-value="table"
+                     >Table</button>
+                 <button class="btn" data-setting="display.mode" data-value="chart"
+                     >Chart</button>
+             </div>
+
+             <div class="pull-right btn-group" data-toggle="buttons-radio">
+                 <button class="btn"
+                         data-setting="time.period"
+                         data-value="all-time">All Time</button>
+                 <button class="btn"
+                         data-setting="time.period"
+                         data-value="year-to-date">Year to Date</button>
+                 <button class="btn"
+                         data-setting="time.period"
+                         data-value="past-30-days">Past 30 Days</button>
             </div>
         </div>
     </div>
 
-    <script type="text/jquery-template" id="calls-by-api-row-tmpl">
+    <script type="text/jquery-template" class="table-row-tmpl">
         <tr>
-            <td class="api-name"></td>
-            <td class="calls-all-time"></td>
-            <td class="calls-30d"></td>
-            <td class="calls-ytd"></td>
+            <td><button class="btn independent"></button></td>
+            <td class="dependent"></td>
         </tr>
     </script>
 
-    <h3> Calls </h3>
 
-    <figure id="api-calls-chart">
-        <figcaption></figcaption>
-    </figure>
-    <table class="table table-striped table-bordered" id="api-calls-table">
+    <figure class="analytics-chart"><figcaption></figcaption></figure>
+    <table class="table table-striped table-bordered analytics-table">
+        <caption></caption>
         <thead>
-            <tr > <th>API</th> <th> total calls </th> <th> last 30 days </th> <th> year to date </th> </tr>
+            <tr><th class="independent"></th>
+                <th class="dependent"></th>
+            </tr>
         </thead>
         <tbody>
         </tbody>
@@ -89,41 +70,46 @@
 </div>
 
 <div id="keys">
-<h3>Keys</h3>
-<div class="well well-small">
-    <div class="btn-toolbar" id="keys-issued-chart-options">
-        <div class="pull-right btn-group" data-toggle="buttons-radio"
-             id="keys-issued-display-mode">
-            <button class="btn" id="keys-issued-display-table">Table</button>
-            <button class="btn" id="keys-issued-display-chart">Chart</button>
+    <h3>Keys Issued</h3>
+
+    <div class="well well-small analytics-chart-buttons">
+        <div class="pull-right btn-group" data-toggle="buttons-radio">
+            <button class="btn" data-setting="display.mode" data-value="table">Table</button>
+             <button class="btn" data-setting="display.mode" data-value="chart">Chart</button>
         </div>
-        <div class="pull-right btn-group" data-toggle="buttons-radio"
-             id="keys-issued-chart-interval">
-             <button class="btn keys-issued-interval-btn"
-                     id="keys-issued-interval-monthly">Monthly</button>
-             <button class="btn keys-issued-internal-btn"
-                     id="keys-issued-interval-yearly">Yearly</button>
+        <div class="pull-right btn-group" data-toggle="buttons-radio">
+             <button class="btn"
+                     data-setting="chart.interval"
+                     data-value="monthly">Monthly</button>
+             <button class="btn api-calls-internal-btn"
+                     data-setting="chart.interval"
+                     data-value="yearly">Yearly</button>
         </div>
     </div>
-</div>
-<figure id="keys-issued-chart">
-    <figcaption></figcaption>
-</figure>
+    <figure class="analytics-chart"><figcaption></figcaption></figure>
+    <table class="table table-striped table-bordered analytics-table">
+        <caption></caption>
+        <thead>
+            <tr><th class="independent"></th>
+                <th class="dependent"></th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+    <script type="text/jquery-template" class="yearly-table-row-tmpl">
+        <tr>
+            <td><button class="btn independent"></button></td>
+            <td class="dependent"></td>
+        </tr>
+    </script>
+    <script type="text/jquery-template" class="monthly-table-row-tmpl">
+        <tr>
+            <td class="independent"></td>
+            <td class="dependent"></td>
+        </tr>
+    </script>
 
-<script type="text/jquery-template" id="keys-issued-row-tmpl">
-    <tr><th colspan=2>Keys Issued</th></tr>
-    <tr><th>Last 30 Days</th><td>{{keys_month}}</td></tr>
-    <tr><th>This Year</th><td>{{keys_ytd}}</td></tr>
-    <tr><th>Total</th><td>{{keys_total}}</td></tr>
-</script>
-
-<table id="keys-issued-table">
-    <tr><th colspan=2>Keys Issued</th></tr>
-    <tr><th><a href="{% url key_list %}">Last 30 Days</a></th><td id="keys-issued-30d"></td></tr>
-    <tr><th>This Year</th><td id="keys-issued-ytd"></td></tr>
-    <tr><th>All Time</th><td id="keys-issued-all-time"></td></tr>
-</table>
-<a href="{% url key_list %}">View all Keys</a>
 
 <div id="timeline" style="width: 450px;">
 </div>
@@ -137,9 +123,9 @@
     {{ block.super }}
     <script type="text/javascript" src="{{STATIC_URL}}scripts/date-en-US.js"></script>
     <script type="text/javascript" src="{{STATIC_URL}}scripts/d3.v3.min.js"></script>
-    <script type="text/javascript" src="{{STATIC_URL}}scripts/xcharts/xcharts.js"></script>
     <script type="text/javascript" src="{{STATIC_URL}}scripts/bar-chart.js"></script>
     <script type="text/javascript" src="{{STATIC_URL}}scripts/column-chart.js"></script>
+    <script type="text/javascript" src="{{STATIC_URL}}scripts/analytics-common.js"></script>
     <script type="text/javascript" src="{{STATIC_URL}}scripts/analytics.js"></script>
 {% endblock %}
 

@@ -1,0 +1,20 @@
+svg text {
+    font-family: 'Droid Sans';
+    text-rendering: optimizeLegibility;
+}
+
+figure.analytics-chart { margin: 0 }
+.analytics-chart { height: 400px; fill: transparent; stroke: black; }
+.analytics-chart figcaption
+    { font-weight: bold; font-size: 16px; color: rgb(0, 0, 0); letter-spacing: 110%; }
+.analytics-chart g.bars rect.bar { fill: white; stroke: rgb(80, 80, 220); }
+.analytics-chart g.axis > g > text { stroke: none; fill: #6C6764; font-weight: normal; font-size: 12px; }
+.analytics-chart line.x.gridline { stroke: rgb(200, 200, 200); }
+.analytics-chart line.y.gridline { stroke: rgb(200, 200, 200); }
+.analytics-chart path.domain { stroke: rgb(200, 200, 200); fill: none; }
+.analytics-chart line.x.gridline { stroke: rgb(200, 200, 200); }
+.analytics-chart line.y.gridline { stroke: rgb(200, 200, 200); }
+
+#users { min-height: 700px; }
+#calls { min-height: 700px; }
+#endpoints { min-height: 700px; }
