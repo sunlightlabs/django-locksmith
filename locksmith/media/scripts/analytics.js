@@ -1,6 +1,4 @@
 $(document).ready(function(){
-    console.log('analytics.js');
-
     Apis = {};
 
     var fetch_api_list = function(){
@@ -11,6 +9,11 @@ $(document).ready(function(){
                    Apis['by_id'] = key_by(Apis.list, itemgetter('id'));
                });
     };
+
+    var page_settings = new ReactiveSettingsIface('#page-settings')
+                            .setting('deprecated.apis', 'excluded')
+                            .setting('internal.keys', 'excluded')
+                            .silence(false);
 
     var get_keys_issued = function (chart) {
         var chart_interval = chart.setting('chart.interval');
@@ -45,9 +48,8 @@ $(document).ready(function(){
 
     var get_apis_by_call = function (chart) {
         var params = {
-            'ignore_deprecated': options.ignore_deprecated_apis.toString()
+            'ignore_deprecated': (page_settings.get('deprecated.apis') === 'excluded')
         };
-        params['ignore_deprecated'] = false;
         var time_period = chart.setting('time.period');
         var title = 'API Calls All Time';
         if (time_period === 'past-30-days') {
@@ -71,9 +73,15 @@ $(document).ready(function(){
                 apis[name]['calls'] = api['calls'];
             });
 
-            var pairs = as_list(apis).map(function(api){
-                return [api['name'], api['calls'] || 0];
-            });
+            apis = as_list(apis);
+            if (page_settings.get('deprecated.apis') === 'excluded') {
+                apis = apis.filter(function(api){
+                    return api.deprecated === false;
+                });
+            }
+            var pairs = apis.map(function(api){
+                            return [api['name'], api['calls'] || 0];
+                        });
             pairs.sort(itemcomparer(0, methodcaller('localeCompare')));
             chart.setting('title', title)
                  .data(pairs);
@@ -88,7 +96,7 @@ $(document).ready(function(){
             'target': '#calls',
             'data_fn': get_apis_by_call
         })
-        .setting('chart.type', 'bar')
+        .set('chart.type', 'bar')
         .setting('display.mode', options.apis_by_call_display || 'chart')
         .setting('time.period', options.apis_by_call_period || 'all-time')
         .setting('dependent_format', localeString)
@@ -112,6 +120,10 @@ $(document).ready(function(){
         $('#calls').on('dataClick', function (event, dataElement) {
             var url = '/analytics/new/api/' + $(dataElement).attr('data-independent') + '/';
             window.location.href = url;
+        });
+
+        page_settings.buttons.click(function(event){
+            calls_chart.refresh();
         });
     });
 });

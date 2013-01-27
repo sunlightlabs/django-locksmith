@@ -15,6 +15,12 @@ figure.analytics-chart { margin: 0 }
 .analytics-chart line.x.gridline { stroke: rgb(200, 200, 200); }
 .analytics-chart line.y.gridline { stroke: rgb(200, 200, 200); }
 
+.reactive-settings .spacer { margin: 0 1em; color: rgb(200, 200, 200); }
+.reactive-settings .spacer-narrow { margin: 0 0.5em; }
+.reactive-settings .spacer-wide { margin: 0 3em; }
+
 #users { min-height: 700px; }
 #calls { min-height: 700px; }
 #endpoints { min-height: 700px; }
+
+#key-list  { width: 10px; } 

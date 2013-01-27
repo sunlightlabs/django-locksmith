@@ -1,6 +1,4 @@
 $(document).ready(function(){
-    console.log('api-analytics.js');
-
     var display_api_callers_table = function(){
         var params = {
             'ignore_internal_keys': options.ignore_internal_keys,
@@ -44,7 +42,6 @@ $(document).ready(function(){
     };
 
     var api_calls_table_row_tmpl = function (chart) {
-        console.log(this, chart);
         if (chart.setting('chart.interval') === 'yearly')
             return $(this).find('.yearly-table-row-tmpl');
         else
