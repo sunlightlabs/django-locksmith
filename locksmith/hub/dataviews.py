@@ -166,12 +166,12 @@ def keys(request):
     sSortDir_0 = request.GET.get('sSortDir_0', 'asc')
     sSearch = request.GET.get('sSearch')
 
-    columns = ['key', 'email', 'calls', 'latest_call']
+    columns = ['key', 'email', 'calls', 'latest_call', 'issued_on']
     qry = Key.objects
     if sSearch not in (None, ''):
         qry = qry.filter(Q(key__icontains=sSearch) | Q(email__icontains=sSearch))
-    qry = qry.values('key', 'email').annotate(calls=Sum('reports__calls'),
-                                              latest_call=Max('reports__date'))
+    qry = qry.values('key', 'email', 'issued_on').annotate(calls=Sum('reports__calls'),
+                                                           latest_call=Max('reports__date'))
     qry = qry.filter(calls__isnull=False)
     # TODO: Add multi-column sorting
     if iSortCol_0 not in (None, ''):
@@ -187,7 +187,8 @@ def keys(request):
         'aaData': [[k['key'],
                     k['email'],
                     k['calls'],
-                    k['latest_call'].isoformat()]
+                    k['latest_call'].isoformat(),
+                    k['issued_on'].date().isoformat()]
                    for k in qry[iDisplayStart:iDisplayStart+iDisplayLength]]
     }
     return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
