@@ -45,7 +45,10 @@
 
 
 </div>
+{% endblock %}
 
+{% block js %}
+ {{ block.super }}
 <script>
 var chart = new Highcharts.Chart({
    chart: { renderTo: 'timeline', zoomType: 'x' },
@@ -72,4 +75,4 @@ var chart = new Highcharts.Chart({
 });
 </script>
 
-{% endblock %}
+{% endblock js %}

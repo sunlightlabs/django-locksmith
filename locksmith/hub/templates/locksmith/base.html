@@ -1,10 +1,11 @@
 {% extends "base.html" %}
 
-{% block extrahead %}
+{% block css %}
+    {{ block.super }}
     <link href="{{STATIC_URL}}bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
 {% endblock %}
 
-{% block extrabody %}
+{% block js %}
     {{ block.super }}
     <script src="{{STATIC_URL}}scripts/jquery-1.8.3.min.js" type="text/javascript"></script>
     <script src="{{STATIC_URL}}scripts/highcharts.js" type="text/javascript"></script>

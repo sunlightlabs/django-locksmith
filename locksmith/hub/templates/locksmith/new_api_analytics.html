@@ -4,15 +4,12 @@
 
 {% block bodyclass %}analytics{% endblock %}
 
-{% block extrahead %}
+{% block css %}
     {{ block.super }}
 
-    <script type="text/javascript">
-        var options = {{ json_options|safe }};
-    </script>
     <link href="{{STATIC_URL}}datatables/css/jquery.dataTables.css" rel="stylesheet" type="text/css">
     <link href="{{STATIC_URL}}styles/locksmith.css" rel="stylesheet" type="text/css">
-{% endblock extrahead %}
+{% endblock css %}
 
 {% block content %}
 <h2>Statistics for {{api.name}}</h2>
@@ -110,8 +107,12 @@
 </div>
 {% endblock content %}
 
-{% block extrabody %}
+{% block js %}
     {{ block.super }}
+    <script type="text/javascript">
+        var options = {{ json_options|safe }};
+    </script>
+
     <script type="text/javascript" src="{{STATIC_URL}}datatables/js/jquery.dataTables.min.js"></script>
     <script type="text/javascript" src="{{STATIC_URL}}scripts/date-en-US.js"></script>
     <script type="text/javascript" src="{{STATIC_URL}}scripts/d3.v3.min.js"></script>
@@ -119,5 +120,5 @@
     <script type="text/javascript" src="{{STATIC_URL}}scripts/column-chart.js"></script>
     <script type="text/javascript" src="{{STATIC_URL}}scripts/analytics-common.js"></script>
     <script type="text/javascript" src="{{STATIC_URL}}scripts/api-analytics.js"></script>
-{% endblock extrabody %}
+{% endblock js %}
 

@@ -4,12 +4,9 @@
 
 {% block bodyclass %}analytics{% endblock %}
 
-{% block extrahead %}
+{% block css %}
     {{ block.super }}
 
-    <script type="text/javascript">
-        var options = {{ json_options|safe }};
-    </script>
     <link href='http://fonts.googleapis.com/css?family=Droid+Sans:400,700' rel='stylesheet' type='text/css'>
     <link href="{{STATIC_URL}}styles/locksmith.css" rel="stylesheet" type="text/css">
 {% endblock %}
@@ -133,8 +130,13 @@
 
 {% endblock %}
 
-{% block extrabody %}
+i{% block js %}
     {{ block.super }}
+
+    <script type="text/javascript">
+        var options = {{ json_options|safe }};
+    </script>
+
     <script type="text/javascript" src="{{STATIC_URL}}scripts/date-en-US.js"></script>
     <script type="text/javascript" src="{{STATIC_URL}}scripts/d3.v3.min.js"></script>
     <script type="text/javascript" src="{{STATIC_URL}}scripts/bar-chart.js"></script>

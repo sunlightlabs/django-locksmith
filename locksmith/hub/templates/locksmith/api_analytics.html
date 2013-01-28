@@ -38,6 +38,12 @@
     </table>
 </div>
 
+{% endblock %}
+
+{% block js %}
+
+{{ block.super }}
+
 <script>
 var chart = new Highcharts.Chart({
    chart: {
@@ -129,4 +135,5 @@ var chart = new Highcharts.Chart({
    }]
 });
 </script>
-{% endblock %}
+
+{% endblock js %}

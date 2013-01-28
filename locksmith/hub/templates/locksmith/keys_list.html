@@ -2,7 +2,8 @@
 
 {% block bodyclass %}analytics{% endblock %}
 
-{% block extrahead %}
+{% block js %}
+    {{ block.super }}
     <script type="text/javascript" charset="utf-8" src="{{ STATIC_URL }}jquery.tablesorter.min.js"></script>
     <script type="text/javascript">
     $(document).ready(function() {

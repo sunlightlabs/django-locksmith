@@ -30,7 +30,11 @@
 
 <div id="endpoints" style="width: 800px;">
 </div>
+{% endblock %}
 
+{% block js %}
+
+{{ block.super }}
 <script>
 var chart = new Highcharts.Chart({
    chart: {
@@ -123,4 +127,4 @@ var chart = new Highcharts.Chart({
    }]
 });
 </script>
-{% endblock %}
+{% endblock js %}
