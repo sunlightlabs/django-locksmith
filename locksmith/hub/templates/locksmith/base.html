@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base_full.html" %}
 
 {% block css %}
     {{ block.super }}
@@ -12,3 +12,6 @@
     <script src="{{STATIC_URL}}scripts/excanvas.compiled.js" type="text/javascript"></script>
     <script src="{{STATIC_URL}}bootstrap/js/bootstrap.js" type="text/javascript"></script>
 {% endblock %}
+
+{% block content %}
+{% endblock content %}
