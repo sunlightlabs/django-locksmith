@@ -51,6 +51,7 @@ class Key(models.Model):
     '''
     key = models.CharField(max_length=32)
     email = models.EmailField()
+    alternate_email = models.EmailField() #
     status = models.CharField(max_length=1, choices=KEY_STATUSES, default='U')
 
     name = models.CharField('Name', max_length=100, blank=True)
@@ -58,6 +59,7 @@ class Key(models.Model):
     org_url = models.CharField('Organization URL', blank=True, max_length=200)
     usage = models.TextField('Intended Usage', blank=True)
 
+    promotable = models.BooleanField(default=False)
     issued_on = models.DateTimeField(default=datetime.datetime.now, editable=False)
 
     def __unicode__(self):

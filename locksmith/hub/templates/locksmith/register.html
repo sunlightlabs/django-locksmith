@@ -15,14 +15,23 @@
     {% endif %}
     <ul>
         {% for field in form.visible_fields %}
-        {% if field.name != 'terms_of_service' %}
         <p class="error">{{field.errors}}</p>
-        <li>{{field.label_tag}} {{field}}</li> 
+        
+        {% if field.name == 'terms_of_service' %}
+            <li id="signup_cues">
+                <label><input class="checkbox" type="checkbox" name="terms_of_service" />I agree to the <a href="#tos"> Terms of Service</a></label>
+            </li>
+        {% else %}
+            {% if field.name == 'promotable' %}
+                 <li>
+                <label><input class="checkbox" type="checkbox" name="promotable" />Allow Sunlight to promote my project via social media, blog, or feature on a website?</label>
+                </li>
+            {% else %}
+                <li>{{field.label_tag}} {{field}}</li> 
+            {% endif %}
         {% endif %}
         {% endfor %}
-    <li id="signup_cues">
-        <label><input class="checkbox" type="checkbox" name="terms_of_service" />I agree to the <a href="#tos"> Terms of Service</a></label>
-    </li>
+    
     <li>
         <button class="signUp" id="user_submit" type="submit" value="Sign Up" name="commit">
             <span>Sign Up</span>
