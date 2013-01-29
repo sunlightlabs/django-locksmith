@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "locksmith/base.html" %}
 {% block title %}API Registration{% endblock title %}
 
 {% block content %}
@@ -6,7 +6,7 @@
 <h2 class="withTip">Sign Up</h2>
 <p class="tip">Please fill out the form below and an API key will be emailed to you.</p>
 
-<form method="post" action=".">
+<form method="post" class="signup" action=".">
     {% if form.non_field_errors %}
     <ul class="error">
         {{form.non_field_errors.as_ul}}

@@ -25,3 +25,7 @@ figure.analytics-chart { position: relative; margin: 0 }
 #endpoints { min-height: 700px; }
 
 #key-list  { width: 10px; } 
+
+.expand { display:block; }
+form.signup input, form.signup textarea { width: 400px; }
+form.signup input.checkbox { width: 15px; float:left; margin-right: 15px; }
