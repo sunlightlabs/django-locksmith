@@ -16,6 +16,7 @@ from django.contrib import messages
 from locksmith.common import get_signature, UNPUBLISHED
 from locksmith.hub.models import Api, Key, KeyForm, Report, ResendForm, resolve_model
 from locksmith.hub.tasks import push_key
+from locksmith.hub.common import cycle_generator
 
 @require_POST
 def report_calls(request):
@@ -205,26 +206,6 @@ def _dictlist_to_lists(dl, *keys):
             lists[i].append(x)
     return lists
 
-def _cycle_generator(cycle, step=1, begin=(0, 0), end=None):
-    '''
-        Generates pairs of values representing a cycle. E.g. clock hours for a day could
-        could be generated with:
-            _cycle_generator(cycle=(1, 12), step=1, begin=(0, 1), end=(23, 12))
-                => (0, 1), (0, 2) ... (0, 12), (1, 1), (1, 2)
-    '''
-    (cycle_begin, cycle_end) = cycle
-    (major, minor) = begin
-    (end_major, end_minor) = end if end is not None else (None, None)
-
-    while True:
-        if end is not None and (major > end_major or (major == end_major and minor > end_minor)):
-            return
-        yield (major, minor)
-        minor += step
-        if minor > cycle_end:
-            major += 1
-            minor = cycle_begin
-
 def _cumulative_by_date(model, datefield):
     '''
         Given a model and date field, generate monthly cumulative totals.
@@ -243,7 +224,7 @@ def _cumulative_by_date(model, datefield):
     
     accumulator = 0 
     cumulative_counts = []
-    for (year, month) in _cycle_generator(cycle=(1, 12), begin=earliest_month, end=latest_month):
+    for (year, month) in cycle_generator(cycle=(1, 12), begin=earliest_month, end=latest_month):
         mcount = monthly_counts.get((year, month), 0)
         accumulator += mcount
         cumulative_counts.append([datetime.date(year, month, 1), accumulator])
@@ -415,3 +396,30 @@ def key_analytics(request, key):
 
     return render_to_response('locksmith/key_analytics.html', c,
                               context_instance=RequestContext(request))
+
+@staff_required
+def keys_leaderboard(request,
+                     year=None, month=None,
+                     api_id=None, api_name=None):
+    try:
+        api = resolve_model(Api, [('id', api_id), ('name', api_name)])
+    except Api.DoesNotExist:
+        api = None
+
+    if year is not None and month is not None:
+        year = int(year)
+        month = int(month)
+        if month not in range(1, 13):
+            return HttpResponseBadRequest("Month must be between 1 and 12, was {m}".format(m=unicode(month)))
+    else:
+        year = datetime.date.today().year
+        month = datetime.date.today().month
+
+    ctx = {
+        'latest_qtr_begin': datetime.datetime(year, month, 1).strftime('%Y-%m-%d')
+    }
+    if api is not None:
+        ctx['api'] = {'id': api.id, 'name': api.name}
+    ctx['json_options'] = json.dumps(ctx)
+    return render(request, 'locksmith/leaderboard.html', ctx)
+

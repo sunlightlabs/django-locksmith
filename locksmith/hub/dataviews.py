@@ -1,14 +1,14 @@
 import json
 import datetime
+import calendar
 
 import dateutil.parser
 
-from django.conf import settings
 from django.db.models import Sum, Count, Min, Max, Q
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFound
-from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from locksmith.hub.models import Api, Key, Report, resolve_model
+from locksmith.hub.common import cycle_generator
 from unusual.http import BadRequest
 
 staff_required = user_passes_test(lambda u: u.is_staff)
@@ -247,6 +247,32 @@ def calls_by_endpoint(request, api_id=None, api_name=None):
     }
     return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
 
+@staff_required
+def calls_from_key_by_month(request, key_uuid):
+    try:
+        key = Key.objects.get(key=key_uuid)
+    except Key.DoesNotExist:
+        return HttpResponseNotFound('The requested key was not found.')
+
+    agg = key.reports.aggregate(earliest=Min('date'), latest=Max('date'))
+    earliest_yrmon = (agg['earliest'].year, agg['earliest'].month)
+    latest_yrmon = (agg['latest'].year, agg['latest'].month)
+    qry = key.reports.extra(select={'year': 'extract(year from date)::int',
+                                    'month': 'extract(month from date)::int'})
+    monthly_agg = qry.values('year', 'month').annotate(calls=Sum('calls'))
+    monthly = {}
+    for agg in monthly_agg:
+        monthly[(agg['year'], agg['month'])] = agg['calls']
+    for (year, month) in cycle_generator(cycle=(1, 12), begin=earliest_yrmon, end=latest_yrmon):
+        if (year, month) not in monthly:
+            monthly[(year, month)] = 0
+
+    result = {
+        'key': key_uuid,
+        'monthly': [{'year': yr, 'month': mon, 'calls': calls}
+                    for ((yr, mon), calls) in sorted(monthly.iteritems())]
+    }
+    return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
 
 @login_required
 def api_calls(request):
@@ -360,6 +386,91 @@ def keys_issued_monthly(request, year):
         'year': year,
         'issued': agg['issued'],
         'monthly': [{'month': m, 'issued': cnt} for (m, cnt) in monthly.items()]
+    }
+    return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
+
+
+def _callers_in_period(begin_date, end_date, api=None, min_calls=100,
+                       ignore_internal_keys=True,
+                       ignore_autoactivated_keys=True):
+    calls_by_key = Report.objects.filter(date__gte=begin_date,
+                                         date__lte=end_date)
+    if api is not None:
+        calls_by_key = calls_by_key.filter(api=api)
+    calls_by_key = (calls_by_key.values('key__key', 'key__email')
+                                .annotate(calls=Sum('calls'))
+                                .order_by('-calls'))
+    return [{'key': c['key__key'],
+             'email': c['key__email'],
+             'calls': c['calls']}
+            for c in calls_by_key
+            if c['calls'] >= min_calls]
+
+def _dates_for_quarter(first_year, first_month):
+    if first_month > 10:
+        last_year = first_year + 1
+        last_month = (first_month + 2) % 12
+    else:
+        last_year = first_year
+        last_month = first_month + 2
+
+    begin_date = datetime.datetime(first_year, first_month, 1)
+    days_in_last_month = calendar.monthrange(last_year, last_month)[1]
+    end_date = datetime.datetime(last_year, last_month, days_in_last_month)
+    return (begin_date, end_date)
+
+def _start_of_previous_quarter(first_year, first_month):
+    if first_month < 4:
+        return (first_year - 1, (12 - 3 + first_month))
+    else:
+        return (first_year, first_month - 3)
+
+def _leaderboard_diff(alist, blist):
+    for (n, a) in enumerate(alist, start=1):
+        a['rank'] = n
+    for (n, b) in enumerate(blist, start=1):
+        b['rank'] = n
+
+    alookup = dict(((a['key'], a) for a in alist))
+    blookup = dict(((b['key'], b) for b in blist))
+    akeys = set(alookup.keys())
+    bkeys = set(blookup.keys())
+    common_keys = akeys & bkeys
+    for key in bkeys:
+        if key in common_keys:
+            blookup[key]['rank_diff'] = blookup[key]['rank'] - alookup[key]['rank']
+        else:
+            blookup[key]['rank_diff'] = None
+    return blookup.values()
+
+@staff_required
+def quarterly_leaderboard(request, year, month,
+                          api_id=None, api_name=None):
+    try:
+        api = resolve_model(Api, [('id', api_id), ('name', api_name)])
+    except Api.DoesNotExist:
+        api = None
+
+    ignore_internal_keys = parse_bool_param(request, 'ignore_internal_keys', True)
+    ignore_autoactivated_keys = parse_bool_param(request, 'ignore_autoactivated_keys', True)
+
+    year = int(year)
+    month = int(month)
+    (begin_date, end_date) = _dates_for_quarter(year, month)
+    (prev_year, prev_month) = _start_of_previous_quarter(year, month)
+    (prev_begin_date, prev_end_date) = _dates_for_quarter(prev_year, prev_month)
+
+    callers = _callers_in_period(begin_date, end_date, api=api)
+    prev_callers = _callers_in_period(prev_begin_date, prev_end_date,
+                                      api=api,
+                                      ignore_internal_keys=ignore_internal_keys,
+                                      ignore_autoactivated_keys=ignore_autoactivated_keys)
+    leaderboard = _leaderboard_diff(prev_callers, callers)
+
+    result = {
+        'earliest_date': begin_date.strftime('%Y-%m-%d'),
+        'latest_date': end_date.strftime('%Y-%m-%d'),
+        'by_key': leaderboard
     }
     return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
 
