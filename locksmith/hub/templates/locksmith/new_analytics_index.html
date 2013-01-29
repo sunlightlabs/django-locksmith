@@ -14,25 +14,59 @@
 {% block content %}
 <h2>Overview</h2>
 
-<div class="well well-small" id="page-settings">
-    <span class="pull-left setting-label">Deprecated APIs:</span>
-    <div class="btn-group pull-left" data-toggle="buttons-radio">
-        <button class="btn" data-setting="deprecated.apis" data-value="included"
-            >Included</button>
-        <button class="btn" data-setting="deprecated.apis" data-value="excluded"
-            >Excluded</button>
-    </div>
-    <span class="pull-left spacer muted">|</span>
-    <span class="pull-left setting-label">Internal Keys:</span>
-    <div class="btn-group pull-left" data-toggle="buttons-radio">
-        <button class="btn" data-setting="internal.keys" data-value="included"
-            >Included</button>
-        <button class="btn" data-setting="internal.keys" data-value="excluded"
-            >Excluded</button>
-    </div>
-    <div class="clear-fix"></div>
+<div class="module collapsed" >
+    <h3>New Users in the Last Two Weeks</h3>
+    <table class="entry-content" style="height:300px; display:block; overflow-y:hidden;" >
+    <thead>
+    <tr><th>User</th><th>Email</th><th>Description</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+    {% for user in new_users %}
+        <tr><td>{{user.name}}</td><td><a href="{% url key_analytics user.key%}">{{user.email}}</a></td><td>{{user.usage}}</td><td>{{user.status}}</td></tr>
+    {% endfor %}
+    </tbody>
+    </table>
+    <div style="clear:both;"></div>
+    <a href="#" class="expand" style="padding:10px; font-weight:bold;">Expand</a>
 </div>
 
+<div class="module collapsed" >
+    <h3>Users Who Hit Six Months This Week</h3>
+    <table class="entry-content" style="height:300px; overflow-y:hidden; display: block;" >
+    <thead>
+    <tr><th>User</th><th>Email</th><th>Description</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+    {% for user in six_month %}
+        <tr><td>{{user.name}}</td><td><a href="{% url key_analytics user.key %}">{{user.email}}</a></td><td>{{user.usage}}</td><td>{{user.status}}</td></tr>
+    {% endfor %}
+    </tbody>
+    </table>
+    <div style="clear:both;"></div>
+    <a href="#" class="expand" style="padding: 10px; font-weight:bold;">Expand</a>
+</div>
+
+<div class="module">
+    <h3>Graph Settings</h3>
+    <div class="well well-small" id="page-settings">
+        <span class="pull-left setting-label">Deprecated APIs:</span>
+        <div class="btn-group pull-left" data-toggle="buttons-radio">
+            <button class="btn" data-setting="deprecated.apis" data-value="included"
+                >Included</button>
+            <button class="btn" data-setting="deprecated.apis" data-value="excluded"
+                >Excluded</button>
+        </div>
+        <span class="pull-left spacer muted">|</span>
+        <span class="pull-left setting-label">Internal Keys:</span>
+        <div class="btn-group pull-left" data-toggle="buttons-radio">
+            <button class="btn" data-setting="internal.keys" data-value="included"
+                >Included</button>
+            <button class="btn" data-setting="internal.keys" data-value="excluded"
+                >Excluded</button>
+        </div>
+        <div class="clear-fix"></div>
+    </div>
+</div>
 <div id="calls">
     <h3> Calls By API </h3>
 
@@ -135,6 +169,21 @@ i{% block js %}
 
     <script type="text/javascript">
         var options = {{ json_options|safe }};
+    
+        jQuery(".collapsed").find("a.expand").on('click', function(){
+            var text = 'Collapse';
+            var height = '100%';
+
+            if(jQuery(this).text() == 'Collapse'){
+                text = 'Expand';
+                height = '300px';
+            }
+            jQuery(this).siblings('table').css('height', height)
+                .end()
+                .toggleClass('expand').toggleClass('collapse').text(text);
+            return false;
+        });        
+
     </script>
 
     <script type="text/javascript" src="{{STATIC_URL}}scripts/date-en-US.js"></script>

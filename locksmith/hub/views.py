@@ -262,6 +262,10 @@ def new_analytics_index(request,
     ignore_deprecated_apis = request.GET.get('ignore_deprecated_apis', True)
     ignore_inactive_keys = request.GET.get('ignore_inactive_keys', True)
 
+    new_users = Key.objects.filter(issued_on__gte=(datetime.datetime.today()+datetime.timedelta(days=-14))).order_by('-issued_on')
+
+    six_month = Key.objects.filter(issued_on__gte=(datetime.datetime.today()+datetime.timedelta(days=-4, weeks=-24)), issued_on__lte=(datetime.datetime.today()+datetime.timedelta(days=3, weeks=-24))).order_by('-issued_on')
+
     #TODO: Calls by API
     #TODO: Keys issued
     #TODO: Line chart of keys issued over time
@@ -276,6 +280,8 @@ def new_analytics_index(request,
     ctx = {
         'options': options,
         'json_options': json.dumps(options),
+        'new_users': new_users,
+        'six_month': six_month,
     }
     return render(request, 'locksmith/new_analytics_index.html', ctx)
 
