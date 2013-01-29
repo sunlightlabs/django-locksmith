@@ -266,6 +266,8 @@ def new_analytics_index(request,
 
     six_month = Key.objects.filter(issued_on__gte=(datetime.datetime.today()+datetime.timedelta(days=-4, weeks=-24)), issued_on__lte=(datetime.datetime.today()+datetime.timedelta(days=3, weeks=-24))).order_by('-issued_on')
 
+    apis = Api.objects.order_by('display_name') 
+
     #TODO: Calls by API
     #TODO: Keys issued
     #TODO: Line chart of keys issued over time
@@ -282,6 +284,7 @@ def new_analytics_index(request,
         'json_options': json.dumps(options),
         'new_users': new_users,
         'six_month': six_month,
+        'apis': apis,
     }
     return render(request, 'locksmith/new_analytics_index.html', ctx)
 
