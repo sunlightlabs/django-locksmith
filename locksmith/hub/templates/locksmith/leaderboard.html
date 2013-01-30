@@ -2,18 +2,15 @@
 
 {% block bodyclass %}analytics{% endblock %}
 
-{% block extrahead %}
+{% block css %}
     {{ block.super }}
 
-    <script type="text/javascript">
-        var options = {{ json_options|safe }};
-    </script>
-    <link href="{{STATIC_URL}}styles/locksmith.css" rel="stylesheet" type="text/css">
+      <link href="{{STATIC_URL}}styles/locksmith.css" rel="stylesheet" type="text/css">
     <style type="text/css">
         #leaderboard table {
             float: right;
-            width: 190px;
-            margin: 5px;
+            width: 273px;
+            margin: 20px;
         }
         #leaderboard table * { overflow: hidden; }
         #leaderboard table th, #leaderboard table td { padding: 1px; margin: 1px; }
@@ -24,20 +21,20 @@
 
 
     </style>
-{% endblock extrahead %}
+{% endblock css %}
 
 {% block content %}
 
     <div id="leaderboard">
-        <table id="latest-quarter">
+        <table id="latest-quarter" class="entry-content">
             <caption></caption>
             <thead></thead><tbody></tbody>
         </table>
-        <table id="previous-quarter">
+        <table id="previous-quarter" class="entry-content">
             <caption></caption>
             <thead></thead><tbody></tbody>
         </table>
-        <table id="ancient-quarter">
+        <table id="ancient-quarter" class="entry-content">
             <caption></caption>
             <thead></thead><tbody></tbody>
         </table>
@@ -53,8 +50,13 @@
 
 {% endblock content %}
 
-{% block extrabody %}
+{% block js %}
     {{ block.super }}
+
+    <script type="text/javascript">
+        var options = {{ json_options|safe }};
+    </script>
+
     <script type="text/javascript" src="{{STATIC_URL}}datatables/js/jquery.dataTables.min.js"></script>
     <script type="text/javascript" src="{{STATIC_URL}}scripts/date-en-US.js"></script>
     <script type="text/javascript" src="{{STATIC_URL}}scripts/d3.v3.min.js"></script>
@@ -136,6 +138,6 @@
                             ancient_qtr_begin.getMonth() + 1,
                             '#ancient-quarter');
     </script>
-{% endblock extrabody %}
+{% endblock js %}
 
 
