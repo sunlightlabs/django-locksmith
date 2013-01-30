@@ -6,7 +6,7 @@ svg text {
 figure.analytics-chart { position: relative; margin: 0 }
 .analytics-chart { height: 400px; fill: transparent; stroke: black; }
 .analytics-chart figcaption
-    { font-weight: bold; font-size: 16px; color: rgb(0, 0, 0); letter-spacing: 110%; }
+    { font-weight: bold; font-size: 16px; letter-spacing: 110%; }
 .analytics-chart g.bars rect.bar { fill: white; stroke: rgb(80, 80, 220); }
 .analytics-chart g.axis > g > text { stroke: none; fill: #6C6764; font-weight: normal; font-size: 12px; }
 .analytics-chart line.x.gridline { stroke: rgb(200, 200, 200); }
@@ -21,6 +21,7 @@ figure.analytics-chart { position: relative; margin: 0 }
 .reactive-settings .spacer-wide { margin: 0 3em; }
 
 #leaderboard table { float: right; width: 300px; margin: 5px; }
+
 #leaderboard caption { border-style: solid; border-color: transparent; border-width: 0 0 10px 0; font-size: 125%; font-weight: bold; text-align: left; }
 #leaderboard td { overflow: hidden; }
 #leaderboard th, #leaderboard td { padding: 0; margin: 0; }
@@ -44,3 +45,11 @@ figure.analytics-chart { position: relative; margin: 0 }
 .expand { display:block; }
 form.signup input, form.signup textarea { width: 400px; }
 form.signup input.checkbox { width: 15px; float:left; margin-right: 15px; }
+#graphs span.btn-group { margin-right: 25px; margin-left: 10px; }
+#graphs .well-small { float:left; width: 870px; }
+#graphs span.labeltext { margin-top: 13px; }
+#graphs figure { clear: both; }
+#graphs figcaption, #graphs caption { margin: 20px auto; width: 400px; font-weight: bold; color: #66615E; }
+#graphs button.btn { padding: 5px; margin: 5px; font-size: 1em; background-color: #E6E6E6; color: black; background-image:none;}
+#graphs button.active { color: white; background-color: #CB610B; }
+#graphs table { width: 700px; margin-bottom:65px;}
