@@ -1,5 +1,17 @@
 {% extends "base_full.html" %}
 
+{% block subnav %}
+    <div class="secondary-nav">
+        <nav>
+            <ul class="nav nav-pills">
+                <li><a href="{% url key_list%}">Keys</a></li>
+                <li><a href="{% url keys_leaderboard %}">Leaderboard</a></li>
+            </ul>
+        </nav>
+    </div>
+{% endblock subnav %}
+
+
 {% block css %}
     {{ block.super }}
     <link href="{{STATIC_URL}}styles/locksmith.css" rel="stylesheet" media="screen">
