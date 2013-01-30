@@ -20,6 +20,21 @@ figure.analytics-chart { position: relative; margin: 0 }
 .reactive-settings .spacer-narrow { margin: 0 0.5em; }
 .reactive-settings .spacer-wide { margin: 0 3em; }
 
+#leaderboard table { float: right; width: 300px; margin: 5px; }
+#leaderboard caption { border-style: solid; border-color: transparent; border-width: 0 0 10px 0; font-size: 125%; font-weight: bold; text-align: left; }
+#leaderboard td { overflow: hidden; }
+#leaderboard th, #leaderboard td { padding: 0; margin: 0; }
+#leaderboard td.rank { max-width: 10px; padding: 5px; text-align: right; }
+#leaderboard td.diff { max-width: 10px; padding: 5px; text-align: center; }
+#leaderboard td.email { max-width: 190px; }
+#leaderboard a.key { color: #66615E; }
+#leaderboard .highlight { font-weight; bold; background-color: yellow; }
+#leaderboard .icon-arrow-down,
+#leaderboard .icon-arrow-up,
+#leaderboard .icon-minus,
+#leaderboard .icon-star,
+#leaderboard .icon-star-empty { opacity: 0.6; margin: 6px; auto; }
+
 #users { min-height: 700px; }
 #calls { min-height: 700px; }
 #endpoints { min-height: 700px; }

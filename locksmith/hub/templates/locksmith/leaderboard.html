@@ -6,20 +6,6 @@
     {{ block.super }}
 
       <link href="{{STATIC_URL}}styles/locksmith.css" rel="stylesheet" type="text/css">
-    <style type="text/css">
-        #leaderboard table {
-            float: right;
-            width: 273px;
-            margin: 20px;
-        }
-        caption { margin: 20px; font-size: 1.4em; font-weight:bold;  }
-        #leaderboard table * { overflow: hidden; }
-        #leaderboard table th, #leaderboard table td { padding: 1px; margin: 1px; }
-        #leaderboard span.rank { max-width: 10px; font-weight:bold;  }
-        #leaderboard span.diff { max-width: 10px; font-style: italic; padding-left: 8px; }
-        #leaderboard td.email { max-width: 160px; }
-        #leaderboard .highlight { font-weight; bold; background-color: yellow; }
-
 
     </style>
 {% endblock css %}
@@ -43,118 +29,26 @@
     </div>
 
     <script type="text/x-jquery-tmpl" id="leaderboard-header-tmpl">
-        <tr> <th>Rank</th> <th>Email</th> </tr>
+        <tr> <th>Rank</th> <th> </th> <th>Email</th> </tr>
     </script>
     <script type="text/x-jquery-tmpl" id="leaderboard-row-tmpl">
-        <tr> <td><span class="rank"> &nbsp; </span><span class="diff"></span></td> <td class="email"> </tr>
+        <tr>
+            <td class="rank"></td>
+            <td> <div class="diff"></div> </td>
+            <td class="email"> <a class="key"></a> </td>
+        </tr>
     </script>
 
 {% endblock content %}
 
 {% block js %}
     {{ block.super }}
-
     <script type="text/javascript">
         var options = {{ json_options|safe }};
-        
-        Date.prototype.monthNames = [
-            "January", "February", "March",
-            "April", "May", "June",
-            "July", "August", "September",
-            "October", "November", "December"
-        ];
-
-        Date.prototype.getMonthName = function() {
-            return this.monthNames[this.getMonth()];
-        };
-        Date.prototype.getShortMonthName = function () {
-            return this.getMonthName().substr(0, 3);
-        };
     </script>
-
-    <script type="text/javascript" src="{{STATIC_URL}}datatables/js/jquery.dataTables.min.js"></script>
     <script type="text/javascript" src="{{STATIC_URL}}scripts/date-en-US.js"></script>
-    <script type="text/javascript" src="{{STATIC_URL}}scripts/d3.v3.min.js"></script>
     <script type="text/javascript" src="{{STATIC_URL}}scripts/analytics-common.js"></script>
-    <script type="text/javascript" src="{{STATIC_URL}}scripts/analytics-charts.js"></script>
-    <script type="text/javascript">
-        var display_leaderboard = function (leaders, target) {
-            var $target = $(target);
-            var $header= $($("#leaderboard-header-tmpl").html());
-            var row_tmpl = $("#leaderboard-row-tmpl").html();
-
-            $target.find("thead").empty().append($header);
-            leaders['by_key'].sort(itemcomparer('rank',
-                                                function(a,b){ return a - b; }));
-            leaders['by_key'] = leaders['by_key'].slice(0, 20);
-            leaders['by_key'].forEach(function(leader){
-                var $row = $(row_tmpl);
-                $row.find(".rank").text(leader['rank']);
-                $row.find(".email").text(leader['email']);
-                $row.attr("data-key", leader['key']);
-                if (leader['rank_diff'] > 0)
-                    $row.find(".diff").text('+' + leader['rank_diff']);
-                else if (leader['rank_diff'] < 0)
-                    $row.find(".diff").text(leader['rank_diff']);
-                else if (leader['rank_diff'] == 0) 
-                    $row.find(".diff").text('even');
-                else
-                    $row.find(".diff").text('new');
-
-                $target.find("tbody").append($row);
-            });
-
-            var d1 = new Date(leaders['earliest_date'].replace('-', '/'));
-            var d2 = new Date(leaders['latest_date'].replace('-', '/'));
-            $target.find("caption").text(d1.getShortMonthName() + ' ' + d1.getFullYear() + ' - ' + d2.getShortMonthName() + ' ' + d2.getFullYear() );
-
-            $target.find("tr")
-            .on('mouseenter', function(event){
-                var key_uuid = $(this).attr('data-key');
-                $("#leaderboard").find("tr[data-key='" + key_uuid + "']")
-                                 .addClass("highlight");
-            })
-            .on('mouseleave', function(event){
-                var key_uuid = $(this).attr('data-key');
-                $("#leaderboard").find("tr[data-key='" + key_uuid + "']")
-                                 .removeClass("highlight");
-            });
-        };
-
-        var refresh_leaderboard = function (year, month, target) {
-            var url = '/analytics/data/keys/leaderboard/';
-            var args = [];
-            if (options.api != null)
-                args.push(options.api.name);
-            args.push(year);
-            args.push(month);
-            url = url + args.join('/') + '/';
-
-            $.getJSON(url)
-            .then(function(leaders){
-                display_leaderboard(leaders, target);
-            });
-        };
-
-        var latest_qtr_begin = Date.parse(options.latest_qtr_begin);
-        latest_qtr_begin.setDate(1);
-        var prev_qtr_begin = latest_qtr_begin.clone();
-        prev_qtr_begin.setDate(1);
-        prev_qtr_begin.addMonths(-3);
-        var ancient_qtr_begin = latest_qtr_begin.clone();
-        ancient_qtr_begin.setDate(1);
-        ancient_qtr_begin.addMonths(-6);
-
-        refresh_leaderboard(latest_qtr_begin.getFullYear(),
-                            latest_qtr_begin.getMonth() + 1,
-                            '#latest-quarter');
-        refresh_leaderboard(prev_qtr_begin.getFullYear(),
-                            prev_qtr_begin.getMonth() + 1,
-                            '#previous-quarter');
-        refresh_leaderboard(ancient_qtr_begin.getFullYear(),
-                            ancient_qtr_begin.getMonth() + 1,
-                            '#ancient-quarter');
-    </script>
+    <script type="text/javascript" src="{{STATIC_URL}}scripts/leaderboard.js"></script>
 {% endblock js %}
 
 
