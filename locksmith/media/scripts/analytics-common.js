@@ -26,6 +26,7 @@
     };
 
     var methodcaller = function (method_name) {
+        var method_args = Array.prototype.slice.call(arguments, 1);
         return function (/* arguments: thisarg, ...args */) {
             if (arguments.length === 0)
                 throw 'methodcaller("' + method_name + '") requires a thisarg';
@@ -33,10 +34,12 @@
             var method = thisarg[method_name];
             if (method === undefined)
                 throw 'object of type ' + (typeof thisarg) + ' has no method ' + method_name;
-            if (arguments.length === 1) {
+            var ext_method_args = $.extend(true, [], method_args);
+            ext_method_args = ext_method_args.concat(Array.prototype.slice.call(arguments, 1));
+            if (ext_method_args.length === 0) {
                 return method.call(thisarg);
             } else {
-                return method.apply(thisarg, Array.prototype.slice.call(arguments, 1));
+                return method.apply(thisarg, ext_method_args);
             }
         };
     };

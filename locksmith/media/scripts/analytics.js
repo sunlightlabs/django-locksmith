@@ -100,6 +100,7 @@ $(document).ready(function(){
         .setting('display.mode', options.apis_by_call_display || 'chart')
         .setting('time.period', options.apis_by_call_period || 'all-time')
         .setting('dependent_format', localeString)
+        .margin({'top': 0, 'bottom': 20, 'left': 110, 'right': 0})
         .silence(false)
         .show();
 
@@ -115,6 +116,7 @@ $(document).ready(function(){
         .setting('table.row.tmpl', keys_issued_row_tmpl)
         .setting('year', Date.today().getFullYear())
         .silence(false)
+        .margin({'top': 0, 'bottom': 20, 'left': 80, 'right': 0})
         .show();
 
         $('#calls').on('dataClick', function (event, dataElement) {

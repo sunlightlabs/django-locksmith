@@ -91,6 +91,7 @@ $(document).ready(function(){
     .setting('display.mode', options.api_calls_display)
     .setting('chart.interval', options.api_calls_interval)
     .setting('year', Date.today().getFullYear())
+    .margin({'top': 0, 'bottom': 20, 'left': 90, 'right': 0})
     .silence(false)
     .show();
 
@@ -101,6 +102,7 @@ $(document).ready(function(){
     .setting('chart.type', 'bar')
     .setting('display.mode', options.endpoint_calls_display || 'chart')
     .setting('year', Date.today().getFullYear())
+    .margin({'top': 0, 'bottom': 20, 'left': 180, 'right': 0})
     .silence(false)
     .show();
 

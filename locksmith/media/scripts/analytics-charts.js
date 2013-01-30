@@ -1,6 +1,6 @@
 // Based on: http://bl.ocks.org/3766585
 function barChart () {
-  var margin = {top: 30, right: 10, bottom: 50, left: 50},
+  var margin = {top: 50, right: 50, bottom: 50, left: 50},
       width = 420,
       height = 420,
       yRoundBands = 0.2,
@@ -12,9 +12,6 @@ function barChart () {
       yAxis = d3.svg.axis().scale(yScale).orient("left"),
       xTickFormat = undefined,
       yTickFormat = undefined;
-    _yScale = yScale;
-    _xScale = xScale;
-    _xAxis = xAxis;
 
   function chart(selection) {
     selection.each(function(data) {
@@ -195,7 +192,7 @@ function barChart () {
 
 // Based on: http://bl.ocks.org/3766585
 function columnChart() {
-  var margin = {top: 30, right: 10, bottom: 50, left: 50},
+  var margin = {top: 50, right: 50, bottom: 50, left: 50},
       width = 420,
       height = 420,
       xRoundBands = 0.2,
@@ -490,6 +487,17 @@ function AnalyticsChart (options) {
     var $target = $(opts.target);
     var _data = null;
 
+    var _chart_methods = [];
+    var _chart_passthru_method = function (method_name) {
+        return function (method_args) {
+            _chart_methods.push(methodcaller(method_name, method_args));
+            return that;
+        };
+    };
+    this.margin = _chart_passthru_method('margin');
+    this.width = _chart_passthru_method('width');
+    this.height = _chart_passthru_method('height');
+
     ReactiveSettingsIface.call(this, options['target']);
 
     var _data_callback = function(data){
@@ -551,8 +559,7 @@ function AnalyticsChart (options) {
                   : barChart().xMin(0);
 
         chart.width(options['width'])
-             .height(options['height'])
-             .margin({'top': 0, 'right': 0, 'bottom': 20, 'left': 110});
+             .height(options['height']);
 
         chart.xTickFormat((that.get('chart.type') === 'column')
                           ? that.get('independent_format')
@@ -561,6 +568,9 @@ function AnalyticsChart (options) {
         chart.yTickFormat((that.get('chart.type') === 'column')
                           ? that.get('dependent_format')
                           : that.get('independent_format'));
+        _chart_methods.forEach(function(fn){
+            fn.call(null, chart);
+        });
         d3.select($chart[0])
           .datum(_data)
           .call(chart);
