@@ -26,7 +26,8 @@
             leaders['by_key'].forEach(function(leader){
                 var $row = $(row_tmpl);
                 $row.find(".rank").text(leader['rank']);
-                $row.find(".email").text(leader['email']);
+                $row.find("a.key").attr("href", "/analytics/key/" + leader['key'] + "/")
+                                  .text(leader['email']);
                 $row.attr("data-key", leader['key']);
                 $row.attr("data-rank-diff", leader['rank_diff']);
                 if (leader['rank_diff'] == null) {
