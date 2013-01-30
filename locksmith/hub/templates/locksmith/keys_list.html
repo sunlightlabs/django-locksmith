@@ -2,41 +2,62 @@
 
 {% block bodyclass %}analytics{% endblock %}
 
-{% block js %}
+{% block css %}
     {{ block.super }}
-    <script type="text/javascript" charset="utf-8" src="{{ STATIC_URL }}jquery.tablesorter.min.js"></script>
-    <script type="text/javascript">
-    $(document).ready(function() {
-        $('#keys').tablesorter();
-    });
-</script> 
-{% endblock %}
+    <link href="{{STATIC_URL}}datatables/css/jquery.dataTables.css" rel="stylesheet" type="text/css">
+    <link href="{{STATIC_URL}}styles/locksmith.css" rel="stylesheet" type="text/css">
+{% endblock css %}
 
 {% block content %}
 
-<form action="." method="GET">
-    Min Calls: <input name="min_calls" value="{{min_calls}}" />
-    <input type="submit" value="apply filters" />
-</form>
+    <table id="key-list">
+        <thead>
+            <tr><th>Key</th>
+                <th>Email</th>
+                <th>Calls</th>
+                <th>Latest Call</th>
+                <th>Issued On</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
 
-<table id="keys">
-    <thead>
-        <tr>
-            <th>User</th>
-            <th>Issued Date</th>
-            <th>Total Calls</th>
-            <th>Latest Call</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for key in keys %}
-        <tr class="{% cycle "even" "odd" %}">
-            <td><a href="{% url key_analytics key.key %}">{{key.email}} [{{key.key|slice:":6"}}..]</a></td>
-            <td>{{key.issued_on|date:"Y-m-d"}}</td>
-            <td>{{key.calls}}</td>
-            <td>{{key.latest_call}}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-{% endblock %}
+    <div>
+        <aside>Excludes keys that have never been used.</aside>
+    </div>
+
+{% endblock content %}
+
+{% block js %}
+    {{ block.super }}
+    <script type="text/javascript">
+        var options = {{ json_options|safe }};
+    </script>
+
+    <script type="text/javascript" src="{{STATIC_URL}}datatables/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="{{STATIC_URL}}scripts/date-en-US.js"></script>
+    <script type="text/javascript" src="{{STATIC_URL}}scripts/d3.v3.min.js"></script>
+    <script type="text/javascript" src="{{STATIC_URL}}scripts/bar-chart.js"></script>
+    <script type="text/javascript" src="{{STATIC_URL}}scripts/column-chart.js"></script>
+    <script type="text/javascript" src="{{STATIC_URL}}scripts/analytics-common.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function(){
+            $("#key-list").dataTable({
+                'bProcessing': true,
+                'bServerSide': true,
+                'sAjaxSource': '/analytics/data/keys/',
+                'aoColumns': [
+                    { 'asSorting': ['asc', 'desc'] },
+                    { 'asSorting': ['asc', 'desc'] },
+                    { 'asSorting': ['asc', 'desc'] },
+                    { 'asSorting': ['desc', 'asc'] },
+                    { 'asSorting': ['desc', 'asc'] }
+                ],
+                'asSorting': false,
+                'aaSorting': [[2, 'desc']]
+            });
+        });
+    </script>
+{% endblock js %}
+

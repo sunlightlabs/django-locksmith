@@ -82,7 +82,7 @@ $(document).ready(function(){
         }
     };
 
-    var api_calls_chart = new AnalyticsColumnChart({
+    var api_calls_chart = new AnalyticsChart({
         'target': '#api-calls-container',
         'data_fn': get_api_calls_data
     })
@@ -94,7 +94,7 @@ $(document).ready(function(){
     .silence(false)
     .show();
 
-    var endpoint_calls_chart = new AnalyticsColumnChart({
+    var endpoint_calls_chart = new AnalyticsChart({
         'target': '#endpoint-calls-container',
         'data_fn': get_endpoint_calls_data
     })

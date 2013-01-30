@@ -92,7 +92,7 @@ $(document).ready(function(){
 
     fetch_api_list()
     .then(function(){
-        var calls_chart = new AnalyticsColumnChart({
+        var calls_chart = new AnalyticsChart({
             'target': '#calls',
             'data_fn': get_apis_by_call
         })
@@ -104,7 +104,7 @@ $(document).ready(function(){
         .show();
 
 
-        var keys_issued_chart = new AnalyticsColumnChart({
+        var keys_issued_chart = new AnalyticsChart({
             'target': '#keys',
             'data_fn': get_keys_issued
         })
