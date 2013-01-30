@@ -4,75 +4,204 @@
 
 {% block bodyclass %}analytics{% endblock %}
 
-{% block content %}
-<h2>Overview</h2>
+{% block css %}
+    {{ block.super }}
 
-<div id="calls">
-<h3> Calls </h3>
-<table>
-<thead>
-    <tr > <th>API</th> <th> total calls </th> <th> last 30 days </th> <th> year to date </th> </tr>
-</thead>
-{% for api in apis %}
-<tr class="{% cycle "even" "odd" %}">
-    <td><a href="{% url api_analytics api.name %}">{{api.name}}</a></td>
-    <td>{{api.total_calls|default:0|intcomma}}</td>
-    <td>{{api.month_calls|default:0|intcomma}}</td>
-    <td>{{api.ytd_calls|default:0|intcomma}}</td>
-</tr>
-{% endfor %}
-<tr class="{% cycle "even" "odd" %}">
-    <th>Totals</th>
-    <td>{{total_calls|default:0|intcomma}}</td>
-    <td>{{total_month_calls|default:0|intcomma}}</td>
-    <td>{{total_ytd_calls|default:0|intcomma}}</td>
-</tr>
-</table>
-</div>
-
-<div id="keys">
-<h3>Keys</h3>
-<table>
-    <tr><th colspan=2>Keys Issued</th></tr>
-    <tr><th>Last 30 Days</th><td>{{keys_month}}</td></tr>
-    <tr><th>This Year</th><td>{{keys_ytd}}</td></tr>
-    <tr><th>Total</th><td>{{keys_total}}</td></tr>
-</table>
-<a href="{% url key_list %}">View all Keys</a>
-
-<div id="timeline" style="width: 450px;">
-</div>
-
-
-</div>
+    <link href='http://fonts.googleapis.com/css?family=Droid+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link href="{{STATIC_URL}}styles/locksmith.css" rel="stylesheet" type="text/css">
 {% endblock %}
 
-{% block js %}
- {{ block.super }}
-<script>
-var chart = new Highcharts.Chart({
-   chart: { renderTo: 'timeline', zoomType: 'x' },
-   title: { text: 'Keys Issued' },
-   xAxis: { title: { text: 'Month' }, type: 'datetime', maxZoom: 60*24*3600000 },
-   yAxis: { title: { text: 'Total Keys' }, min: 0 },
-   legend: { enabled: false },
-   credits: { enabled: false },
-   tooltip: {
-      formatter: function() {
-         return '<b>'+ (this.point.name || this.series.name) +'</b><br/>'+ Highcharts.dateFormat("%b '%y", this.x) + ': ' + this.y + ' keys';
-      }
-   },
-   series: [{
-       name: 'Keys',
-       type: 'area',
-       data: [
-          {% for o in keys_cumulative %}
-          [{{o.0|jsdate}}, {{o.1}}]
-          {% if not forloop.last %} , {% endif %}
-          {% endfor %}
-       ]
-    }]
-});
-</script>
+{% block content %}
+<h2>Analytics Dashboard</h2>
 
-{% endblock js %}
+<div class="row section collapsed" >
+    <div class="span9">
+        <h3>New Users in the Last Two Weeks</h3>
+        <table class="entry-content" style="height:300px; display:block; overflow-y:hidden;" >
+        <thead>
+        <tr><th>User</th><th>Email</th><th>Description</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+        {% for user in new_users %}
+            <tr><td>{{user.name}}</td><td><a href="{% url key_analytics user.key%}">{{user.email}}</a></td><td>{{user.usage}}</td><td>{{user.status}}</td></tr>
+        {% endfor %}
+        </tbody>
+        </table>
+        <div style="clear:both;"></div>
+        <a href="#" class="expand" style="padding:10px; font-weight:bold;">Expand</a>
+    </div>
+    <div class="span3 sidebar">
+        <h4>Jump To API</h4>
+        <ul>
+            {% for a in apis %}
+                <li><a href="{% url api_analytics a.name %}">{{a.display_name}}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<div class="row section collapsed" >
+    <h3>Users Who Hit Six Months This Week</h3>
+    <table class="entry-content" style="height:300px; overflow-y:hidden; display: block;" >
+    <thead>
+    <tr><th>User</th><th>Email</th><th>Description</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+    {% for user in six_month %}
+        <tr><td>{{user.name}}</td><td><a href="{% url key_analytics user.key %}">{{user.email}}</a></td><td>{{user.usage}}</td><td>{{user.status}}</td></tr>
+    {% endfor %}
+    </tbody>
+    </table>
+    <div style="clear:both;"></div>
+    <a href="#" class="expand" style="padding: 10px; font-weight:bold;">Expand</a>
+</div>
+
+<div class="row section">
+    <h3>Graph Settings</h3>
+    <div class="well well-small" id="page-settings">
+        <span class="pull-left setting-label">Deprecated APIs:</span>
+        <div class="btn-group pull-left" data-toggle="buttons-radio">
+            <button class="btn" data-setting="deprecated.apis" data-value="included"
+                >Included</button>
+            <button class="btn" data-setting="deprecated.apis" data-value="excluded"
+                >Excluded</button>
+        </div>
+        <span class="pull-left spacer muted">|</span>
+        <span class="pull-left setting-label">Internal Keys:</span>
+        <div class="btn-group pull-left" data-toggle="buttons-radio">
+            <button class="btn" data-setting="internal.keys" data-value="included"
+                >Included</button>
+            <button class="btn" data-setting="internal.keys" data-value="excluded"
+                >Excluded</button>
+        </div>
+        <div class="clear-fix"></div>
+    </div>
+</div>
+<div class="row section">
+    <div id="calls">
+        <h3> Calls By API </h3>
+
+        <div class="well well-small">
+            <div class="pull-left btn-group" data-toggle="buttons-radio">
+                <button class="btn" data-setting="display.mode" data-value="table"
+                    >Table</button>
+                <button class="btn" data-setting="display.mode" data-value="chart"
+                    >Chart</button>
+            </div>
+            <span class="pull-left spacer muted">|</span>
+            <div class="pull-left btn-group" data-toggle="buttons-radio">
+                <button class="btn"
+                        data-setting="time.period"
+                        data-value="all-time">All Time</button>
+                <button class="btn"
+                        data-setting="time.period"
+                        data-value="year-to-date">Year to Date</button>
+                <button class="btn"
+                        data-setting="time.period"
+                        data-value="past-30-days">Past 30 Days</button>
+            </div>
+            <div class="clear-fix"></div>
+        </div>
+
+        <script type="text/jquery-template" class="table-row-tmpl">
+            <tr>
+                <td><button class="btn independent"></button></td>
+                <td class="dependent"></td>
+            </tr>
+        </script>
+
+
+        <figure class="analytics-chart"><figcaption></figcaption></figure>
+        <table class="table table-striped table-bordered analytics-table">
+            <caption></caption>
+            <thead>
+                <tr><th class="independent"></th>
+                    <th class="dependent"></th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+
+    <div id="keys">
+        <h3>Keys Issued</h3>
+
+        <div class="well well-small analytics-chart-buttons">
+            <div class="pull-left btn-group" data-toggle="buttons-radio">
+                <button class="btn" data-setting="display.mode" data-value="table">Table</button>
+                <button class="btn" data-setting="display.mode" data-value="chart">Chart</button>
+            </div>
+            <span class="pull-left spacer muted">|</span>
+            <div class="pull-left btn-group" data-toggle="buttons-radio">
+                <button class="btn"
+                        data-setting="chart.interval"
+                        data-value="monthly">Monthly</button>
+                <button class="btn api-calls-internal-btn"
+                        data-setting="chart.interval"
+                        data-value="yearly">Yearly</button>
+            </div>
+        </div>
+        <figure class="analytics-chart"><figcaption></figcaption></figure>
+        <table class="table table-striped table-bordered analytics-table">
+            <caption></caption>
+            <thead>
+                <tr><th class="independent"></th>
+                    <th class="dependent"></th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+        <script type="text/jquery-template" class="yearly-table-row-tmpl">
+            <tr>
+                <td><button class="btn independent"></button></td>
+                <td class="dependent"></td>
+            </tr>
+        </script>
+        <script type="text/jquery-template" class="monthly-table-row-tmpl">
+            <tr>
+                <td class="independent"></td>
+                <td class="dependent"></td>
+            </tr>
+        </script>
+
+
+        <div id="timeline" style="width: 450px;">
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+i{% block js %}
+    {{ block.super }}
+
+    <script type="text/javascript">
+        var options = {{ json_options|safe }};
+    
+        jQuery(".collapsed").find("a.expand").on('click', function(){
+            var text = 'Collapse';
+            var height = '100%';
+
+            if(jQuery(this).text() == 'Collapse'){
+                text = 'Expand';
+                height = '300px';
+            }
+            jQuery(this).siblings('table').css('height', height)
+                .end()
+                .toggleClass('expand').toggleClass('collapse').text(text);
+            return false;
+        });        
+
+    </script>
+
+    <script type="text/javascript" src="{{STATIC_URL}}scripts/date-en-US.js"></script>
+    <script type="text/javascript" src="{{STATIC_URL}}scripts/d3.v3.min.js"></script>
+    <script type="text/javascript" src="{{STATIC_URL}}scripts/bar-chart.js"></script>
+    <script type="text/javascript" src="{{STATIC_URL}}scripts/column-chart.js"></script>
+    <script type="text/javascript" src="{{STATIC_URL}}scripts/analytics-common.js"></script>
+    <script type="text/javascript" src="{{STATIC_URL}}scripts/analytics.js"></script>
+{% endblock %}
+

@@ -118,7 +118,7 @@ $(document).ready(function(){
         .show();
 
         $('#calls').on('dataClick', function (event, dataElement) {
-            var url = '/analytics/new/api/' + $(dataElement).attr('data-independent') + '/';
+            var url = '/analytics/api/' + $(dataElement).attr('data-independent') + '/';
             window.location.href = url;
         });
 

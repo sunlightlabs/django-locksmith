@@ -236,7 +236,7 @@ def _cumulative_by_date(model, datefield):
 staff_required = user_passes_test(lambda u: u.is_staff)
 
 @staff_required
-def new_analytics_index(request,
+def analytics_index(request,
                         keys_issued_display='chart', keys_issued_interval='yearly',
                         api_calls_display='chart'):
     ignore_internal_keys = request.GET.get('ignore_internal_keys', True)
@@ -249,9 +249,6 @@ def new_analytics_index(request,
 
     apis = Api.objects.order_by('display_name') 
 
-    #TODO: Calls by API
-    #TODO: Keys issued
-    #TODO: Line chart of keys issued over time
     options = {
         'ignore_internal_keys': ignore_internal_keys,
         'ignore_deprecated_apis': ignore_deprecated_apis,
@@ -267,38 +264,10 @@ def new_analytics_index(request,
         'six_month': six_month,
         'apis': apis,
     }
-    return render(request, 'locksmith/new_analytics_index.html', ctx)
-
-
-@staff_required
-def analytics_index(request):
-    c = {}
-    c['total_calls'] = 0
-    c['total_month_calls'] = 0
-    c['total_ytd_calls'] = 0
-
-    now = datetime.datetime.now()
-    month_ago = now - datetime.timedelta(30)
-
-    apis = Api.objects.all().annotate(total_calls=Sum('reports__calls'))
-    for api in apis:
-        api.month_calls = api.reports.filter(date__gte=month_ago).aggregate(calls=Sum('calls'))['calls']
-        api.ytd_calls = api.reports.filter(date__year=now.year).aggregate(calls=Sum('calls'))['calls']
-        c['total_calls'] += api.total_calls or 0
-        c['total_month_calls'] += api.month_calls or 0
-        c['total_ytd_calls'] += api.ytd_calls or 0
-    c['apis'] = apis
-
-    c['keys_total'] = Key.objects.all().count()
-    c['keys_month'] = Key.objects.filter(issued_on__gte=month_ago).count()
-    c['keys_ytd'] = Key.objects.filter(issued_on__year=now.year).count()
-    c['keys_cumulative'] = _cumulative_by_date(Key, 'issued_on')
-
-    return render_to_response('locksmith/analytics_index.html', c,
-                              context_instance=RequestContext(request))
+    return render(request, 'locksmith/analytics_index.html', ctx)
 
 @staff_required
-def new_api_analytics(request,
+def api_analytics(request,
                       api_calls_display='chart', api_calls_interval='yearly',
                       api_id=None, api_name=None):
     if api_id is None and api_name is None:
@@ -322,65 +291,17 @@ def new_api_analytics(request,
         'options': options,
         'json_options': json.dumps(options),
     }
-    return render(request, 'locksmith/new_api_analytics.html', ctx)
-
-
-@staff_required
-def api_analytics(request, apiname, year=None, month=None):
-    api = get_object_or_404(Api, name=apiname)
-    endpoint_q = api.reports.values('endpoint').annotate(calls=Sum('calls')).order_by('-calls')
-    user_q = api.reports.values('key__email', 'key__key').exclude(key__status='S').annotate(calls=Sum('calls')).order_by('-calls')
-    date_q = api.reports.values('date').annotate(calls=Sum('calls')).order_by('date')
-
-    date_constraint = {}
-    if year:
-        date_constraint['date__year'] = year
-        if month:
-            date_constraint['date__month'] = month
-        endpoint_q = endpoint_q.filter(**date_constraint)
-        user_q = user_q.filter(**date_constraint)
-        date_q = date_q.filter(**date_constraint)
-
-    dates = api.reports.filter(**date_constraint).dates('date', 'month')
-    monthlies = []
-    for d in dates:
-        item = api.reports.filter(date__year=d.year, date__month=d.month).aggregate(calls=Sum('calls'))
-        item['date'] = d
-        monthlies.append(item)
-
-    c = {'api': api, 'year': year, 'month': month}
-    c['endpoints'], c['endpoint_calls'] = _dictlist_to_lists(endpoint_q, 'endpoint', 'calls')
-    #c['users'], c['user_calls'] = _dictlist_to_lists(user_q[:50], 'key__email', 'calls')
-    c['user_calls'] = user_q[:50]
-    c['monthlies'] = monthlies
-    c['timeline'] = date_q
-
-    return render_to_response('locksmith/api_analytics.html', c,
-                              context_instance=RequestContext(request))
+    return render(request, 'locksmith/api_analytics.html', ctx)
 
 @staff_required
-def new_key_list(request):
+def key_list(request):
     options = {
     }
     ctx = {
         'options': options,
         'json_options': json.dumps(options),
     }
-    return render(request, "locksmith/new_keys_list.html", ctx)
-
-@staff_required
-def key_list(request):
-
-    min_calls = int(request.GET.get('min_calls', 1))
-
-    keys = Key.objects.all().annotate(calls=Sum('reports__calls'),
-                                      latest_call=Max('reports__date'))
-    keys = keys.filter(calls__gte=min_calls)
-
-    context = {'keys': keys, 'min_calls': min_calls}
-
-    return render_to_response('locksmith/keys_list.html', context,
-                              context_instance=RequestContext(request))
+    return render(request, "locksmith/keys_list.html", ctx)
 
 @staff_required
 def key_analytics(request, key):
