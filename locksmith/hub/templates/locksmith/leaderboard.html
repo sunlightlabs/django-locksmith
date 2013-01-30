@@ -12,10 +12,11 @@
             width: 273px;
             margin: 20px;
         }
+        caption { margin: 20px; font-size: 1.4em; font-weight:bold;  }
         #leaderboard table * { overflow: hidden; }
         #leaderboard table th, #leaderboard table td { padding: 1px; margin: 1px; }
-        #leaderboard td.rank { max-width: 10px; }
-        #leaderboard td.diff { max-width: 10px; }
+        #leaderboard span.rank { max-width: 10px; font-weight:bold;  }
+        #leaderboard span.diff { max-width: 10px; font-style: italic; padding-left: 8px; }
         #leaderboard td.email { max-width: 160px; }
         #leaderboard .highlight { font-weight; bold; background-color: yellow; }
 
@@ -24,7 +25,7 @@
 {% endblock css %}
 
 {% block content %}
-
+    <h2>User Leaderboard</h2>
     <div id="leaderboard">
         <table id="latest-quarter" class="entry-content">
             <caption></caption>
@@ -55,6 +56,20 @@
 
     <script type="text/javascript">
         var options = {{ json_options|safe }};
+        
+        Date.prototype.monthNames = [
+            "January", "February", "March",
+            "April", "May", "June",
+            "July", "August", "September",
+            "October", "November", "December"
+        ];
+
+        Date.prototype.getMonthName = function() {
+            return this.monthNames[this.getMonth()];
+        };
+        Date.prototype.getShortMonthName = function () {
+            return this.getMonthName().substr(0, 3);
+        };
     </script>
 
     <script type="text/javascript" src="{{STATIC_URL}}datatables/js/jquery.dataTables.min.js"></script>
@@ -89,7 +104,9 @@
                 $target.find("tbody").append($row);
             });
 
-            $target.find("caption").text(leaders['earliest_date'] + ' - ' + leaders['latest_date']);
+            var d1 = new Date(leaders['earliest_date'].replace('-', '/'));
+            var d2 = new Date(leaders['latest_date'].replace('-', '/'));
+            $target.find("caption").text(d1.getShortMonthName() + ' ' + d1.getFullYear() + ' - ' + d2.getShortMonthName() + ' ' + d2.getFullYear() );
 
             $target.find("tr")
             .on('mouseenter', function(event){
