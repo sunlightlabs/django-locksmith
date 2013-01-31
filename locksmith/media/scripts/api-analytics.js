@@ -34,7 +34,8 @@ $(document).ready(function(){
                  .setting('dependent_label', 'Calls')
                  .setting('title', 'API Calls By Endpoint')
                  .setting('dependent_format', function(x){ return x.toLocaleString(); })
-                 .setting('independent_format', function(y){ return y.toString(); });
+                 .setting('independent_format', function(y){ return y.toString(); })
+                 .height(calls['by_endpoint'].length * 30);
             chart.data(calls['by_endpoint'].map(function(e){
                 return [e['endpoint'], e['calls']];
             }));
@@ -102,7 +103,7 @@ $(document).ready(function(){
     .setting('chart.type', 'bar')
     .setting('display.mode', options.endpoint_calls_display || 'chart')
     .setting('year', Date.today().getFullYear())
-    .margin({'top': 0, 'bottom': 20, 'left': 180, 'right': 0})
+    .margin({'top': 0, 'bottom': 20, 'left': 200, 'right': 0})
     .silence(false)
     .show();
 
