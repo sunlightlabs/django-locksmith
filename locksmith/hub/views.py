@@ -17,6 +17,7 @@ from locksmith.common import get_signature, UNPUBLISHED
 from locksmith.hub.models import Api, Key, KeyForm, Report, ResendForm, resolve_model
 from locksmith.hub.tasks import push_key
 from locksmith.hub.common import cycle_generator
+from django.db.models import Sum
 
 @require_POST
 def report_calls(request):
@@ -246,6 +247,12 @@ def analytics_index(request,
     new_users = Key.objects.filter(issued_on__gte=(datetime.datetime.today()+datetime.timedelta(days=-14))).order_by('-issued_on')
 
     six_month = Key.objects.filter(issued_on__gte=(datetime.datetime.today()+datetime.timedelta(days=-4, weeks=-24)), issued_on__lte=(datetime.datetime.today()+datetime.timedelta(days=3, weeks=-24))).order_by('-issued_on')
+    six_month_stats = []
+
+    for sm in six_month:
+        six_month_stats.append((sm, Report.objects.filter(key_id=sm.id).aggregate(Sum('calls'))['calls__sum'] ))
+
+    six_month = sorted(six_month_stats, key=lambda tup: tup[1], reverse=True)
 
     apis = Api.objects.order_by('display_name') 
 

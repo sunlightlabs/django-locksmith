@@ -43,11 +43,11 @@
     <h3>Users Who Hit Six Months This Week</h3>
     <table class="entry-content" style="height:300px; overflow-y:hidden; display: block;" >
     <thead>
-    <tr><th>User</th><th>Email</th><th>Description</th><th>Status</th></tr>
+    <tr><th>User</th><th>Email</th><th>Description</th><th>Status</th><th>Total Calls</th></tr>
     </thead>
     <tbody>
     {% for user in six_month %}
-        <tr><td>{{user.name}}</td><td><a href="{% url key_analytics user.key %}">{{user.email}}</a></td><td>{{user.usage}}</td><td>{{user.status}}</td></tr>
+        <tr><td>{{user.0.name}}</td><td><a href="{% url key_analytics user.0.key %}">{{user.0.email}}</a></td><td>{{user.0.usage}}</td><td>{{user.0.status}}</td><td>{{ user.1|intcomma }}</td></tr>
     {% endfor %}
     </tbody>
     </table>
