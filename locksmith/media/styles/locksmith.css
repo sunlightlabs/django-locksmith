@@ -4,7 +4,7 @@ svg text {
 }
 
 figure.analytics-chart { position: relative; margin: 0 }
-.analytics-chart { height: 400px; fill: transparent; stroke: black; }
+.analytics-chart { height: 450px; fill: transparent; stroke: black; }
 .analytics-chart figcaption
     { font-weight: bold; font-size: 16px; letter-spacing: 110%; }
 .analytics-chart g.bars rect.bar { fill: white; stroke: rgb(80, 80, 220); }
@@ -36,9 +36,7 @@ figure.analytics-chart { position: relative; margin: 0 }
 #leaderboard .icon-star,
 #leaderboard .icon-star-empty { opacity: 0.6; margin: 6px; auto; }
 
-#users { min-height: 700px; }
-#calls { min-height: 700px; }
-#endpoints { min-height: 700px; }
+#users, #calls, #endpoints { min-height: 450px; margin-top:30px; }
 
 #key-list  { width: 10px; } 
 
