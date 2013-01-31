@@ -40,7 +40,7 @@ figure.analytics-chart { position: relative; margin: 0; }
 
 #calls, #endpoints, #users { min-height: 450px; margin-top:40px; }
 .dataTables_filter { margin-bottom: 20px; }
-#key-list  { width: 10px; } 
+#key-list  { width: 945px; } 
 
 .expand { display:block; }
 form.signup input, form.signup textarea { width: 400px; }
@@ -53,3 +53,9 @@ form.signup input.checkbox { width: 15px; float:left; margin-right: 15px; }
 #graphs button.btn { padding: 5px; margin: 5px; font-size: 1em; background-color: #E6E6E6; color: black; background-image:none;}
 #graphs button.active { color: white; background-color: #CB610B; }
 #graphs table { min-width: 945px; margin-bottom: 55px; margin-top:65px;}
+
+#key-list_wrapper select { width: 50px; }
+#key-list_paginate { margin-top: 20px; }
+#key-list { float: left; }
+#key-list_info { float:left; margin-top: 25px;}
+
