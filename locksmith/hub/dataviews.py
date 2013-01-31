@@ -254,7 +254,7 @@ def calls_by_endpoint(request, api_id=None, api_name=None):
 
     qry = Report.objects.filter(api=api)
     if ignore_internal_keys:
-        qry = exclude_internal_keys(qry)
+        qry = exclude_internal_key_reports(qry)
     endpoint_aggs = qry.values('endpoint').annotate(calls=Sum('calls'))
     result = {
         'api': {'id': api.id, 'name': api.name},
