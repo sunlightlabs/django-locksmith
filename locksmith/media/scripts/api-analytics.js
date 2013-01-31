@@ -12,7 +12,7 @@ $(document).ready(function(){
                 'bLengthChange': false,
                 'bSort': true,
                 'aaData': response['callers'].map(function(c){
-                              return [c.email, c.key, c.calls];
+                              return ['<a href="/analytics/key/' + c.key + '">' + c.email + '</a>', c.key, c.calls];
                           }),
                 'asSorting': false,
                 'aaSorting': [[2, 'desc']]

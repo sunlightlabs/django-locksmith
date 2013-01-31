@@ -22,7 +22,7 @@
             $target.find("thead").empty().append($header);
             leaders['by_key'].sort(itemcomparer('rank',
                                                 function(a,b){ return a - b; }));
-            leaders['by_key'] = leaders['by_key'].slice(0, 20);
+            leaders['by_key'] = leaders['by_key'].slice(0, 40);
             leaders['by_key'].forEach(function(leader){
                 var $row = $(row_tmpl);
                 $row.find(".rank").text(leader['rank']);
@@ -34,7 +34,7 @@
                     $row.find(".diff").addClass("icon-star");
                 } else if (leader['rank_diff'] > 0) {
                     $row.find(".diff").addClass("icon-arrow-down");
-                } else if (leader['rank_diff'] < -20) {
+                } else if (leader['rank_diff'] < -40) {
                     $row.find(".diff").addClass("icon-star");
                 } else if (leader['rank_diff'] < 0) {
                     $row.find(".diff").addClass("icon-arrow-up");
