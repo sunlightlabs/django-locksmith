@@ -8,8 +8,10 @@ from django.db.models import Sum, Count, Min, Max, Q
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFound
 from django.contrib.auth.decorators import login_required, user_passes_test
 from locksmith.hub.models import Api, Key, Report, resolve_model
-from locksmith.hub.common import cycle_generator
+from locksmith.hub.common import cycle_generator, exclude_internal_keys, exclude_internal_key_reports
 from unusual.http import BadRequest
+
+from django.conf import settings
 
 staff_required = user_passes_test(lambda u: u.is_staff)
 
@@ -19,12 +21,6 @@ def _keys_issued_date_range():
 def _years():
     extents = _keys_issued_date_range()
     return range(extents['earliest'].year, extents['latest'].year + 1)
-
-@login_required
-def calls_by_api(request,
-                 begin_date=None, end_date=None,
-                 ignore_deprecated=True, ignore_internal_keys=True):
-    pass
 
 def parse_bool(p):
     return unicode(p).lower() in ['y', 't', 'yes', 'true']
@@ -62,6 +58,7 @@ def calls_to_api(request,
 
     begin_date = parse_date_param(request, 'begin_date')
     end_date = parse_date_param(request, 'end_date')
+    ignore_internal_keys = parse_bool_param(request, 'ignore_internal_keys', True)
 
     if api_id is None and api_name is None:
         return HttpResponseBadRequest('Must specify API id or name.')
@@ -72,6 +69,8 @@ def calls_to_api(request,
         return HttpResponseNotFound('The requested API was not found.')
 
     qry = Report.objects.filter(api=api) 
+    if ignore_internal_keys:
+        qry = exclude_internal_key_reports(qry)
     if begin_date:
         qry = qry.filter(date__gte=begin_date)
     if end_date:
@@ -100,11 +99,15 @@ def calls_to_api_yearly(request,
     except Api.DoesNotExist:
         return HttpResponseNotFound('The requested API was not found.')
 
+    ignore_internal_keys = parse_bool_param(request, 'ignore_internal_keys', True)
+
     date_extents = _keys_issued_date_range()
     earliest_year = date_extents['earliest'].year
     latest_year = date_extents['latest'].year
 
     qry = Report.objects.filter(api=api)
+    if ignore_internal_keys:
+        qry = exclude_internal_key_reports(qry)
     agg = qry.aggregate(calls=Sum('calls'))
     qry = qry.extra(select={'year': 'extract(year from date)::int'})
     yearly_aggs = qry.values('year').annotate(calls=Sum('calls'))
@@ -136,7 +139,11 @@ def calls_to_api_monthly(request, year,
     except Api.DoesNotExist:
         return HttpResponseNotFound('The requested API was not found.')
 
+    ignore_internal_keys = parse_bool_param(request, 'ignore_internal_keys', True)
+
     qry = Report.objects.filter(api=api)
+    if ignore_internal_keys:
+        qry = exclude_internal_key_reports(qry)
     qry = qry.filter(date__gte=datetime.date(year, 1, 1),
                      date__lte=datetime.date(year, 12, 31))
     agg = qry.aggregate(calls=Sum('calls'))
@@ -173,6 +180,7 @@ def keys(request):
     qry = qry.values('key', 'email', 'issued_on').annotate(calls=Sum('reports__calls'),
                                                            latest_call=Max('reports__date'))
     qry = qry.filter(calls__isnull=False)
+    qry = exclude_internal_keys(qry)
     # TODO: Add multi-column sorting
     if iSortCol_0 not in (None, ''):
         sort_col_field = columns[iSortCol_0]
@@ -205,12 +213,15 @@ def callers_of_api(request,
     except Api.DoesNotExist:
         return HttpResponseNotFound('The requested API was not found.')
 
+    ignore_internal_keys = parse_bool_param(request, 'ignore_internal_keys', True)
     min_calls = parse_int_param(request, 'min_calls')
     max_calls = parse_int_param(request, 'max_calls')
     top = parse_int_param(request, 'top')
 
-    qry = (api.reports
-              .values('key__email', 'key__key')
+    qry = api.reports
+    if ignore_internal_keys:
+        qry = exclude_internal_key_reports(qry)
+    qry = (qry.values('key__email', 'key__key')
               .exclude(key__status='S')
               .annotate(calls=Sum('calls')))
     if min_calls is not None:
@@ -239,7 +250,11 @@ def calls_by_endpoint(request, api_id=None, api_name=None):
     except Api.DoesNotExist:
         return HttpResponseNotFound('The requested API was not found.')
 
+    ignore_internal_keys = parse_bool_param(request, 'ignore_internal_keys', True)
+
     qry = Report.objects.filter(api=api)
+    if ignore_internal_keys:
+        qry = exclude_internal_key_reports(qry)
     endpoint_aggs = qry.values('endpoint').annotate(calls=Sum('calls'))
     result = {
         'api': {'id': api.id, 'name': api.name},
@@ -280,10 +295,13 @@ def api_calls(request):
     begin_date = parse_date_param(request, 'begin_date')
     end_date = parse_date_param(request, 'end_date')
     ignore_deprecated = parse_bool_param(request, 'ignore_deprecated', False)
+    ignore_internal_keys = parse_bool_param(request, 'ignore_internal_keys', True)
 
     qry = Report.objects
     if ignore_deprecated == True:
         qry = qry.filter(api__push_enabled=True)
+    if ignore_internal_keys:
+        qry = exclude_internal_key_reports(qry)
     if begin_date:
         qry = qry.filter(date__gte=begin_date)
     if end_date:
@@ -314,8 +332,11 @@ def keys_issued(request):
     begin_date = parse_date_param(request, 'begin_date')
     end_date = parse_date_param(request, 'end_date')
     ignore_inactive = parse_bool_param(request, 'ignore_inactive', False)
+    ignore_internal_keys = parse_bool_param(request, 'ignore_internal_keys', True)
 
     qry = Key.objects
+    if ignore_internal_keys:
+        qry = exclude_internal_keys(qry)
     if begin_date:
         qry = qry.filter(issued_on__gte=begin_date)
     if end_date:
@@ -337,12 +358,15 @@ def keys_issued(request):
 @login_required
 def keys_issued_yearly(request):
     ignore_inactive = parse_bool_param(request, 'ignore_inactive', False)
+    ignore_internal_keys = parse_bool_param(request, 'ignore_internal_keys', True)
 
     date_extents = _keys_issued_date_range()
     earliest_year = date_extents['earliest'].year
     latest_year = date_extents['latest'].year
 
     qry = Key.objects
+    if ignore_internal_keys:
+        qry = exclude_internal_keys(qry)
     if ignore_inactive:
         qry = qry.filter(status='A')
 
@@ -365,10 +389,13 @@ def keys_issued_yearly(request):
 def keys_issued_monthly(request, year):
     year = int(year)
     ignore_inactive = parse_bool_param(request, 'ignore_inactive', False)
+    ignore_internal_keys = parse_bool_param(request, 'ignore_internal_keys', True)
 
     qry = Key.objects.extra(select={'month': 'extract(month from issued_on)::int'})
     qry = qry.filter(issued_on__gte=datetime.date(year, 1, 1),
                      issued_on__lte=datetime.date(year, 12, 31))
+    if ignore_internal_keys:
+        qry = exclude_internal_keys(qry)
     if ignore_inactive:
         qry = qry.filter(status='A')
 
@@ -395,6 +422,8 @@ def _callers_in_period(begin_date, end_date, api=None, min_calls=100,
                        ignore_autoactivated_keys=True):
     calls_by_key = Report.objects.filter(date__gte=begin_date,
                                          date__lte=end_date)
+    if ignore_internal_keys:
+        calls_by_key = exclude_internal_key_reports(calls_by_key)
     if api is not None:
         calls_by_key = calls_by_key.filter(api=api)
     calls_by_key = (calls_by_key.values('key__key', 'key__email')

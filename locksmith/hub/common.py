@@ -1,3 +1,5 @@
+from django.conf import settings
+
 def cycle_generator(cycle, step=1, begin=(0, 0), end=None):
     '''
         Generates pairs of values representing a cycle. E.g. clock hours for a day could
@@ -19,3 +21,16 @@ def cycle_generator(cycle, step=1, begin=(0, 0), end=None):
             minor = cycle_begin
 
 
+def exclude_internal_keys(qry):
+    if getattr(settings, 'INTERNAL_ORGANIZATIONS', None):
+        qry = qry.exclude(org_name__in=settings.INTERNAL_ORGANIZATIONS)
+    if getattr(settings, 'INTERNAL_EMAIL_PATTERN', None):
+        qry = qry.exclude(email__endswith=settings.INTERNAL_EMAIL_PATTERN)
+    return qry
+
+def exclude_internal_key_reports(qry):
+    if getattr(settings, 'INTERNAL_ORGANIZATIONS', None):
+        qry = qry.exclude(key__org_name__in=settings.INTERNAL_ORGANIZATIONS)
+    if getattr(settings, 'INTERNAL_EMAIL_PATTERN', None):
+        qry = qry.exclude(key__email__endswith=settings.INTERNAL_EMAIL_PATTERN)
+    return qry
