@@ -17,8 +17,11 @@ $(document).ready(function(){
 
     var get_keys_issued = function (chart) {
         var chart_interval = chart.setting('chart.interval');
+        var params = {
+            'ignore_internal_keys': (page_settings.get('internal.keys') === 'excluded')
+        }
         if (chart_interval === 'yearly') {
-            $.getJSON('/analytics/data/keys/issued/yearly/')
+            $.getJSON('/analytics/data/keys/issued/yearly/', params)
             .then(function(keys_issued){
                 chart.setting('title', 'Keys Issued By Year')
                      .setting('independent_format', function(year){ return year.toString(); });
@@ -28,7 +31,7 @@ $(document).ready(function(){
             });
         } else if (chart_interval === 'monthly') {
             var url = '/analytics/data/keys/issued/' + chart.setting('year') + '/';
-            $.getJSON(url)
+            $.getJSON(url, params)
             .then(function(keys_issued){
                 chart.setting('title', 'Keys Issued by Month for ' + chart.setting('year'))
                      .setting('independent_format', function(x){ return month_abbrevs[x-1]; });
@@ -48,7 +51,8 @@ $(document).ready(function(){
 
     var get_apis_by_call = function (chart) {
         var params = {
-            'ignore_deprecated': (page_settings.get('deprecated.apis') === 'excluded')
+            'ignore_deprecated': (page_settings.get('deprecated.apis') === 'excluded'),
+            'ignore_internal_keys': (page_settings.get('internal.keys') === 'excluded')
         };
         var time_period = chart.setting('time.period');
         var title = 'API Calls All Time';
@@ -126,6 +130,7 @@ $(document).ready(function(){
 
         page_settings.buttons.click(function(event){
             calls_chart.refresh();
+            keys_issued_chart.refresh();
         });
     });
 });
