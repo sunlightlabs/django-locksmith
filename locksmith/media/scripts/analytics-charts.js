@@ -519,7 +519,7 @@ function AnalyticsChart (options) {
             if (Function.prototype.isPrototypeOf(tmpl_selector) === true)
                 $tmpl = tmpl_selector.call($target[0], that);
             else
-                $tmpl = $(tmpl_selector);
+                $tmpl = $target.find(tmpl_selector);
 
             var $row = $($tmpl.html());
 
@@ -534,6 +534,15 @@ function AnalyticsChart (options) {
                 .text(dependent_label);
             $row.appendTo($target.find("table.analytics-table tbody"));
         });
+
+        var total_row_tmpl = $target.find('.table-total-row-tmpl').html();
+        var $total_row = $(total_row_tmpl);
+        if ($total_row.length > 0) {
+            var total = _data.reduce(function(prev,curr){ return prev + curr[1]; }, 0);
+            $total_row.find(".dependent").text(that.get('dependent_format').call(null, total));
+            $total_row.appendTo($target.find("table.analytics-table tbody"));
+        }
+
         $table.find("thead th.independent").text(that.get("independent_label"));
         $table.find("thead th.dependent").text(that.get("dependent_label"));
         $table.find("caption").text(that.get("title"));
