@@ -100,7 +100,7 @@
                 </thead>
                 <tbody>
                     {% for uc in user_calls %}
-                    <tr><td class="compact">{{uc.key__email}}</td>
+                    <tr><td class="compact"><a href="{% url key_analytics uc.key__key %}">{{uc.key__email}}</a></td>
                         <td class="compact">{{uc.key__key}}</td>
                         <td class="compact">{{uc.calls}}</td></tr>
                     {% endfor %}
