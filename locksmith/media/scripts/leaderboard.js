@@ -34,7 +34,7 @@
                     $row.find(".diff").addClass("icon-star");
                 } else if (leader['rank_diff'] > 0) {
                     $row.find(".diff").addClass("icon-arrow-down");
-                } else if (leader['rank_diff'] < -40) {
+                } else if (leader['rank'] - leader['rank_diff'] > 40) {
                     $row.find(".diff").addClass("icon-star");
                 } else if (leader['rank_diff'] < 0) {
                     $row.find(".diff").addClass("icon-arrow-up");

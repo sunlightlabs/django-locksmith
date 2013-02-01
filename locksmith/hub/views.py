@@ -342,7 +342,17 @@ def keys_leaderboard(request,
     else:
         year = datetime.date.today().year
         month = datetime.date.today().month
-
+        #adjust start of quarter back 3 months, so we don't include partially measured, current month
+        if month > 3:
+            month -= 3
+        else:
+            year -= 1
+            if month == 3:
+                month = 12
+            if month == 2:
+                month = 11
+            else:
+                month = 10
     ctx = {
         'latest_qtr_begin': datetime.datetime(year, month, 1).strftime('%Y-%m-%d')
     }
