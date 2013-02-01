@@ -13,7 +13,7 @@ from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib import messages
-from locksmith.common import get_signature, UNPUBLISHED
+from locksmith.common import get_signature, PUB_STATUSES, UNPUBLISHED
 from locksmith.hub.models import Api, Key, KeyForm, Report, ResendForm, resolve_model
 from locksmith.hub.tasks import push_key
 from locksmith.hub.common import cycle_generator
@@ -313,17 +313,20 @@ def key_list(request):
 @staff_required
 def key_analytics(request, key):
     key = get_object_or_404(Key, key=key)
-    endpoint_q = key.reports.values('api__name', 'endpoint').annotate(calls=Sum('calls')).order_by('-calls')
-    endpoints = [{'endpoint':'.'.join((d['api__name'], d['endpoint'])),
-                  'calls': d['calls']} for d in endpoint_q]
-    date_q = key.reports.values('date').annotate(calls=Sum('calls')).order_by('date')
 
-    c = {'key': key}
-    c['endpoints'], c['endpoint_calls'] = _dictlist_to_lists(endpoints, 'endpoint', 'calls')
-    c['timeline'] = date_q
-
-    return render_to_response('locksmith/key_analytics.html', c,
-                              context_instance=RequestContext(request))
+    ctx = {
+        'key': key.key,
+        'pub_statuses': [{'api': {'name': kps.api.name},
+                          'status': kps.status,
+                          'status_label': PUB_STATUSES[kps.status][1]}
+                         for kps in key.pub_statuses.filter(api__push_enabled=True)],
+        'endpoint_calls_display': 'chart',
+        'api_calls_display': 'chart',
+        'api_calls_interval': 'yearly'
+    }
+    ctx['json_options'] = json.dumps(ctx)
+    ctx['key'] = key
+    return render(request, 'locksmith/key_analytics.html', ctx)
 
 @staff_required
 def keys_leaderboard(request,

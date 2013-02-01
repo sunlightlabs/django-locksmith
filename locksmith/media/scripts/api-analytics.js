@@ -30,7 +30,7 @@ $(document).ready(function(){
         }
         $.getJSON('/analytics/data/api/' + options.api.name + '/calls/endpoint/', params)
          .done(function(calls){
-            chart.setting('independent_label', 'Year')
+            chart.setting('independent_label', 'Endpoint')
                  .setting('dependent_label', 'Calls')
                  .setting('title', 'API Calls By Endpoint')
                  .setting('dependent_format', function(x){ return x.toLocaleString(); })
