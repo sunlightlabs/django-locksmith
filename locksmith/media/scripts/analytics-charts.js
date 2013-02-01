@@ -33,12 +33,12 @@ function barChart () {
           .domain(d3.extent(data.map(function(d) { return d[0];} )))
           .range([0, width - margin.left - margin.right])
           .nice();
-          
+
+      d3.select(this).select('div.tooltip').remove();
       var tooltip = d3.select(this)
                       .append('div')
                       .attr('class', 'tooltip')
-                      .style('position', 'absolute')
-                      .text('tooltip usa FUCK YEAH');
+                      .style('position', 'absolute');
 
       var show_tooltip = function(d){
           tooltip.style('visibility', 'visible')
@@ -239,11 +239,11 @@ function columnChart() {
       _yAxis = yAxis;
       _xAxis = xAxis;
           
+      d3.select(this).select('div.tooltip').remove();
       var tooltip = d3.select(this)
                       .append('div')
                       .attr('class', 'tooltip')
-                      .style('position', 'absolute')
-                      .text('tooltip usa FUCK YEAH');
+                      .style('position', 'absolute');
 
       var show_tooltip = function(d){
           tooltip.style('visibility', 'visible')
