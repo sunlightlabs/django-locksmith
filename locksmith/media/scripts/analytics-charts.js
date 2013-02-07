@@ -423,7 +423,7 @@ function ReactiveSettingsIface (target) {
             if ((update_ui === undefined) || (update_ui === true)) {
                 _update_buttons(k);
             }
-            if (_quiet === false) {
+            if ((_quiet === false) && (_buttons[k] !== undefined)) {
                 $target.trigger('setting-changed', [k, v]);
             }
             return that;
@@ -435,6 +435,26 @@ function ReactiveSettingsIface (target) {
 
     this.get = function (k) { return _setting(k); };
     this.set = function (k, v) { return _setting(k, v, true); };
+    this.update = function (obj) {
+        console.log('Updating', $target.attr('id'), 'from', JSON.stringify(obj));
+        var old_silence = that.silence();
+        that.silence(true);
+        for (var k in obj) {
+            _setting(k, obj[k]);
+        }
+        that.silence(old_silence);
+        return that;
+    };
+    this.settings = function(){ return $.extend(true, {}, _settings); };
+    this.settings_with_buttons = function(){
+        var obj = {};
+        pairs(_settings).forEach(function(pair){
+            if (_buttons[pair[0]] !== undefined) {
+                obj[pair[0]] = pair[1];
+            }
+        });
+        return obj;
+    };
 
     var _silence = function(/* arguments */){
         if (arguments.length === 1) {
@@ -486,6 +506,7 @@ function AnalyticsChart (options) {
     require_opt('target');
     var $target = $(opts.target);
     var _data = null;
+    var _data_deferral_queue = $.Deferred();
 
     var _chart_methods = [];
     var _chart_passthru_method = function (method_name) {
@@ -501,6 +522,7 @@ function AnalyticsChart (options) {
     ReactiveSettingsIface.call(this, options['target']);
 
     var _data_callback = function(data){
+        console.log('Received data for', $target.attr('id'));
         _data = data;
         if (that.get('display.mode') === 'chart')
             _display_chart();
@@ -508,7 +530,9 @@ function AnalyticsChart (options) {
             _display_table();
         return that;
     };
-    this.data = _data_callback;
+    this.data = function (data) {
+        _data_callback(data);
+    };
 
     var _display_table = function(){
         var $table = $target.find("table.analytics-table");
@@ -599,6 +623,7 @@ function AnalyticsChart (options) {
     };
 
     var _refresh = function(){
+        console.log('Refreshing for', $target.attr('id'));
         opts['data_fn'].call(null, that);
     };
     this.refresh = _refresh;
@@ -607,15 +632,6 @@ function AnalyticsChart (options) {
     this.show = _show;
     var _hide = function(){ $target.hide(); return that; };
     this.hide = _hide;
-    var _silence = function(/* arguments */){
-        if (arguments.length === 1) {
-            _quiet = arguments[0];
-            return that;
-        } else {
-            return _quiet;
-        }
-    };
-    this.silence = _silence;
 
     this.set('independent_format', function(i){ return i.toString(); });
     this.set('dependent_format', function(d){ return d.toString(); });

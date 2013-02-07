@@ -62,3 +62,93 @@
         return l;
     };
 
+    var pairs = function (obj) {
+        var l = [];
+        for (var k in obj) {
+            l.push([k, obj[k]]);
+        }
+        return l;
+    };
+
+    var keys = function (obj) {
+        var l = [];
+        for (var k in obj) {
+            l.push(k);
+        }
+        return l;
+    };
+
+    var unicode_to_base64 = function (u) {
+        return window.btoa(unescape(encodeURIComponent(u)));
+    };
+
+    var base64_to_unicode = function (b) {
+        try {
+            return decodeURIComponent(escape(window.atob(b)));
+        } catch (e) {
+            console.log('Unable to decode', b);
+            throw e;
+        }
+    };
+
+    var parse_query_params = function (a) {
+        if (a == "") return {};
+        a = a.split("&");
+        var b = {};
+        for (var i = 0; i < a.length; ++i)
+        {
+            var p=a[i].split('=');
+            if (p.length != 2) continue;
+            b[p[0]] = decodeURIComponent(p[1].replace(/\+/g, " "));
+        }
+        return b;
+    };
+
+    var ANALYTICS_VOCAB = [
+        ['page', 'P'],
+        ['calls', 'C'],
+        ['keys', 'K'],
+
+        ['included', 'I'],
+        ['excluded', 'E'],
+        ['all-time', 'A'],
+        ['year-to-date', 'Y'],
+        ['past-30-days', 'M'],
+        ['yearly', 'y'],
+        ['monthly', 'm'],
+        ['chart', 'c'],
+        ['table', 't'],
+
+        ['chart.type', 'ct'],
+        ['chart.interval', 'ci'],
+        ['deprecated.apis', 'da'],
+        ['display.mode', 'dm'],
+        ['internal.keys', 'ik'],
+        ['time.period', 'tp']
+    ];
+
+    var vocab_translate = function (v, vocab) {
+        for (var ix = 0; ix < vocab.length; ix++) {
+            if (v === vocab[ix][0]) {
+                return vocab[ix][1];
+            } else if (v === vocab[ix][1]) {
+                return vocab[ix][0];
+            }
+        }
+        return v;
+    };
+
+    var vocab_translate_object = function (obj, vocab) {
+        var d = {};
+        for (var k in obj) {
+            var v = obj[k];
+            var tk = vocab_translate(k, vocab);
+            if (typeof v === 'object') {
+                d[tk] = vocab_translate_object(v, vocab);
+            } else {
+                d[tk] = vocab_translate(v, vocab);
+            }
+        }
+        return d;
+    };
+
