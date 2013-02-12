@@ -403,7 +403,6 @@ function ReactiveSettingsIface (target) {
     var $target = $(target);
     var _settings = {};
     var _buttons = {};
-    var _quiet = true;
 
     var _update_buttons = function(k){
         var btns = _buttons[k];
@@ -425,53 +424,31 @@ function ReactiveSettingsIface (target) {
             if ((update_ui === undefined) || (update_ui === true)) {
                 _update_buttons(k);
             }
-            if ((_quiet === false) && (_buttons[k] !== undefined)) {
-                $target.trigger('setting-changed', [k, v]);
-            }
             return that;
         } else {
             return _settings[k];
         }
     };
-    this.setting = function(k, v){ return _setting(k, v, true); };
-
     this.get = function (k) { return _setting(k); };
     this.set = function (k, v) { return _setting(k, v, true); };
     this.update = function (obj) {
         console.log('Updating', $target.attr('id'), 'from', JSON.stringify(obj));
-        var old_silence = that.silence();
-        that.silence(true);
         for (var k in obj) {
             _setting(k, obj[k]);
         }
-        that.silence(old_silence);
+        $target.trigger('settings-changed', obj);
         return that;
     };
     this.settings = function(){ return $.extend(true, {}, _settings); };
-    this.settings_with_buttons = function(){
-        var obj = {};
-        pairs(_settings).forEach(function(pair){
-            if (_buttons[pair[0]] !== undefined) {
-                obj[pair[0]] = pair[1];
-            }
-        });
-        return obj;
-    };
 
-    var _silence = function(/* arguments */){
-        if (arguments.length === 1) {
-            _quiet = arguments[0];
-            return that;
-        } else {
-            return _quiet;
-        }
-    };
-    this.silence = _silence;
+    this.target = function(){ return $target; };
 
     $target.find("button[data-setting]").click(function(event){
         var k = $(this).attr("data-setting");
         var v = $(this).attr("data-value");
-        _setting(k, v);
+        var obj = {};
+        obj[k] = v;
+        that.update(obj);
     });
 
     $target.find("button[data-setting]").each(function(){
@@ -491,6 +468,102 @@ function ReactiveSettingsIface (target) {
     return that;
 }
 
+function ReactiveSettingsHistoryIface (options) {
+    if ((window.history === undefined)
+        || (window.history.pushState === undefined)
+        || (window.history.replaceState === undefined)) return;
+
+    if (this === top) {
+        return new ReactiveSettingsHistoryIface(options);
+    }
+
+    var that = this;
+
+    var _decode_state_anchor = function (anchor) {
+        var decoded = JSON.parse(base64_to_unicode(anchor));
+        if (options.compression_vocabulary) {
+            decoded = vocab_translate_object(decoded, ANALYTICS_VOCAB);
+        }
+        console.log("Decoded", anchor, " -> ", decoded);
+        return decoded;
+    };
+
+    var _update_settings_ifaces = function (decoded) {
+        for (var decoded_key in decoded) {
+            var settings_iface = options.settings[decoded_key];
+            if (settings_iface != null) {
+                if (! _.isEqual(settings_iface.settings(),
+                                decoded[decoded_key])) {
+                    settings_iface.update(decoded[decoded_key]);
+                }
+            }
+        }
+    };
+
+    var _collect_settings = function () {
+        var merged = {};
+        for (var settings_key in options.settings) {
+            var settings_iface = options.settings[settings_key].settings();
+            merged[settings_key] = $.extend(true, {}, settings_iface);
+        }
+        return merged;
+    };
+
+    var _encode_state_anchor = function (obj) {
+        var encoded = obj;
+        if (options.compression_vocabulary) {
+            encoded = vocab_translate_object(obj, ANALYTICS_VOCAB);
+        }
+        encoded = unicode_to_base64(JSON.stringify(encoded));
+        console.log("Encoded", obj, " -> ", encoded);
+        return encoded;
+    };
+
+    var _update_history = function(event){
+        var merged = _collect_settings();
+        var encoded = _encode_state_anchor(merged);
+        var url = window.location.protocol + '//' + window.location.host + window.location.pathname +  window.location.search + '#' + encoded;
+        history.pushState(encoded, null, url);
+    };
+
+    pairs(options.settings).forEach(function(pair){
+        var key = pair[0];
+        var settings = pair[1];
+        settings.target().on('settings-changed', _update_history);
+    });
+
+    var _initial_popstate = true;
+    var _initial_url = window.location.href;
+    $(window).bind('popstate', function(event){
+        console.log('popstate');
+        if ((_initial_popstate === true) && (window.location.href == _initial_popstate)) {
+            console.log("Ignoring initial popstate.");
+            _initial_popstate = false;
+            return;
+        }
+
+        var state = event.originalEvent.state;
+        if (state !== null) {
+            var decoded = _decode_state_anchor(state);
+            _update_settings_ifaces(decoded);
+        }
+    });
+
+    if (window.location.hash.length > 0) {
+        var decoded = _decode_state_anchor(window.location.hash.slice(1));
+        _update_settings_ifaces(decoded);
+        history.replaceState(window.location.hash.slice(1), null, window.location.href);
+    } else {
+        var merged = _collect_settings();
+        var encoded = _encode_state_anchor(merged);
+        history.replaceState(encoded, null, window.location.href);
+    }
+
+    console.log('ReactiveSettingsHistoryIface activated for',
+                keys(options.settings).join(', '));
+    return that;
+};
+
 function AnalyticsChart (options) {
     if (this === top) {
         return new AnalyticsChart(options);
@@ -508,7 +581,24 @@ function AnalyticsChart (options) {
     require_opt('target');
     var $target = $(opts.target);
     var _data = null;
-    var _data_deferral_queue = $.Deferred();
+
+    var _properties = {};
+    var _create_property = function (key, default_value) {
+        _properties[key] = default_value;
+        that[key] = function (value) {
+            if (arguments.length === 0) {
+                return _properties[key];
+            }
+            _properties[key] = value;
+            return that;
+        };
+    };
+    _create_property('independent_format', function(i){ return i.toString(); });
+    _create_property('dependent_format', function(d){ return d.toString(); });
+    _create_property('independent_label', null);
+    _create_property('dependent_label', null);
+    _create_property('title', null);
+    _create_property('table_row_tmpl', '.table-row-tmpl');
 
     var _chart_methods = [];
     var _chart_passthru_method = function (method_name) {
@@ -532,16 +622,14 @@ function AnalyticsChart (options) {
             _display_table();
         return that;
     };
-    this.data = function (data) {
-        _data_callback(data);
-    };
+    this.data = _data_callback;
 
     var _display_table = function(){
         var $table = $target.find("table.analytics-table");
         $table.find("tbody").empty();
         _data.forEach(function(pair){
             var $tmpl = null;
-            var tmpl_selector = that.get('table.row.tmpl') || '.table-row-tmpl';
+            var tmpl_selector = that.table_row_tmpl();
             if (Function.prototype.isPrototypeOf(tmpl_selector) === true)
                 $tmpl = tmpl_selector.call($target[0], that);
             else
@@ -549,13 +637,13 @@ function AnalyticsChart (options) {
 
             var $row = $($tmpl.html());
 
-            var independent_label = that.get('independent_format').call(null, pair[0]);
+            var independent_label = that.independent_format().call(null, pair[0]);
             $row.find(".independent")
             .text(independent_label)
                 .attr("data-independent", pair[0])
                 .attr("data-dependent", pair[1]);
 
-            var dependent_label = that.get('dependent_format').call(null, pair[1]);
+            var dependent_label = that.dependent_format().call(null, pair[1]);
             $row.find(".dependent")
                 .text(dependent_label);
             $row.appendTo($target.find("table.analytics-table tbody"));
@@ -565,23 +653,24 @@ function AnalyticsChart (options) {
         var $total_row = $(total_row_tmpl);
         if ($total_row.length > 0) {
             var total = _data.reduce(function(prev,curr){ return prev + curr[1]; }, 0);
-            $total_row.find(".dependent").text(that.get('dependent_format').call(null, total));
+            $total_row.find(".dependent").text(that.dependent_format().call(null, total));
             $total_row.appendTo($target.find("table.analytics-table tbody"));
         }
 
-        $table.find("thead th.independent").text(that.get("independent_label"));
-        $table.find("thead th.dependent").text(that.get("dependent_label"));
-        $table.find("caption").text(that.get("title"));
+        $table.find("thead th.independent").text(that.independent_label());
+        $table.find("thead th.dependent").text(that.dependent_label());
+        $table.find("caption").text(that.title());
         $table.show();
         $target.find(".analytics-chart").hide();
 
         $target.find(".independent").click(function(event){
             if (that.get('chart.interval') === 'yearly') {
-                that.set('chart.interval', 'monthly');
-                that.set('year', $(this).attr('data-independent'));
+                that.update({
+                    'chart.interval': 'monthly',
+                    'year': $(this).attr('data-independent')
+                });
                 _refresh();
             }
-
             $target.trigger('dataClick', this);
         });
     };
@@ -597,12 +686,12 @@ function AnalyticsChart (options) {
              .height(options['height']);
 
         chart.xTickFormat((that.get('chart.type') === 'column')
-                          ? that.get('independent_format')
-                          : that.get('dependent_format'));
+                          ? that.independent_format()
+                          : that.dependent_format());
 
         chart.yTickFormat((that.get('chart.type') === 'column')
-                          ? that.get('dependent_format')
-                          : that.get('independent_format'));
+                          ? that.dependent_format()
+                          : that.independent_format());
         _chart_methods.forEach(function(fn){
             fn.call(null, chart);
         });
@@ -612,14 +701,16 @@ function AnalyticsChart (options) {
 
         $target.find("rect.bar").click(function(event){
             if (that.get('chart.interval') === 'yearly') {
-                that.set('chart.interval', 'monthly');
-                that.set('year', $(this).attr('data-independent'));
+                that.update({
+                    'chart.interval': 'monthly',
+                    'year': $(this).attr('data-independent')
+                });
                 _refresh();
             }
             $target.trigger('dataClick', this);
         });
 
-        $target.find("figcaption").text(that.get('title'));
+        $target.find("figcaption").text(that.title());
         $target.find("table.analytics-table").hide();
         $target.find(".analytics-chart").show();
     };
@@ -634,9 +725,6 @@ function AnalyticsChart (options) {
     this.show = _show;
     var _hide = function(){ $target.hide(); return that; };
     this.hide = _hide;
-
-    this.set('independent_format', function(i){ return i.toString(); });
-    this.set('dependent_format', function(d){ return d.toString(); });
 
     this.buttons.click(function(event){
         _refresh();

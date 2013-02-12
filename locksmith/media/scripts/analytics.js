@@ -11,13 +11,12 @@ $(document).ready(function(){
     };
 
     var page_settings = new ReactiveSettingsIface('#page-settings')
-                            .setting('deprecated.apis', 'excluded')
-                            .setting('internal.keys', 'excluded')
-                            .silence(false);
+                            .set('deprecated.apis', 'excluded')
+                            .set('internal.keys', 'excluded');
 
     var get_keys_issued = function (chart) {
         console.log('Fetching keys_issued data');
-        var chart_interval = chart.setting('chart.interval');
+        var chart_interval = chart.set('chart.interval');
         var params = {
             'ignore_internal_keys': (page_settings.get('internal.keys') === 'excluded')
         }
@@ -25,19 +24,21 @@ $(document).ready(function(){
             $.getJSON('/analytics/data/keys/issued/yearly/', params)
             .then(function(keys_issued){
                 console.log('Recieved keys_issued data');
-                chart.setting('title', 'Keys Issued By Year')
-                     .setting('independent_format', function(year){ return year.toString(); });
+                chart.title('Keys Issued By Year')
+                     .independent_format(methodcaller('toString', 10))
+                     .table_row_tmpl('.yearly-table-row-tmpl');
                 chart.data(keys_issued['yearly'].map(function(yr){
                     return [yr['year'], yr['issued']];
                 }));
             });
         } else if (chart_interval === 'monthly') {
-            var url = '/analytics/data/keys/issued/' + chart.setting('year') + '/';
+            var url = '/analytics/data/keys/issued/' + chart.set('year') + '/';
             $.getJSON(url, params)
             .then(function(keys_issued){
                 console.log('Recieved keys_issued data');
-                chart.setting('title', 'Keys Issued by Month for ' + chart.setting('year'))
-                     .setting('independent_format', function(x){ return month_abbrevs[x-1]; });
+                chart.title('Keys Issued by Month for ' + chart.set('year'))
+                     .independent_format(function(x){ return month_abbrevs[x-1]; })
+                     .table_row_tmpl('.monthly-table-row-tmpl');
                 chart.data(keys_issued['monthly'].map(function(m){
                     return [m['month'], m['issued']];
                 }));
@@ -45,19 +46,12 @@ $(document).ready(function(){
         }
     };
 
-    var keys_issued_row_tmpl = function (chart) {
-        if (chart.setting('chart.interval') === 'yearly')
-            return $(this).find('.yearly-table-row-tmpl');
-        else
-            return $(this).find('.monthly-table-row-tmpl');
-    };
-
     var get_apis_by_call = function (chart) {
         var params = {
             'ignore_deprecated': (page_settings.get('deprecated.apis') === 'excluded'),
             'ignore_internal_keys': (page_settings.get('internal.keys') === 'excluded')
         };
-        var time_period = chart.setting('time.period');
+        var time_period = chart.get('time.period');
         var title = 'API Calls All Time';
         if (time_period === 'past-30-days') {
             var dt = Date.today().addDays(-30).toString('yyyy-MM-dd');
@@ -90,7 +84,8 @@ $(document).ready(function(){
                             return [api['name'], api['calls'] || 0];
                         });
             pairs.sort(itemcomparer(0, methodcaller('localeCompare')));
-            chart.setting('title', title)
+            chart.title(title)
+                 .dependent_format(localeString)
                  .data(pairs);
         });
     };
@@ -99,20 +94,17 @@ $(document).ready(function(){
 
     fetch_api_list()
     .then(function(){
-        calls_chart = new AnalyticsChart({
+        var calls_chart = new AnalyticsChart({
             'target': '#calls',
             'data_fn': get_apis_by_call
         })
-        .setting('chart.type', 'bar')
-        .setting('display.mode', options.apis_by_call_display || 'chart')
-        .setting('time.period', options.apis_by_call_period || 'all-time')
-        .setting('dependent_format', localeString)
-        .margin({'top': 0, 'bottom': 20, 'left': 110, 'right': 0})
-        .silence(false);
-        //.show();
+        .set('chart.type', 'bar')
+        .set('display.mode', options.apis_by_call_display || 'chart')
+        .set('time.period', options.apis_by_call_period || 'all-time')
+        .margin({'top': 0, 'bottom': 20, 'left': 110, 'right': 0});
 
 
-        keys_issued_chart = new AnalyticsChart({
+        var keys_issued_chart = new AnalyticsChart({
             'target': '#keys',
             'data_fn': get_keys_issued
         })
@@ -121,12 +113,8 @@ $(document).ready(function(){
             'display.mode': options.keys_issued_display || 'chart',
             'chart.interval': options.keys_issued_interval || 'yearly'
         })
-        .setting('dependent_format', localeString)
-        .setting('table.row.tmpl', keys_issued_row_tmpl)
-        .setting('year', Date.today().getFullYear())
-        .margin({'top': 0, 'bottom': 20, 'left': 80, 'right': 0})
-        .silence(false);
-        //.show();
+        .set('year', Date.today().getFullYear())
+        .margin({'top': 0, 'bottom': 20, 'left': 80, 'right': 0});
 
         $('#calls').on('dataClick', function (event, dataElement) {
             var url = '/analytics/api/' + $(dataElement).attr('data-independent') + '/';
@@ -138,65 +126,16 @@ $(document).ready(function(){
             keys_issued_chart.refresh();
         });
 
-        var decode_state_anchor = function (anchor) {
-            decodedsettings = JSON.parse(base64_to_unicode(anchor));
-            console.log(JSON.stringify(decodedsettings));
-            decodedsettings = vocab_translate_object(decodedsettings, ANALYTICS_VOCAB);
-            console.log(JSON.stringify(decodedsettings));
-
-            if (decodedsettings['page'] != null) {
-                page_settings.update(decodedsettings['page']);
-            }
-            if (decodedsettings['calls'] != null) {
-                calls_chart.update(decodedsettings['calls']).refresh();
-            }
-            if (decodedsettings['keys'] != null) {
-                keys_issued_chart.update(decodedsettings['keys']).refresh();
-            }
-        };
-
-        var encode_state_anchor = function (obj) {
-            compressed = vocab_translate_object(obj, ANALYTICS_VOCAB);
-            console.log(JSON.stringify(compressed));
-            return unicode_to_base64(JSON.stringify(compressed));
-        };
-
-        var merge_settings = function () {
-            return {
-                'page': page_settings.settings_with_buttons(),
-                'calls': calls_chart.settings_with_buttons(),
-                'keys': keys_issued_chart.settings_with_buttons()
-            };
-        };
-
-        var update_state_anchor = function(event, setting, value){
-            console.log(event, setting, value);
-            var merged = merge_settings();
-            var encoded = encode_state_anchor(merged);
-            var url = window.location.protocol + '//' + window.location.host + window.location.pathname +  window.location.search + '#' + encoded;
-            history.pushState(encoded, null, url);
-        };
-
-        window.addEventListener('popstate', function(event){
-            if (event.state !== null) {
-                decode_state_anchor(event.state);
+        var state_anchor_proxy = ReactiveSettingsHistoryIface({
+            'compression_vocabulary': ANALYTICS_VOCAB,
+            'settings': {
+                'page': page_settings,
+                'calls': calls_chart,
+                'keys': keys_issued_chart
             }
         });
 
-        $("#page-settings").on('setting-changed', update_state_anchor);
-        $("#calls").on('setting-changed', update_state_anchor);
-        $("#keys").on('setting-changed', update_state_anchor);
-
-        if (window.location.hash.length > 0) {
-            console.log('Decoding', window.location.hash);
-            decode_state_anchor(window.location.hash.slice(1));
-        } else {
-            console.log('No URL hash, using default settings.');
-            calls_chart.show();
-            keys_issued_chart.show();
-        }
-        var merged = merge_settings();
-        var encoded = encode_state_anchor(merged);
-        history.replaceState(encoded, null, window.location.href);
+        calls_chart.show();
+        keys_issued_chart.show();
     });
 });

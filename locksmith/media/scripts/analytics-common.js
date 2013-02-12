@@ -124,7 +124,9 @@
         ['deprecated.apis', 'da'],
         ['display.mode', 'dm'],
         ['internal.keys', 'ik'],
-        ['time.period', 'tp']
+        ['time.period', 'tp'],
+
+        ['year', 'yr']
     ];
 
     var vocab_translate = function (v, vocab) {
