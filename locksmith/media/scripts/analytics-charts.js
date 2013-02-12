@@ -41,10 +41,11 @@ function barChart () {
                       .style('position', 'absolute');
 
       var show_tooltip = function(d){
+          var mouse = d3.mouse(selection.node());
           tooltip.style('visibility', 'visible')
                  .style('opacity', '1.0')
-                 .style('top', event.offsetY + 10 + 'px')
-                 .style('left', event.offsetX + 10 + 'px')
+                 .style('top', mouse[1] + 10 + 'px')
+                 .style('left', mouse[0] + 10 + 'px')
                  .text(yTickFormat(d[1]) + ': ' + xTickFormat(d[0]));
       };
       var hide_tooltip = function(d){
@@ -246,10 +247,11 @@ function columnChart() {
                       .style('position', 'absolute');
 
       var show_tooltip = function(d){
+          var mouse = d3.mouse(selection.node());
           tooltip.style('visibility', 'visible')
                  .style('opacity', '1.0')
-                 .style('top', event.offsetY + 10 + 'px')
-                 .style('left', event.offsetX + 10 + 'px')
+                 .style('top', mouse[1] + 10 + 'px')
+                 .style('left', mouse[0] + 10 + 'px')
                  .text(xTickFormat(d[0]) + ': ' + yTickFormat(d[1]));
       };
       var hide_tooltip = function(d){
