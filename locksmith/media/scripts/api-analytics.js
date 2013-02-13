@@ -24,7 +24,7 @@ $(document).ready(function(){
     };
 
 
-    var get_endpoint_calls_data = function (chart) {
+    var get_endpoint_calls_data = function (chart, callback) {
         var params = {
             'ignore_internal_keys': options.ignore_internal_keys
         }
@@ -36,13 +36,13 @@ $(document).ready(function(){
                  .dependent_format(function(x){ return x.toLocaleString(); })
                  .independent_format(function(y){ return y.toString(); })
                  .height(calls['by_endpoint'].length * 30);
-            chart.data(calls['by_endpoint'].map(function(e){
+            callback(calls['by_endpoint'].map(function(e){
                 return [e['endpoint'], e['calls']];
             }));
          });
     };
 
-    var get_api_calls_data = function (chart) {
+    var get_api_calls_data = function (chart, callback) {
         var params = {
             'ignore_internal_keys': options.ignore_internal_keys
         }
@@ -55,7 +55,7 @@ $(document).ready(function(){
                      .table_row_tmpl('.yearly-table-row-tmpl')
                      .independent_format(methodcaller('toString', 10))
                      .dependent_format(methodcaller('toLocaleString'));
-                chart.data(calls['yearly'].map(function(yr){
+                callback(calls['yearly'].map(function(yr){
                     return [yr['year'], yr['calls']];
                 }));
              });
@@ -69,7 +69,7 @@ $(document).ready(function(){
                      .table_row_tmpl('.monthly-table-row-tmpl')
                      .independent_format(function(x){ return month_abbrevs[x-1]; })
                      .dependent_format(methodcaller('toLocaleString'));
-                chart.data(calls['monthly'].map(function(m){
+                callback(calls['monthly'].map(function(m){
                     return [m['month'], m['calls']];
                 }));
              });

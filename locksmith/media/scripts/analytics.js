@@ -14,7 +14,7 @@ $(document).ready(function(){
                             .set('deprecated.apis', 'excluded')
                             .set('internal.keys', 'excluded');
 
-    var get_keys_issued = function (chart) {
+    var get_keys_issued = function (chart, callback) {
         console.log('Fetching keys_issued data');
         var chart_interval = chart.set('chart.interval');
         var params = {
@@ -27,7 +27,7 @@ $(document).ready(function(){
                 chart.title('Keys Issued By Year')
                      .independent_format(methodcaller('toString', 10))
                      .table_row_tmpl('.yearly-table-row-tmpl');
-                chart.data(keys_issued['yearly'].map(function(yr){
+                callback(keys_issued['yearly'].map(function(yr){
                     return [yr['year'], yr['issued']];
                 }));
             });
@@ -39,14 +39,14 @@ $(document).ready(function(){
                 chart.title('Keys Issued by Month for ' + chart.set('year'))
                      .independent_format(function(x){ return month_abbrevs[x-1]; })
                      .table_row_tmpl('.monthly-table-row-tmpl');
-                chart.data(keys_issued['monthly'].map(function(m){
+                callback(keys_issued['monthly'].map(function(m){
                     return [m['month'], m['issued']];
                 }));
             });
         }
     };
 
-    var get_apis_by_call = function (chart) {
+    var get_apis_by_call = function (chart, callback) {
         var params = {
             'ignore_deprecated': (page_settings.get('deprecated.apis') === 'excluded'),
             'ignore_internal_keys': (page_settings.get('internal.keys') === 'excluded')
@@ -85,8 +85,8 @@ $(document).ready(function(){
                         });
             pairs.sort(itemcomparer(0, methodcaller('localeCompare')));
             chart.title(title)
-                 .dependent_format(methodcaller('toLocaleString'))
-                 .data(pairs);
+                 .dependent_format(methodcaller('toLocaleString'));
+            callback(pairs);
         });
     };
 

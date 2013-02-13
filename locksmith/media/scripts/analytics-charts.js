@@ -579,6 +579,7 @@ function AnalyticsChart (options) {
     require_opt('data_fn');
     require_opt('target');
     var $target = $(opts.target);
+    var _data_deferred = null;
     var _data = null;
 
     var _properties = {};
@@ -621,7 +622,6 @@ function AnalyticsChart (options) {
             _display_table();
         return that;
     };
-    this.data = _data_callback;
 
     var _display_table = function(){
         var $table = $target.find("table.analytics-table");
@@ -725,7 +725,15 @@ function AnalyticsChart (options) {
     var _refresh = function(){
         _display_loading();
         console.log('Refreshing for', $target.attr('id'));
-        opts['data_fn'].call(null, that);
+
+        if (_data_deferred != null) {
+            console.log('Rejecting deferred data');
+            _data_deferred.reject();
+        }
+        var deferred = $.Deferred();
+        _data_deferred = deferred;
+        _data_deferred.promise().then(_data_callback);
+        opts['data_fn'].call(null, that, function(data){ deferred.resolve(data); });
     };
     this.refresh = _refresh;
 
