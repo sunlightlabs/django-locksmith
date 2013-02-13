@@ -29,8 +29,12 @@ function barChart () {
          
 
       // Update the y-scale.
+      var x_domain = d3.extent(data.map(function(d) { return d[0];} ));
+      if (x_domain[0] === x_domain[1]) {
+          x_domain[0] = 0;
+      }
       xScale
-          .domain(d3.extent(data.map(function(d) { return d[0];} )))
+          .domain(x_domain)
           .range([0, width - margin.left - margin.right])
           .nice();
 
@@ -234,11 +238,6 @@ function columnChart() {
           .domain(yDomain)
           .range([height - margin.top - margin.bottom, 0])
           .nice();
-
-      _yScale = yScale;
-      _xScale = xScale;
-      _yAxis = yAxis;
-      _xAxis = xAxis;
           
       d3.select(this).select('div.tooltip').remove();
       var tooltip = d3.select(this)
