@@ -85,12 +85,10 @@ $(document).ready(function(){
                         });
             pairs.sort(itemcomparer(0, methodcaller('localeCompare')));
             chart.title(title)
-                 .dependent_format(localeString)
+                 .dependent_format(methodcaller('toLocaleString'))
                  .data(pairs);
         });
     };
-
-    var localeString = methodcaller('toLocaleString');
 
     fetch_api_list()
     .then(function(){
