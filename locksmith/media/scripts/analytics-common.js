@@ -126,6 +126,9 @@
         ['internal.keys', 'ik'],
         ['time.period', 'tp'],
 
+        ['apis', 'a'],
+        ['endpoints', 'e'],
+
         ['year', 'yr']
     ];
 
