@@ -4,37 +4,31 @@ function barChart () {
       width = 420,
       height = 420,
       yRoundBands = 0.2,
-      xValue = function(d) { return d[1]; },
-      yValue = function(d) { return d[0]; },
       yScale = d3.scale.ordinal(),
       xScale = d3.scale.linear(),
       xAxis = d3.svg.axis().scale(xScale).orient("bottom").ticks(5),
       yAxis = d3.svg.axis().scale(yScale).orient("left"),
+      xMin = undefined,
+      xMax = undefined,
       xTickFormat = undefined,
       yTickFormat = undefined;
 
   function chart(selection) {
     selection.each(function(data) {
-
-      // Convert data to standard representation greedily;
-      // this is needed for nondeterministic accessors.
-      data = data.map(function(d, i) {
-        return [xValue.call(data, d, i), yValue.call(data, d, i)];
-      });
-    
       // Update the x-scale.
       yScale
-          .domain(data.map(function(d) { return d[1];} ))
+          .domain(data.map(function(d) { return d[0];} ))
           .rangeRoundBands([0, height - margin.top - margin.bottom], yRoundBands);
          
 
-      // Update the y-scale.
-      var x_domain = d3.extent(data.map(function(d) { return d[0];} ));
-      if (x_domain[0] === x_domain[1]) {
-          x_domain[0] = 0;
-      }
+      // Update the x-scale.
+      var xDomain = d3.extent(data.map(function(d){ return d[1]; }));
+      if (xMin !== undefined)
+          xDomain[0] = xMin;
+      if (xMax !== undefined)
+          xDomain[1] = xMax;
       xScale
-          .domain(x_domain)
+          .domain(xDomain)
           .range([0, width - margin.left - margin.right])
           .nice();
 
@@ -50,7 +44,7 @@ function barChart () {
                  .style('opacity', '1.0')
                  .style('top', mouse[1] + 10 + 'px')
                  .style('left', mouse[0] + 10 + 'px')
-                 .text(yTickFormat(d[1]) + ': ' + xTickFormat(d[0]));
+                 .text(yTickFormat(d[0]) + ': ' + xTickFormat(d[1]));
       };
       var hide_tooltip = function(d){
           tooltip.style('visibility', 'hidden');
@@ -82,8 +76,8 @@ function barChart () {
       bar.attr("class", function(d, i) { return d[0] < 0 ? "bar negative" : "bar positive"; })
          .attr("y", function(d) { return Y(d); })
          .attr("x", function(d, i) { return X0(); })
-         .attr("data-dependent", function(d){ return yValue(d); })
-         .attr("data-independent", function(d){ return xValue(d); })
+         .attr("data-dependent", function(d){ return d[1]; })
+         .attr("data-independent", function(d){ return d[0]; })
          .attr("height", yScale.rangeBand())
          .attr("width", function(d, i) { return Math.abs( X(d) - X0() ); })
          .on('mouseover', show_tooltip)
@@ -123,19 +117,16 @@ function barChart () {
     });
   }
 
-
-// The x-accessor for the path generator; xScale âˆ˜ xValue.
   function X(d) {
-    return xScale(d[0]);
+    return xScale(d[1]);
   }
 
   function X0() {
     return xScale(0);
   }
 
-  // The x-accessor for the path generator; yScale âˆ˜ yValue.
   function Y(d) {
-    return yScale(d[1]);
+    return yScale(d[0]);
   }
 
   chart.margin = function(_) {
@@ -153,18 +144,6 @@ function barChart () {
   chart.height = function(_) {
     if (!arguments.length) return height;
     height = _;
-    return chart;
-  };
-
-  chart.x = function(_) {
-    if (!arguments.length) return xValue;
-    xValue = _;
-    return chart;
-  };
-
-  chart.y = function(_) {
-    if (!arguments.length) return yValue;
-    yValue = _;
     return chart;
   };
 
@@ -201,8 +180,6 @@ function columnChart() {
       width = 420,
       height = 420,
       xRoundBands = 0.2,
-      xValue = function(d) { return d[0]; },
-      yValue = function(d) { return d[1]; },
       xScale = d3.scale.ordinal(),
       yScale = d3.scale.linear(),
       yAxis = d3.svg.axis().scale(yScale).orient("left"),
@@ -218,10 +195,6 @@ function columnChart() {
 
       // Convert data to standard representation greedily;
       // this is needed for nondeterministic accessors.
-      data = data.map(function(d, i) {
-        return [xValue.call(data, d, i), yValue.call(data, d, i)];
-      });
-    
       // Update the x-scale.
       xScale
           .domain(data.map(function(d) { return d[0];} ))
@@ -321,8 +294,6 @@ function columnChart() {
     });
   }
 
-
-// The x-accessor for the path generator; xScale âˆ˜ xValue.
   function X(d) {
     return xScale(d[0]);
   }
@@ -331,7 +302,6 @@ function columnChart() {
     return yScale(0);
   }
 
-  // The x-accessor for the path generator; yScale âˆ˜ yValue.
   function Y(d) {
     return yScale(d[1]);
   }
@@ -351,18 +321,6 @@ function columnChart() {
   chart.height = function(_) {
     if (!arguments.length) return height;
     height = _;
-    return chart;
-  };
-
-  chart.x = function(_) {
-    if (!arguments.length) return xValue;
-    xValue = _;
-    return chart;
-  };
-
-  chart.y = function(_) {
-    if (!arguments.length) return yValue;
-    yValue = _;
     return chart;
   };
 
@@ -638,7 +596,7 @@ function AnalyticsChart (options) {
 
             var independent_label = that.independent_format().call(null, pair[0]);
             $row.find(".independent")
-            .text(independent_label)
+                .text(independent_label)
                 .attr("data-independent", pair[0])
                 .attr("data-dependent", pair[1]);
 
