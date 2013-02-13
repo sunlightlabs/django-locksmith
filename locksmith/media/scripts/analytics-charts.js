@@ -662,6 +662,7 @@ function AnalyticsChart (options) {
         $table.find("caption").text(that.title());
         $table.show();
         $target.find(".analytics-chart").hide();
+        $target.find(".loading-container").hide();
 
         $target.find(".independent").click(function(event){
             if (that.get('chart.interval') === 'yearly') {
@@ -712,10 +713,18 @@ function AnalyticsChart (options) {
 
         $target.find("figcaption").text(that.title());
         $target.find("table.analytics-table").hide();
+        $target.find(".loading-container").hide();
         $target.find(".analytics-chart").show();
     };
 
+    var _display_loading = function(){
+        $target.find(".analytics-table").hide();
+        $target.find(".analytics-chart").hide();
+        $target.find(".loading-container").show();
+    };
+
     var _refresh = function(){
+        _display_loading();
         console.log('Refreshing for', $target.attr('id'));
         opts['data_fn'].call(null, that);
     };
