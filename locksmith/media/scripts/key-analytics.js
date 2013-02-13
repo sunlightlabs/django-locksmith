@@ -68,7 +68,7 @@
         .set('chart.type', 'bar')
         .set('display.mode', options.endpoint_calls_display || 'chart')
         .set('year', Date.today().getFullYear())
-        .margin({'top': 0, 'bottom': 20, 'left': 200, 'right': 0});
+        .margin({'top': 0, 'bottom': 20, 'left': 240, 'right': 0});
         
         var state_anchor_proxy = ReactiveSettingsHistoryIface({
             'compression_vocabulary': ANALYTICS_VOCAB,
