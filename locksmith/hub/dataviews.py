@@ -6,6 +6,7 @@ import dateutil.parser
 
 from django.db.models import Sum, Count, Min, Max, Q
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFound
+from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required, user_passes_test
 from locksmith.hub.models import Api, Key, Report, resolve_model
 from locksmith.hub.common import cycle_generator, exclude_internal_keys, exclude_internal_key_reports
@@ -193,7 +194,7 @@ def keys(request):
         'iTotalDisplayRecords': qry.count(),
         'sEcho': sEcho,
         'aaData': [[k['key'],
-                    k['email'],
+                    '<a href="{0}">{1}</a>'.format(reverse('key_analytics', args=(k['key'], )), k['email']),
                     k['calls'],
                     k['latest_call'].isoformat(),
                     k['issued_on'].date().isoformat()]
