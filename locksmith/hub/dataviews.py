@@ -190,7 +190,7 @@ def keys(request):
         qry = qry.order_by(sort_spec)
 
     result = {
-        'iTotalRecord': Key.objects.count(),
+        'iTotalRecords': Key.objects.count(),
         'iTotalDisplayRecords': qry.count(),
         'sEcho': sEcho,
         'aaData': [[k['key'],
