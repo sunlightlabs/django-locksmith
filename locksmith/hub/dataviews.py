@@ -263,12 +263,14 @@ def calls_by_endpoint(request, api_id=None, api_name=None):
     }
     return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
 
-@staff_required
 def calls_from_key_yearly(request, key_uuid):
     try:
         key = Key.objects.get(key=key_uuid)
     except Key.DoesNotExist:
         return HttpResponseNotFound('The requested key was not found.')
+
+    if request.user.email != key.email and request.user.is_staff != True:
+        return HttpResponseForbidden()
 
     date_extents = key.reports.aggregate(earliest=Min('date'), latest=Max('date'))
     earliest_year = date_extents['earliest'].year
@@ -289,12 +291,14 @@ def calls_from_key_yearly(request, key_uuid):
     }
     return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
 
-@staff_required
 def calls_from_key_monthly(request, key_uuid, year):
     try:
         key = Key.objects.get(key=key_uuid)
     except Key.DoesNotExist:
         return HttpResponseNotFound('The requested key was not found.')
+
+    if request.user.email != key.email and request.user.is_staff != True:
+        return HttpResponseForbidden()
 
     year = int(year)
     qry = key.reports.extra(select={'month': 'extract(month from date)::int'})
@@ -314,12 +318,14 @@ def calls_from_key_monthly(request, key_uuid, year):
     }
     return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
 
-@staff_required
 def calls_from_key_by_endpoint(request, key_uuid):
     try:
         key = Key.objects.get(key=key_uuid)
     except Key.DoesNotExist:
         return HttpResponseNotFound('The requested key was not found.')
+
+    if request.user.email != key.email and request.user.is_staff != True:
+        return HttpResponseForbidden()
 
     endpoint_aggs = key.reports.values('api__name', 'endpoint').annotate(calls=Sum('calls'))
     result = {

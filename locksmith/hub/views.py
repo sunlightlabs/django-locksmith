@@ -310,9 +310,12 @@ def key_list(request):
     }
     return render(request, "locksmith/keys_list.html", ctx)
 
-@staff_required
+@login_required
 def key_analytics(request, key):
     key = get_object_or_404(Key, key=key)
+
+    if request.user.email != key.email and request.user.is_staff != True:
+        return render(request, 'locksmith/key_analytics_unauthorized.html')
 
     ctx = {
         'key': key.key,
@@ -327,6 +330,7 @@ def key_analytics(request, key):
     ctx['json_options'] = json.dumps(ctx)
     ctx['key'] = key
     return render(request, 'locksmith/key_analytics.html', ctx)
+
 
 @staff_required
 def keys_leaderboard(request,
