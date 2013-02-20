@@ -26,7 +26,7 @@
             leaders['by_key'].forEach(function(leader){
                 var $row = $(row_tmpl);
                 $row.find(".rank").text(leader['rank']);
-                $row.find("a.key").attr("href", "/analytics/key/" + leader['key'] + "/")
+                $row.find("a.key").attr("href", "/api/analytics/key/" + leader['key'] + "/")
                                   .text(leader['email']);
                 $row.attr("data-key", leader['key']);
                 $row.attr("data-rank-diff", leader['rank_diff']);
@@ -62,7 +62,7 @@
         };
 
         var refresh_leaderboard = function (year, month, target) {
-            var url = '/analytics/data/keys/leaderboard/';
+            var url = '/api/analytics/data/keys/leaderboard/';
             var args = [];
             if (options.api != null)
                 args.push(options.api.name);

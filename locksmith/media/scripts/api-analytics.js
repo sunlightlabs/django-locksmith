@@ -6,13 +6,13 @@ $(document).ready(function(){
         }
 
         var deferred = 
-        $.getJSON('/analytics/data/api/' + options.api.name + '/callers/', params)
+        $.getJSON('/api/analytics/data/api/' + options.api.name + '/callers/', params)
         .then(function(response){
             $("#users table").dataTable({
                 'bLengthChange': false,
                 'bSort': true,
                 'aaData': response['callers'].map(function(c){
-                              return ['<a href="/analytics/key/' + c.key + '">' + c.email + '</a>', c.key, c.calls];
+                              return ['<a href="/api/analytics/key/' + c.key + '">' + c.email + '</a>', c.key, c.calls];
                           }),
                 'asSorting': false,
                 'aaSorting': [[2, 'desc']]
@@ -28,7 +28,7 @@ $(document).ready(function(){
         var params = {
             'ignore_internal_keys': options.ignore_internal_keys
         }
-        $.getJSON('/analytics/data/api/' + options.api.name + '/calls/endpoint/', params)
+        $.getJSON('/api/analytics/data/api/' + options.api.name + '/calls/endpoint/', params)
          .done(function(calls){
             chart.setting('independent_label', 'Year')
                  .setting('dependent_label', 'Calls')
@@ -54,7 +54,7 @@ $(document).ready(function(){
             'ignore_internal_keys': options.ignore_internal_keys
         }
         if (chart.setting('chart.interval') === 'yearly') {
-            $.getJSON('/analytics/data/api/' + options.api.name + '/calls/yearly/', params)
+            $.getJSON('/api/analytics/data/api/' + options.api.name + '/calls/yearly/', params)
              .done(function(calls){
                 chart.setting('independent_label', 'Year')
                      .setting('dependent_label', 'Calls')
@@ -67,7 +67,7 @@ $(document).ready(function(){
              });
         } else if (chart.setting('chart.interval') === 'monthly') {
             var year = chart.setting('year');
-            $.getJSON('/analytics/data/api/' + options.api.name + '/calls/' + year + '/', params)
+            $.getJSON('/api/analytics/data/api/' + options.api.name + '/calls/' + year + '/', params)
              .done(function(calls){
                 chart.silence(true)
                      .setting('independent_label', 'Month')

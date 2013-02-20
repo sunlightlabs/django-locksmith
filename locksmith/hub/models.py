@@ -35,8 +35,8 @@ class Api(models.Model):
     description = models.TextField('Description', blank=False)
     status = models.IntegerField(choices=API_OPERATING_STATUSES, default=1)
     mode = models.IntegerField(choices=API_STATUSES, default=1)
-    display_name = models.TextField('Display name of the API', blank=False)
-    documentation_link = models.TextField('Link to this API\'s documentation')
+    display_name = models.TextField('Display name of the API', blank=True, null=True)
+    documentation_link = models.TextField('Link to this API\'s documentation', null=True, blank=True)
     tags = TaggableManager()
 
     def __unicode__(self):
@@ -51,11 +51,11 @@ class Key(models.Model):
     '''
     key = models.CharField(max_length=32)
     email = models.EmailField()
-    alternate_email = models.EmailField(blank=True) #
+    alternate_email = models.EmailField(blank=True, null=True) #
     status = models.CharField(max_length=1, choices=KEY_STATUSES, default='U')
 
-    name = models.CharField('Name', max_length=100, blank=True)
-    org_name = models.CharField('Organization Name', max_length=100, blank=True)
+    name = models.CharField('Name', max_length=100, blank=True, null=True)
+    org_name = models.CharField('Organization Name', max_length=100, blank=True, null=True)
     org_url = models.CharField('Organization URL', blank=False, null=False, max_length=200)
     usage = models.TextField('Intended Usage', blank=False, null=False)
 

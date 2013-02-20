@@ -2,7 +2,7 @@ $(document).ready(function(){
     Apis = {};
 
     var fetch_api_list = function(){
-        return $.getJSON('/analytics/data/apis/')
+        return $.getJSON('/api/analytics/data/apis/')
                .then(function(apis){
                    Apis['list'] = apis;
                    Apis['by_name'] = key_by(Apis.list, itemgetter('name'));
@@ -21,7 +21,7 @@ $(document).ready(function(){
             'ignore_internal_keys': (page_settings.get('internal.keys') === 'excluded')
         }
         if (chart_interval === 'yearly') {
-            $.getJSON('/analytics/data/keys/issued/yearly/', params)
+            $.getJSON('/api/analytics/data/keys/issued/yearly/', params)
             .then(function(keys_issued){
                 chart.setting('title', 'Keys Issued By Year')
                      .setting('independent_format', function(year){ return year.toString(); });
@@ -30,7 +30,7 @@ $(document).ready(function(){
                 }));
             });
         } else if (chart_interval === 'monthly') {
-            var url = '/analytics/data/keys/issued/' + chart.setting('year') + '/';
+            var url = '/api/analytics/data/keys/issued/' + chart.setting('year') + '/';
             $.getJSON(url, params)
             .then(function(keys_issued){
                 chart.setting('title', 'Keys Issued by Month for ' + chart.setting('year'))
@@ -68,7 +68,7 @@ $(document).ready(function(){
             title = 'API Calls Year to Date: ' + dt.getFullYear();
         }
 
-        $.getJSON('/analytics/data/apis/calls/', params)
+        $.getJSON('/api/analytics/data/apis/calls/', params)
         .then(function(calls){
             var apis = $.extend(true, {}, Apis.by_name);
 
@@ -124,7 +124,7 @@ $(document).ready(function(){
         .show();
 
         $('#calls').on('dataClick', function (event, dataElement) {
-            var url = '/analytics/api/' + $(dataElement).attr('data-independent') + '/';
+            var url = '/api/analytics/api/' + $(dataElement).attr('data-independent') + '/';
             window.location.href = url;
         });
 
