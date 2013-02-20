@@ -6,6 +6,7 @@ import dateutil.parser
 
 from django.db.models import Sum, Count, Min, Max, Q
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFound
+from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required, user_passes_test
 from locksmith.hub.models import Api, Key, Report, resolve_model
 from locksmith.hub.common import cycle_generator, exclude_internal_keys, exclude_internal_key_reports
@@ -189,11 +190,11 @@ def keys(request):
         qry = qry.order_by(sort_spec)
 
     result = {
-        'iTotalRecord': Key.objects.count(),
+        'iTotalRecords': Key.objects.count(),
         'iTotalDisplayRecords': qry.count(),
         'sEcho': sEcho,
         'aaData': [[k['key'],
-                    k['email'],
+                    '<a href="{0}">{1}</a>'.format(reverse('key_analytics', args=(k['key'], )), k['email']),
                     k['calls'],
                     k['latest_call'].isoformat(),
                     k['issued_on'].date().isoformat()]
@@ -262,30 +263,77 @@ def calls_by_endpoint(request, api_id=None, api_name=None):
     }
     return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
 
-@staff_required
-def calls_from_key_by_month(request, key_uuid):
+def calls_from_key_yearly(request, key_uuid):
     try:
         key = Key.objects.get(key=key_uuid)
     except Key.DoesNotExist:
         return HttpResponseNotFound('The requested key was not found.')
 
-    agg = key.reports.aggregate(earliest=Min('date'), latest=Max('date'))
-    earliest_yrmon = (agg['earliest'].year, agg['earliest'].month)
-    latest_yrmon = (agg['latest'].year, agg['latest'].month)
-    qry = key.reports.extra(select={'year': 'extract(year from date)::int',
-                                    'month': 'extract(month from date)::int'})
-    monthly_agg = qry.values('year', 'month').annotate(calls=Sum('calls'))
-    monthly = {}
-    for agg in monthly_agg:
-        monthly[(agg['year'], agg['month'])] = agg['calls']
-    for (year, month) in cycle_generator(cycle=(1, 12), begin=earliest_yrmon, end=latest_yrmon):
-        if (year, month) not in monthly:
-            monthly[(year, month)] = 0
+    if request.user.email != key.email and request.user.is_staff != True:
+        return HttpResponseForbidden()
+
+    date_extents = key.reports.aggregate(earliest=Min('date'), latest=Max('date'))
+    earliest_year = date_extents['earliest'].year
+    latest_year = date_extents['latest'].year
+
+    qry = key.reports.extra(select={'year': 'extract(year from date)::int'})
+    qry = qry.values('year').annotate(calls=Sum('calls'))
+    yearly = dict(((yr, {'year': yr, 'calls': 0})
+                   for yr in range(earliest_year, latest_year + 1)))
+    for agg in qry:
+        yearly[agg['year']]['calls'] = agg['calls']
 
     result = {
         'key': key_uuid,
-        'monthly': [{'year': yr, 'month': mon, 'calls': calls}
-                    for ((yr, mon), calls) in sorted(monthly.iteritems())]
+        'earliest_year': date_extents['earliest'].year,
+        'latest_year': date_extents['latest'].year,
+        'yearly': yearly.values()
+    }
+    return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
+
+def calls_from_key_monthly(request, key_uuid, year):
+    try:
+        key = Key.objects.get(key=key_uuid)
+    except Key.DoesNotExist:
+        return HttpResponseNotFound('The requested key was not found.')
+
+    if request.user.email != key.email and request.user.is_staff != True:
+        return HttpResponseForbidden()
+
+    year = int(year)
+    qry = key.reports.extra(select={'month': 'extract(month from date)::int'})
+    qry = qry.filter(date__gte=datetime.date(year, 1, 1),
+                     date__lte=datetime.date(year, 12, 31))
+    qry = qry.values('month').annotate(calls=Sum('calls'))
+
+    monthly = dict(((m, {'month': m, 'calls': 0})
+                    for m in range(1, 13)))
+    for agg in qry:
+        monthly[agg['month']]['calls'] = agg['calls']
+
+    result = {
+        'key': key_uuid,
+        'year': year,
+        'monthly': monthly.values()
+    }
+    return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
+
+def calls_from_key_by_endpoint(request, key_uuid):
+    try:
+        key = Key.objects.get(key=key_uuid)
+    except Key.DoesNotExist:
+        return HttpResponseNotFound('The requested key was not found.')
+
+    if request.user.email != key.email and request.user.is_staff != True:
+        return HttpResponseForbidden()
+
+    endpoint_aggs = key.reports.values('api__name', 'endpoint').annotate(calls=Sum('calls'))
+    result = {
+        'key': key_uuid,
+        'by_endpoint': [{'api': {'name': agg['api__name']},
+                         'endpoint': agg['endpoint'],
+                         'calls': agg['calls']}
+                        for agg in endpoint_aggs]
     }
     return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
 

@@ -61,7 +61,7 @@
             });
         };
 
-        var refresh_leaderboard = function (year, month, target) {
+        var refresh_qtr_leaderboard = function (year, month, target) {
             var url = '/api/analytics/data/keys/leaderboard/';
             var args = [];
             if (options.api != null)
@@ -70,29 +70,45 @@
             args.push(month);
             url = url + args.join('/') + '/';
 
-            $.getJSON(url)
-            .then(function(leaders){
-                display_leaderboard(leaders, target);
-            });
+            return $.getJSON(url)
+                    .then(function(leaders){
+                        display_leaderboard(leaders, target);
+                    });
         };
 
-        var latest_qtr_begin = Date.parse(options.latest_qtr_begin);
-        latest_qtr_begin.setDate(1);
-        var prev_qtr_begin = latest_qtr_begin.clone();
-        prev_qtr_begin.setDate(1);
-        prev_qtr_begin.addMonths(-3);
-        var ancient_qtr_begin = latest_qtr_begin.clone();
-        ancient_qtr_begin.setDate(1);
-        ancient_qtr_begin.addMonths(-6);
+        var refresh_leaderboard = function () {
+            var $loading_container = $(".loading-container");
+            var $leaderboard_container = $('#leaderboard');
+            $loading_container.show();
+            $leaderboard_container.hide();
 
-        refresh_leaderboard(latest_qtr_begin.getFullYear(),
-                            latest_qtr_begin.getMonth() + 1,
-                            '#latest-quarter');
-        refresh_leaderboard(prev_qtr_begin.getFullYear(),
-                            prev_qtr_begin.getMonth() + 1,
-                            '#previous-quarter');
-        refresh_leaderboard(ancient_qtr_begin.getFullYear(),
-                            ancient_qtr_begin.getMonth() + 1,
-                            '#ancient-quarter');
+            var latest_qtr_begin = Date.parse(options.latest_qtr_begin);
+            latest_qtr_begin.setDate(1);
+            var prev_qtr_begin = latest_qtr_begin.clone();
+            prev_qtr_begin.setDate(1);
+            prev_qtr_begin.addMonths(-3);
+            var ancient_qtr_begin = latest_qtr_begin.clone();
+            ancient_qtr_begin.setDate(1);
+            ancient_qtr_begin.addMonths(-6);
+
+            var latest_qtr_promise = refresh_qtr_leaderboard(latest_qtr_begin.getFullYear(),
+                                                             latest_qtr_begin.getMonth() + 1,
+                                                             '#latest-quarter');
+            var prev_qtr_promise = refresh_qtr_leaderboard(prev_qtr_begin.getFullYear(),
+                                                           prev_qtr_begin.getMonth() + 1,
+                                                           '#previous-quarter');
+            var ancient_qtr_promise = refresh_qtr_leaderboard(ancient_qtr_begin.getFullYear(),
+                                                              ancient_qtr_begin.getMonth() + 1,
+                                                              '#ancient-quarter');
+
+            $.when(latest_qtr_promise,
+                   prev_qtr_promise,
+                   ancient_qtr_promise)
+             .then(function(){
+                 $loading_container.hide();
+                 $leaderboard_container.show();
+             });
+        };
+        refresh_leaderboard();
     });
 })(jQuery);

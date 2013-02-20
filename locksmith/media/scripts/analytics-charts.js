@@ -4,48 +4,47 @@ function barChart () {
       width = 420,
       height = 420,
       yRoundBands = 0.2,
-      xValue = function(d) { return d[1]; },
-      yValue = function(d) { return d[0]; },
       yScale = d3.scale.ordinal(),
       xScale = d3.scale.linear(),
       xAxis = d3.svg.axis().scale(xScale).orient("bottom").ticks(5),
       yAxis = d3.svg.axis().scale(yScale).orient("left"),
+      xMin = undefined,
+      xMax = undefined,
       xTickFormat = undefined,
       yTickFormat = undefined;
 
   function chart(selection) {
     selection.each(function(data) {
-
-      // Convert data to standard representation greedily;
-      // this is needed for nondeterministic accessors.
-      data = data.map(function(d, i) {
-        return [xValue.call(data, d, i), yValue.call(data, d, i)];
-      });
-    
       // Update the x-scale.
       yScale
-          .domain(data.map(function(d) { return d[1];} ))
+          .domain(data.map(function(d) { return d[0];} ))
           .rangeRoundBands([0, height - margin.top - margin.bottom], yRoundBands);
          
 
-      // Update the y-scale.
+      // Update the x-scale.
+      var xDomain = d3.extent(data.map(function(d){ return d[1]; }));
+      if (xMin !== undefined)
+          xDomain[0] = xMin;
+      if (xMax !== undefined)
+          xDomain[1] = xMax;
       xScale
-          .domain(d3.extent(data.map(function(d) { return d[0];} )))
+          .domain(xDomain)
           .range([0, width - margin.left - margin.right])
           .nice();
-          
+
+      d3.select(this).select('div.tooltip').remove();
       var tooltip = d3.select(this)
                       .append('div')
                       .attr('class', 'tooltip')
-                      .style('position', 'absolute')
-                      .text('tooltip usa FUCK YEAH');
+                      .style('position', 'absolute');
 
       var show_tooltip = function(d){
+          var mouse = d3.mouse(selection.node());
           tooltip.style('visibility', 'visible')
                  .style('opacity', '1.0')
-                 .style('top', event.offsetY + 10 + 'px')
-                 .style('left', event.offsetX + 10 + 'px')
-                 .text(yTickFormat(d[1]) + ': ' + xTickFormat(d[0]));
+                 .style('top', mouse[1] + 10 + 'px')
+                 .style('left', mouse[0] + 10 + 'px')
+                 .text(yTickFormat(d[0]) + ': ' + xTickFormat(d[1]));
       };
       var hide_tooltip = function(d){
           tooltip.style('visibility', 'hidden');
@@ -77,8 +76,8 @@ function barChart () {
       bar.attr("class", function(d, i) { return d[0] < 0 ? "bar negative" : "bar positive"; })
          .attr("y", function(d) { return Y(d); })
          .attr("x", function(d, i) { return X0(); })
-         .attr("data-dependent", function(d){ return yValue(d); })
-         .attr("data-independent", function(d){ return xValue(d); })
+         .attr("data-dependent", function(d){ return d[1]; })
+         .attr("data-independent", function(d){ return d[0]; })
          .attr("height", yScale.rangeBand())
          .attr("width", function(d, i) { return Math.abs( X(d) - X0() ); })
          .on('mouseover', show_tooltip)
@@ -118,19 +117,16 @@ function barChart () {
     });
   }
 
-
-// The x-accessor for the path generator; xScale âˆ˜ xValue.
   function X(d) {
-    return xScale(d[0]);
+    return xScale(d[1]);
   }
 
   function X0() {
     return xScale(0);
   }
 
-  // The x-accessor for the path generator; yScale âˆ˜ yValue.
   function Y(d) {
-    return yScale(d[1]);
+    return yScale(d[0]);
   }
 
   chart.margin = function(_) {
@@ -148,18 +144,6 @@ function barChart () {
   chart.height = function(_) {
     if (!arguments.length) return height;
     height = _;
-    return chart;
-  };
-
-  chart.x = function(_) {
-    if (!arguments.length) return xValue;
-    xValue = _;
-    return chart;
-  };
-
-  chart.y = function(_) {
-    if (!arguments.length) return yValue;
-    yValue = _;
     return chart;
   };
 
@@ -196,8 +180,6 @@ function columnChart() {
       width = 420,
       height = 420,
       xRoundBands = 0.2,
-      xValue = function(d) { return d[0]; },
-      yValue = function(d) { return d[1]; },
       xScale = d3.scale.ordinal(),
       yScale = d3.scale.linear(),
       yAxis = d3.svg.axis().scale(yScale).orient("left"),
@@ -213,10 +195,6 @@ function columnChart() {
 
       // Convert data to standard representation greedily;
       // this is needed for nondeterministic accessors.
-      data = data.map(function(d, i) {
-        return [xValue.call(data, d, i), yValue.call(data, d, i)];
-      });
-    
       // Update the x-scale.
       xScale
           .domain(data.map(function(d) { return d[0];} ))
@@ -233,23 +211,19 @@ function columnChart() {
           .domain(yDomain)
           .range([height - margin.top - margin.bottom, 0])
           .nice();
-
-      _yScale = yScale;
-      _xScale = xScale;
-      _yAxis = yAxis;
-      _xAxis = xAxis;
           
+      d3.select(this).select('div.tooltip').remove();
       var tooltip = d3.select(this)
                       .append('div')
                       .attr('class', 'tooltip')
-                      .style('position', 'absolute')
-                      .text('tooltip usa FUCK YEAH');
+                      .style('position', 'absolute');
 
       var show_tooltip = function(d){
+          var mouse = d3.mouse(selection.node());
           tooltip.style('visibility', 'visible')
                  .style('opacity', '1.0')
-                 .style('top', event.offsetY + 10 + 'px')
-                 .style('left', event.offsetX + 10 + 'px')
+                 .style('top', mouse[1] + 10 + 'px')
+                 .style('left', mouse[0] + 10 + 'px')
                  .text(xTickFormat(d[0]) + ': ' + yTickFormat(d[1]));
       };
       var hide_tooltip = function(d){
@@ -320,8 +294,6 @@ function columnChart() {
     });
   }
 
-
-// The x-accessor for the path generator; xScale âˆ˜ xValue.
   function X(d) {
     return xScale(d[0]);
   }
@@ -330,7 +302,6 @@ function columnChart() {
     return yScale(0);
   }
 
-  // The x-accessor for the path generator; yScale âˆ˜ yValue.
   function Y(d) {
     return yScale(d[1]);
   }
@@ -350,18 +321,6 @@ function columnChart() {
   chart.height = function(_) {
     if (!arguments.length) return height;
     height = _;
-    return chart;
-  };
-
-  chart.x = function(_) {
-    if (!arguments.length) return xValue;
-    xValue = _;
-    return chart;
-  };
-
-  chart.y = function(_) {
-    if (!arguments.length) return yValue;
-    yValue = _;
     return chart;
   };
 
@@ -401,7 +360,6 @@ function ReactiveSettingsIface (target) {
     var $target = $(target);
     var _settings = {};
     var _buttons = {};
-    var _quiet = true;
 
     var _update_buttons = function(k){
         var btns = _buttons[k];
@@ -423,33 +381,31 @@ function ReactiveSettingsIface (target) {
             if ((update_ui === undefined) || (update_ui === true)) {
                 _update_buttons(k);
             }
-            if (_quiet === false) {
-                $target.trigger('setting-changed', [k, v]);
-            }
             return that;
         } else {
             return _settings[k];
         }
     };
-    this.setting = function(k, v){ return _setting(k, v, true); };
-
     this.get = function (k) { return _setting(k); };
     this.set = function (k, v) { return _setting(k, v, true); };
-
-    var _silence = function(/* arguments */){
-        if (arguments.length === 1) {
-            _quiet = arguments[0];
-            return that;
-        } else {
-            return _quiet;
+    this.update = function (obj) {
+        console.log('Updating', $target.attr('id'), 'from', JSON.stringify(obj));
+        for (var k in obj) {
+            _setting(k, obj[k]);
         }
+        $target.trigger('settings-changed', obj);
+        return that;
     };
-    this.silence = _silence;
+    this.settings = function(){ return $.extend(true, {}, _settings); };
+
+    this.target = function(){ return $target; };
 
     $target.find("button[data-setting]").click(function(event){
         var k = $(this).attr("data-setting");
         var v = $(this).attr("data-value");
-        _setting(k, v);
+        var obj = {};
+        obj[k] = v;
+        that.update(obj);
     });
 
     $target.find("button[data-setting]").each(function(){
@@ -469,6 +425,102 @@ function ReactiveSettingsIface (target) {
     return that;
 }
 
+function ReactiveSettingsHistoryIface (options) {
+    if ((window.history === undefined)
+        || (window.history.pushState === undefined)
+        || (window.history.replaceState === undefined)) return;
+
+    if (this === top) {
+        return new ReactiveSettingsHistoryIface(options);
+    }
+
+    var that = this;
+
+    var _decode_state_anchor = function (anchor) {
+        var decoded = JSON.parse(base64_to_unicode(anchor));
+        if (options.compression_vocabulary) {
+            decoded = vocab_translate_object(decoded, ANALYTICS_VOCAB);
+        }
+        console.log("Decoded", anchor, " -> ", decoded);
+        return decoded;
+    };
+
+    var _update_settings_ifaces = function (decoded) {
+        for (var decoded_key in decoded) {
+            var settings_iface = options.settings[decoded_key];
+            if (settings_iface != null) {
+                if (! _.isEqual(settings_iface.settings(),
+                                decoded[decoded_key])) {
+                    settings_iface.update(decoded[decoded_key]);
+                }
+            }
+        }
+    };
+
+    var _collect_settings = function () {
+        var merged = {};
+        for (var settings_key in options.settings) {
+            var settings_iface = options.settings[settings_key].settings();
+            merged[settings_key] = $.extend(true, {}, settings_iface);
+        }
+        return merged;
+    };
+
+    var _encode_state_anchor = function (obj) {
+        var encoded = obj;
+        if (options.compression_vocabulary) {
+            encoded = vocab_translate_object(obj, ANALYTICS_VOCAB);
+        }
+        encoded = unicode_to_base64(JSON.stringify(encoded));
+        console.log("Encoded", obj, " -> ", encoded);
+        return encoded;
+    };
+
+    var _update_history = function(event){
+        var merged = _collect_settings();
+        var encoded = _encode_state_anchor(merged);
+        var url = window.location.protocol + '//' + window.location.host + window.location.pathname +  window.location.search + '#' + encoded;
+        history.pushState(encoded, null, url);
+    };
+
+    pairs(options.settings).forEach(function(pair){
+        var key = pair[0];
+        var settings = pair[1];
+        settings.target().on('settings-changed', _update_history);
+    });
+
+    var _initial_popstate = true;
+    var _initial_url = window.location.href;
+    $(window).bind('popstate', function(event){
+        console.log('popstate');
+        if ((_initial_popstate === true) && (window.location.href == _initial_popstate)) {
+            console.log("Ignoring initial popstate.");
+            _initial_popstate = false;
+            return;
+        }
+
+        var state = event.originalEvent.state;
+        if (state !== null) {
+            var decoded = _decode_state_anchor(state);
+            _update_settings_ifaces(decoded);
+        }
+    });
+
+    if (window.location.hash.length > 0) {
+        var decoded = _decode_state_anchor(window.location.hash.slice(1));
+        _update_settings_ifaces(decoded);
+        history.replaceState(window.location.hash.slice(1), null, window.location.href);
+    } else {
+        var merged = _collect_settings();
+        var encoded = _encode_state_anchor(merged);
+        history.replaceState(encoded, null, window.location.href);
+    }
+
+    console.log('ReactiveSettingsHistoryIface activated for',
+                keys(options.settings).join(', '));
+    return that;
+};
+
 function AnalyticsChart (options) {
     if (this === top) {
         return new AnalyticsChart(options);
@@ -485,7 +537,26 @@ function AnalyticsChart (options) {
     require_opt('data_fn');
     require_opt('target');
     var $target = $(opts.target);
+    var _data_deferred = null;
     var _data = null;
+
+    var _properties = {};
+    var _create_property = function (key, default_value) {
+        _properties[key] = default_value;
+        that[key] = function (value) {
+            if (arguments.length === 0) {
+                return _properties[key];
+            }
+            _properties[key] = value;
+            return that;
+        };
+    };
+    _create_property('independent_format', function(i){ return i.toString(); });
+    _create_property('dependent_format', function(d){ return d.toString(); });
+    _create_property('independent_label', null);
+    _create_property('dependent_label', null);
+    _create_property('title', null);
+    _create_property('table_row_tmpl', '.table-row-tmpl');
 
     var _chart_methods = [];
     var _chart_passthru_method = function (method_name) {
@@ -501,6 +572,7 @@ function AnalyticsChart (options) {
     ReactiveSettingsIface.call(this, options['target']);
 
     var _data_callback = function(data){
+        console.log('Received data for', $target.attr('id'));
         _data = data;
         if (that.get('display.mode') === 'chart')
             _display_chart();
@@ -508,14 +580,13 @@ function AnalyticsChart (options) {
             _display_table();
         return that;
     };
-    this.data = _data_callback;
 
     var _display_table = function(){
         var $table = $target.find("table.analytics-table");
         $table.find("tbody").empty();
         _data.forEach(function(pair){
             var $tmpl = null;
-            var tmpl_selector = that.get('table.row.tmpl') || '.table-row-tmpl';
+            var tmpl_selector = that.table_row_tmpl();
             if (Function.prototype.isPrototypeOf(tmpl_selector) === true)
                 $tmpl = tmpl_selector.call($target[0], that);
             else
@@ -523,13 +594,13 @@ function AnalyticsChart (options) {
 
             var $row = $($tmpl.html());
 
-            var independent_label = that.get('independent_format').call(null, pair[0]);
+            var independent_label = that.independent_format().call(null, pair[0]);
             $row.find(".independent")
-            .text(independent_label)
+                .text(independent_label)
                 .attr("data-independent", pair[0])
                 .attr("data-dependent", pair[1]);
 
-            var dependent_label = that.get('dependent_format').call(null, pair[1]);
+            var dependent_label = that.dependent_format().call(null, pair[1]);
             $row.find(".dependent")
                 .text(dependent_label);
             $row.appendTo($target.find("table.analytics-table tbody"));
@@ -539,23 +610,25 @@ function AnalyticsChart (options) {
         var $total_row = $(total_row_tmpl);
         if ($total_row.length > 0) {
             var total = _data.reduce(function(prev,curr){ return prev + curr[1]; }, 0);
-            $total_row.find(".dependent").text(that.get('dependent_format').call(null, total));
+            $total_row.find(".dependent").text(that.dependent_format().call(null, total));
             $total_row.appendTo($target.find("table.analytics-table tbody"));
         }
 
-        $table.find("thead th.independent").text(that.get("independent_label"));
-        $table.find("thead th.dependent").text(that.get("dependent_label"));
-        $table.find("caption").text(that.get("title"));
+        $table.find("thead th.independent").text(that.independent_label());
+        $table.find("thead th.dependent").text(that.dependent_label());
+        $table.find("caption").text(that.title());
         $table.show();
         $target.find(".analytics-chart").hide();
+        $target.find(".loading-container").hide();
 
         $target.find(".independent").click(function(event){
             if (that.get('chart.interval') === 'yearly') {
-                that.set('chart.interval', 'monthly');
-                that.set('year', $(this).attr('data-independent'));
+                that.update({
+                    'chart.interval': 'monthly',
+                    'year': $(this).attr('data-independent')
+                });
                 _refresh();
             }
-
             $target.trigger('dataClick', this);
         });
     };
@@ -571,12 +644,12 @@ function AnalyticsChart (options) {
              .height(options['height']);
 
         chart.xTickFormat((that.get('chart.type') === 'column')
-                          ? that.get('independent_format')
-                          : that.get('dependent_format'));
+                          ? that.independent_format()
+                          : that.dependent_format());
 
         chart.yTickFormat((that.get('chart.type') === 'column')
-                          ? that.get('dependent_format')
-                          : that.get('independent_format'));
+                          ? that.dependent_format()
+                          : that.independent_format());
         _chart_methods.forEach(function(fn){
             fn.call(null, chart);
         });
@@ -586,20 +659,39 @@ function AnalyticsChart (options) {
 
         $target.find("rect.bar").click(function(event){
             if (that.get('chart.interval') === 'yearly') {
-                that.set('chart.interval', 'monthly');
-                that.set('year', $(this).attr('data-independent'));
+                that.update({
+                    'chart.interval': 'monthly',
+                    'year': $(this).attr('data-independent')
+                });
                 _refresh();
             }
             $target.trigger('dataClick', this);
         });
 
-        $target.find("figcaption").text(that.get('title'));
+        $target.find("figcaption").text(that.title());
         $target.find("table.analytics-table").hide();
+        $target.find(".loading-container").hide();
         $target.find(".analytics-chart").show();
     };
 
+    var _display_loading = function(){
+        $target.find(".analytics-table").hide();
+        $target.find(".analytics-chart").hide();
+        $target.find(".loading-container").show();
+    };
+
     var _refresh = function(){
-        opts['data_fn'].call(null, that);
+        _display_loading();
+        console.log('Refreshing for', $target.attr('id'));
+
+        if (_data_deferred != null) {
+            console.log('Rejecting deferred data');
+            _data_deferred.reject();
+        }
+        var deferred = $.Deferred();
+        _data_deferred = deferred;
+        _data_deferred.promise().then(_data_callback);
+        opts['data_fn'].call(null, that, function(data){ deferred.resolve(data); });
     };
     this.refresh = _refresh;
 
@@ -607,18 +699,6 @@ function AnalyticsChart (options) {
     this.show = _show;
     var _hide = function(){ $target.hide(); return that; };
     this.hide = _hide;
-    var _silence = function(/* arguments */){
-        if (arguments.length === 1) {
-            _quiet = arguments[0];
-            return that;
-        } else {
-            return _quiet;
-        }
-    };
-    this.silence = _silence;
-
-    this.set('independent_format', function(i){ return i.toString(); });
-    this.set('dependent_format', function(d){ return d.toString(); });
 
     this.buttons.click(function(event){
         _refresh();
