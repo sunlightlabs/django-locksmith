@@ -2,10 +2,9 @@ import datetime
 from django.db import models
 from django.db.models.signals import post_save
 from django.forms import Form, ModelForm, ValidationError, BooleanField, EmailField
-from locksmith.common import (KEY_STATUSES, API_OPERATING_STATUSES, API_STATUSES, PUB_STATUSES, UNPUBLISHED,
+from locksmith.common import (KEY_STATUSES, PUB_STATUSES, UNPUBLISHED,
                               NEEDS_UPDATE, PUBLISHED)
 from locksmith.hub.tasks import push_key
-from taggit.managers import TaggableManager
 
 class Api(models.Model):
     '''
@@ -15,12 +14,6 @@ class Api(models.Model):
     signing_key = models.CharField(max_length=32)
     url = models.URLField(verify_exists=False)
     push_enabled = models.BooleanField(default=True)
-    description = models.TextField('Description', blank=False)
-    status = models.IntegerField(choices=API_OPERATING_STATUSES, default=1)
-    mode = models.IntegerField(choices=API_STATUSES, default=1)
-    display_name = models.TextField('Display name of the API', blank=False)
-    documentation_link = models.TextField('Link to this API\'s documentation')
-    tags = TaggableManager()
 
     def __unicode__(self):
         return self.name
