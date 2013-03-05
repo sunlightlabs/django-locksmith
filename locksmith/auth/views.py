@@ -1,3 +1,4 @@
+from uuid import UUID
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
@@ -38,3 +39,28 @@ def update_key(request, get_by='key'):
     key.save()
 
     return HttpResponse('OK')
+
+
+@csrf_exempt
+@require_POST
+def accept_key(request, key_uuid):
+    if not verify_signature(request.POST):
+        return HttpResponseBadRequest('bad signature')
+
+    try:
+        uuid = UUID(key_uuid)
+    except ValueError:
+        return HttpResponseBadRequest('bad uuid')
+
+    if u'status' not in request.POST:
+        return HttpResponseBadRequest('no status specified')
+
+    if u'email' not in request.POST:
+        return HttpResponseBadRequest('no email specified')
+
+    (key, created) = ApiKey.objects.get_or_create(key=key_uuid)
+    key.status = request.POST[u'status']
+    key.email = request.POST[u'email']
+    key.save()
+    return HttpResponse('OK')
+

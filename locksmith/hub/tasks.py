@@ -4,6 +4,8 @@ from locksmith.common import apicall, UNPUBLISHED, PUBLISHED, NEEDS_UPDATE
 
 from celery.task import task
 
+from django.conf import settings
+
 @task(max_retries=5)
 def push_key(key):
     endpoints = {UNPUBLISHED: 'create_key/', NEEDS_UPDATE: 'update_key/'}
@@ -16,6 +18,10 @@ def push_key(key):
     # to push to all apis.
     retry_flag = False
     for kps in dirty:
+        if kps.api.name in getattr(settings, 'LOCKSMITH_REPLICATED_APIS', []):
+            replicate_key.delay(key, kps.api)
+            continue
+
         endpoint = urljoin(kps.api.url, endpoints[kps.status])
         try:
             apicall(endpoint, kps.api.signing_key, api=kps.api.name,
@@ -36,3 +42,28 @@ def push_key(key):
 
     if retry_flag:
         push_key.retry()
+
+@task(max_retries=5)
+def replicate_key(key, api):
+    kps = key.pub_statuses.get(api=api)
+    endpoint = urljoin(kps.api.url, 'replicate_key/{k}/'.format(k=key.key))
+    try:
+        apicall(endpoint, kps.api.signing_key,
+                api=kps.api.name,
+                key=kps.key.key,
+                email=kps.key.email,
+                status=kps.key.status)
+        print 'sent key {k} to {a}'.format(k=key.key, a=kps.api.name)
+        kps.status = PUBLISHED
+        kps.save()
+
+    except Exception as e:
+        ctx = {
+            'a': str(kps.api.name),
+            'k': str(key.key),
+            'e': str(e.read()) if isinstance(e, urllib2.HTTPError) else str(e)
+        }
+        print 'Caught exception while pushing key {k} to {a}: {e}'.format(**ctx)
+        print 'Will retry'
+        replicate_key.retry_flag()
+
