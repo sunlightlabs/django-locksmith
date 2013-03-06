@@ -2,9 +2,10 @@ import datetime
 from django.db import models
 from django.db.models.signals import post_save
 from django.forms import Form, ModelForm, ValidationError, BooleanField, EmailField
-from locksmith.common import (KEY_STATUSES, API_OPERATING_STATUSES,
-                              API_STATUSES, PUB_STATUSES, UNPUBLISHED,
-                              NEEDS_UPDATE, PUBLISHED)
+from locksmith.common import (KEY_STATUSES,
+                              PUB_STATUSES,
+                              UNPUBLISHED,
+                              NEEDS_UPDATE)
 from locksmith.hub.tasks import push_key
 from taggit.managers import TaggableManager
 
