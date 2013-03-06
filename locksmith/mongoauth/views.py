@@ -59,7 +59,7 @@ def accept_key(request, key_uuid):
     key_doc = {
         '_id': key_uuid,
         'status': request.POST[u'status'],
-        'email': require_POST[u'email']
+        'email': request.POST[u'email']
     }
     db.keys.save(key_doc)
     return HttpResponse('OK')

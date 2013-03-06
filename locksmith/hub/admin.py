@@ -9,7 +9,7 @@ admin.site.register(Api, ApiAdmin)
 
 class KeyAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
-        super(KeyAdmin, self).save_model(request, obj, form, change)
+        obj.save()
         obj.mark_for_update()
 
 admin.site.register(Key, KeyAdmin)
