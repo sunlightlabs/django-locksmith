@@ -22,7 +22,7 @@
         </thead>
         <tbody>
         {% for user in new_users %}
-            <tr><td>{{user.name}}</td><td><a href="{% url key_analytics user.key%}">{{user.email}}</a></td><td>{{user.usage}}</td><td>{{user.status}}</td></tr>
+            <tr><td>{{user.name}}</td><td><a href="{% url "key_analytics" user.key %}">{{user.email}}</a></td><td>{{user.usage}}</td><td>{{user.status}}</td></tr>
         {% endfor %}
         </tbody>
         </table>
@@ -33,7 +33,7 @@
         <h4>Jump To API</h4>
         <ul>
             {% for a in apis %}
-                <li><a href="{% url api_analytics a.name %}">{{a.display_name}}</a></li>
+                <li><a href="{% url "api_analytics" a.name %}">{{a.display_name}}</a></li>
             {% endfor %}
         </ul>
     </div>
@@ -47,7 +47,7 @@
     </thead>
     <tbody>
     {% for user in six_month %}
-        <tr><td>{{user.0.name}}</td><td><a href="{% url key_analytics user.0.key %}">{{user.0.email}}</a></td><td>{{user.0.usage}}</td><td>{{user.0.status}}</td><td>{{ user.1|intcomma }}</td></tr>
+        <tr><td>{{user.0.name}}</td><td><a href="{% url "key_analytics" user.0.key %}">{{user.0.email}}</a></td><td>{{user.0.usage}}</td><td>{{user.0.status}}</td><td>{{ user.1|intcomma }}</td></tr>
     {% endfor %}
     </tbody>
     </table>

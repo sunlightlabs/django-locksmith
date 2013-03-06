@@ -30,7 +30,7 @@ class Api(models.Model):
     '''
     name = models.CharField(max_length=30)
     signing_key = models.CharField(max_length=32)
-    url = models.URLField(verify_exists=False)
+    url = models.URLField()
     push_enabled = models.BooleanField(default=True)
     description = models.TextField('Description', blank=False)
     status = models.IntegerField(choices=API_OPERATING_STATUSES, default=1)
