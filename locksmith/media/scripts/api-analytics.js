@@ -5,14 +5,15 @@ $(document).ready(function(){
             'top': 100,
         }
 
+        var url = $("link#callers-of-api").attr("href");
         var deferred = 
-        $.getJSON('/api/analytics/data/api/' + options.api.name + '/callers/', params)
+        $.getJSON(url, params)
         .then(function(response){
             $("#users table").dataTable({
                 'bLengthChange': false,
                 'bSort': true,
                 'aaData': response['callers'].map(function(c){
-                              return ['<a href="/api/analytics/key/' + c.key + '">' + c.email + '</a>', c.key, c.calls];
+                              return ['<a href="' + c.profile_url + '">' + c.email + '</a>', c.key, c.calls];
                           }),
                 'asSorting': false,
                 'aaSorting': [[2, 'desc']]
@@ -28,7 +29,8 @@ $(document).ready(function(){
         var params = {
             'ignore_internal_keys': options.ignore_internal_keys
         }
-        $.getJSON('/api/analytics/data/api/' + options.api.name + '/calls/endpoint/', params)
+        var url = $("link#calls-to-api-by-endpoint").attr("href");
+        $.getJSON(url, params)
          .done(function(calls){
             chart.independent_label('Endpoint')
                  .dependent_label('Calls')
@@ -46,8 +48,9 @@ $(document).ready(function(){
         var params = {
             'ignore_internal_keys': options.ignore_internal_keys
         }
-        if (chart.setting('chart.interval') === 'yearly') {
-            $.getJSON('/api/analytics/data/api/' + options.api.name + '/calls/yearly/', params)
+        if (chart.get('chart.interval') === 'yearly') {
+            var url = $("link#calls-to-api-yearly").attr("href");
+            $.getJSON(url, params)
              .done(function(calls){
                 chart.independent_label('Year')
                      .dependent_label('Calls')
@@ -59,9 +62,11 @@ $(document).ready(function(){
                     return [yr['year'], yr['calls']];
                 }));
              });
-        } else if (chart.setting('chart.interval') === 'monthly') {
-            var year = chart.setting('year');
-            $.getJSON('/api/analytics/data/api/' + options.api.name + '/calls/' + year + '/', params)
+        } else if (chart.get('chart.interval') === 'monthly') {
+            var year = chart.get('year');
+            params['year'] = year;
+            var url = $("link#calls-to-api-monthly").attr("href");
+            $.getJSON(url, params)
              .done(function(calls){
                 chart.independent_label('Month')
                      .dependent_label('Calls')

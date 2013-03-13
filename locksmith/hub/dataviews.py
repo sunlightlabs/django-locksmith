@@ -110,13 +110,13 @@ def calls_to_api_yearly(request,
     if ignore_internal_keys:
         qry = exclude_internal_key_reports(qry)
     agg = qry.aggregate(calls=Sum('calls'))
-    qry = qry.extra(select={'year': 'extract(year from date)::int'})
-    yearly_aggs = qry.values('year').annotate(calls=Sum('calls'))
+    daily_aggs = qry.values('date').annotate(calls=Sum('calls'))
+    yearly = dict(((y, {'year': y, 'calls': 0})
+                   for y in range(earliest_year, latest_year + 1)))
+    for daily in daily_aggs:
+        yr = daily['date'].year
+        yearly[yr]['calls'] += daily['calls']
 
-    yearly = dict([(yr_agg['year'], yr_agg) for yr_agg in yearly_aggs])
-    for year in range(earliest_year, latest_year + 1):
-        yearly[year] = yearly.get(year,
-                                  {'year': year, 'calls': 0})
     result = {
         'api_id': api.id,
         'api_name': api.name,
@@ -128,10 +128,8 @@ def calls_to_api_yearly(request,
     return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
 
 @login_required
-def calls_to_api_monthly(request, year,
+def calls_to_api_monthly(request,
                          api_id=None, api_name=None):
-    year = int(year)
-
     if api_id is None and api_name is None:
         return HttpResponseBadRequest('Must specify API id or name.')
 
@@ -141,6 +139,7 @@ def calls_to_api_monthly(request, year,
         return HttpResponseNotFound('The requested API was not found.')
 
     ignore_internal_keys = parse_bool_param(request, 'ignore_internal_keys', True)
+    year = parse_int_param(request, 'year')
 
     qry = Report.objects.filter(api=api)
     if ignore_internal_keys:
@@ -149,13 +148,14 @@ def calls_to_api_monthly(request, year,
                      date__lte=datetime.date(year, 12, 31))
     agg = qry.aggregate(calls=Sum('calls'))
 
-    qry = qry.extra(select={'month': 'extract(month from date)::int'})
-    monthly_aggs = qry.values('month').annotate(calls=Sum('calls'))
+    daily_aggs = qry.values('date').annotate(calls=Sum('calls'))
+    monthly = dict(((m, {'month': m, 'calls': 0})
+                    for m in range(1, 13)))
 
-    monthly = dict(((m_agg['month'], m_agg) for m_agg in monthly_aggs))
-    for month in range(1, 13):
-        monthly[month] = monthly.get(month,
-                                     {'month': month, 'calls': 0})
+    for daily in daily_aggs:
+        month = daily['date'].month
+        monthly[month]['calls'] += daily['calls']
+
     result = {
         'api_id': api.id,
         'api_name': api.name,
@@ -236,6 +236,7 @@ def callers_of_api(request,
     result = {
         'callers': [{'key': c['key__key'],
                      'email': c['key__email'],
+                     'profile_url': reverse('key_analytics', args=(c['key__key'], )),
                      'calls': c['calls']}
                     for c in qry]
     }
@@ -276,12 +277,14 @@ def calls_from_key_yearly(request, key_uuid):
     earliest_year = date_extents['earliest'].year
     latest_year = date_extents['latest'].year
 
-    qry = key.reports.extra(select={'year': 'extract(year from date)::int'})
-    qry = qry.values('year').annotate(calls=Sum('calls'))
+    # Group by date in the database
+    qry = key.reports.values('date').annotate(calls=Sum('calls'))
     yearly = dict(((yr, {'year': yr, 'calls': 0})
                    for yr in range(earliest_year, latest_year + 1)))
+    # When group by year in python
     for agg in qry:
-        yearly[agg['year']]['calls'] = agg['calls']
+        yr = agg['date'].year
+        yearly[yr]['calls'] += agg['calls']
 
     result = {
         'key': key_uuid,
@@ -291,7 +294,7 @@ def calls_from_key_yearly(request, key_uuid):
     }
     return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
 
-def calls_from_key_monthly(request, key_uuid, year):
+def calls_from_key_monthly(request, key_uuid):
     try:
         key = Key.objects.get(key=key_uuid)
     except Key.DoesNotExist:
@@ -300,16 +303,16 @@ def calls_from_key_monthly(request, key_uuid, year):
     if request.user.email != key.email and request.user.is_staff != True:
         return HttpResponseForbidden()
 
-    year = int(year)
-    qry = key.reports.extra(select={'month': 'extract(month from date)::int'})
-    qry = qry.filter(date__gte=datetime.date(year, 1, 1),
-                     date__lte=datetime.date(year, 12, 31))
-    qry = qry.values('month').annotate(calls=Sum('calls'))
+    year = parse_int_param(request, 'year')
+    qry = key.reports.filter(date__gte=datetime.date(year, 1, 1),
+                             date__lte=datetime.date(year, 12, 31))
+    qry = qry.values('date').annotate(calls=Sum('calls'))
 
     monthly = dict(((m, {'month': m, 'calls': 0})
                     for m in range(1, 13)))
     for agg in qry:
-        monthly[agg['month']]['calls'] = agg['calls']
+        month = agg['date'].month
+        monthly[month]['calls'] += agg['calls']
 
     result = {
         'key': key_uuid,
@@ -434,33 +437,31 @@ def keys_issued_yearly(request):
     return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
     
 @login_required
-def keys_issued_monthly(request, year):
-    year = int(year)
+def keys_issued_monthly(request):
+    year = parse_int_param(request, 'year')
     ignore_inactive = parse_bool_param(request, 'ignore_inactive', False)
     ignore_internal_keys = parse_bool_param(request, 'ignore_internal_keys', True)
 
-    qry = Key.objects.extra(select={'month': 'extract(month from issued_on)::int'})
-    qry = qry.filter(issued_on__gte=datetime.date(year, 1, 1),
-                     issued_on__lte=datetime.date(year, 12, 31))
+    qry = Key.objects.filter(issued_on__gte=datetime.date(year, 1, 1),
+                             issued_on__lte=datetime.date(year, 12, 31))
     if ignore_internal_keys:
         qry = exclude_internal_keys(qry)
     if ignore_inactive:
         qry = qry.filter(status='A')
 
-    monthly_agg = qry.values('month').annotate(issued=Count('pk'))
-    monthly = {}
-    for agg in monthly_agg:
-        monthly[agg['month']] = agg['issued']
-    for month in range(1, 13):
-        if month not in monthly:
-            monthly[month] = 0
+    daily_aggs = qry.values('issued_on').annotate(issued=Count('pk'))
+    monthly = dict(((m, {'month': m, 'issued': 0})
+                    for m in range(1, 13)))
+    for daily in daily_aggs:
+        month = daily['issued_on'].month
+        monthly[month]['issued'] += daily['issued']
 
     agg = qry.aggregate(issued=Count('pk'))
 
     result = {
         'year': year,
         'issued': agg['issued'],
-        'monthly': [{'month': m, 'issued': cnt} for (m, cnt) in monthly.items()]
+        'monthly': monthly.values()
     }
     return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
 

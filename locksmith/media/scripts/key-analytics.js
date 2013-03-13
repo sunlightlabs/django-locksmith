@@ -4,7 +4,8 @@
         var get_endpoint_calls_data = function (chart, callback) {
             var params = {
             }
-            $.getJSON('/analytics/data/key/' + options.key + '/calls/endpoint/', params)
+            var url = $("link#calls-from-key-by-endpoint").attr("href");
+            $.getJSON(url, params)
              .done(function(calls){
                 chart.independent_label('Endpoint')
                      .dependent_label('Calls')
@@ -22,7 +23,8 @@
             var params = {
             }
             if (chart.get('chart.interval') === 'yearly') {
-                $.getJSON('/analytics/data/key/' + options.key + '/calls/yearly/', params)
+                var url = $("link#calls-from-key-yearly").attr("href");
+                $.getJSON(url, params)
                  .done(function(calls){
                     chart.independent_label('Year')
                          .dependent_label('Calls')
@@ -36,7 +38,9 @@
                  });
             } else if (chart.get('chart.interval') === 'monthly') {
                 var year = chart.get('year');
-                $.getJSON('/analytics/data/key/' + options.key + '/calls/' + year + '/', params)
+                params['year'] = year;
+                var url = $("link#calls-from-key-monthly").attr("href");
+                $.getJSON(url, params)
                  .done(function(calls){
                     chart.independent_label('Month')
                          .dependent_label('Calls')

@@ -10,6 +10,13 @@
     <link href="{{STATIC_URL}}styles/locksmith.css" rel="stylesheet" type="text/css">
 {% endblock %}
 
+{% block meta %}
+    <link id="keys-issued-yearly" href="{% url 'keys-issued-yearly' %}" rel="" type="application/json">
+    <link id="keys-issued-monthly" href="{% url 'keys-issued-monthly' %}" rel="" type="application/json">
+    <link id="api-list" href="{% url 'api-list' %}" rel="" type="application/json">
+    <link id="apis-by-calls" href="{% url 'apis-by-calls' %}" rel="" type="application/json">
+{% endblock meta %}
+
 {% block content %}
 <h2>Analytics Dashboard</h2>
 

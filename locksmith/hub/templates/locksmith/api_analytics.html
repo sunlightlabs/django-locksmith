@@ -11,6 +11,13 @@
     <link href="{{STATIC_URL}}styles/locksmith.css" rel="stylesheet" type="text/css">
 {% endblock css %}
 
+{% block meta %}
+    <link id="calls-to-api-yearly" href="{% url 'calls-to-api-yearly' api.name %}" rel="" type="application/json">
+    <link id="calls-to-api-monthly" href="{% url 'calls-to-api-monthly' api.name %}" rel="" type="application/json">
+    <link id="callers-of-api" href="{% url 'callers-of-api' api.name %}" rel="" type="application/json">
+    <link id="calls-to-api-by-endpoint" href="{% url 'calls-to-api-by-endpoint' api.name %}" rel="" type="application/json">
+{% endblock meta %}
+
 {% block content %}
 <h2>Statistics for {{api.name}}</h2>
 

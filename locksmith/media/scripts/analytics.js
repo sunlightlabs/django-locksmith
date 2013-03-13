@@ -2,7 +2,8 @@ $(document).ready(function(){
     Apis = {};
 
     var fetch_api_list = function(){
-        return $.getJSON('/api/analytics/data/apis/')
+        var url = $("link#api-list").attr("href");
+        return $.getJSON(url)
                .then(function(apis){
                    Apis['list'] = apis;
                    Apis['by_name'] = key_by(Apis.list, itemgetter('name'));
@@ -16,12 +17,13 @@ $(document).ready(function(){
 
     var get_keys_issued = function (chart, callback) {
         console.log('Fetching keys_issued data');
-        var chart_interval = chart.set('chart.interval');
+        var chart_interval = chart.get('chart.interval');
         var params = {
             'ignore_internal_keys': (page_settings.get('internal.keys') === 'excluded')
         }
         if (chart_interval === 'yearly') {
-            $.getJSON('/api/analytics/data/keys/issued/yearly/', params)
+            var url = $("link#keys-issued-yearly").attr("href");
+            $.getJSON(url, params)
             .then(function(keys_issued){
                 console.log('Recieved keys_issued data');
                 chart.title('Keys Issued By Year')
@@ -32,7 +34,8 @@ $(document).ready(function(){
                 }));
             });
         } else if (chart_interval === 'monthly') {
-            var url = '/api/analytics/data/keys/issued/' + chart.setting('year') + '/';
+            var url = $("link#keys-issued-monthly").attr("href");
+            params['year'] = chart.get('year');
             $.getJSON(url, params)
             .then(function(keys_issued){
                 console.log('Recieved keys_issued data');
@@ -65,7 +68,8 @@ $(document).ready(function(){
             title = 'API Calls Year to Date: ' + dt.getFullYear();
         }
 
-        $.getJSON('/api/analytics/data/apis/calls/', params)
+        var url = $("link#apis-by-calls").attr("href");
+        $.getJSON(url, params)
         .then(function(calls){
             var apis = $.extend(true, {}, Apis.by_name);
 
