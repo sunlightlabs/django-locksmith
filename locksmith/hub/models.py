@@ -57,7 +57,7 @@ class Key(models.Model):
     user = models.OneToOneField(User, null=True, related_name='api_key')
 
     key = models.CharField(max_length=32)
-    email = models.EmailField()
+    email = models.EmailField(unique=True)
     alternate_email = models.EmailField(blank=True, null=True) #
     status = models.CharField(max_length=1, choices=KEY_STATUSES, default='U')
 
