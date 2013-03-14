@@ -147,8 +147,8 @@ def confirm_registration(request, key, template="locksmith/confirmed.html"):
             context['error'] = 'Key Already Activated'
         else:
             key_obj.status = 'A'
-            key_obj.mark_for_update()
             key_obj.save()
+            key_obj.mark_for_update()
     except Key.DoesNotExist:
         context['error'] = 'Invalid Key'
     return render_to_response(template, context,

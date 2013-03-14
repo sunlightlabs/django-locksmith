@@ -5,5 +5,5 @@ urlpatterns = patterns('locksmith.auth.views',
     url(r'^update_key/$', 'update_key', name='update_key'),
     url(r'^update_key_by_email/$', 'update_key', {'get_by':'email'},
         name='update_key_by_email'),
+    url(r'replicate_key/(?P<key_uuid>[a-zA-Z0-9]{32})/$', 'accept_key', name='replicate_key'),
 )
-

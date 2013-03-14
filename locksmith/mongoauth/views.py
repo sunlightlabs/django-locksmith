@@ -1,7 +1,8 @@
+from uuid import UUID
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseBadRequest
-from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
 from locksmith.common import get_signature
 from locksmith.mongoauth.db import db
 
@@ -9,6 +10,7 @@ def verify_signature(post):
     return get_signature(post, settings.LOCKSMITH_SIGNING_KEY) == post['signature']
 
 @require_POST
+@csrf_exempt
 def create_key(request):
     if not verify_signature(request.POST):
         return HttpResponseBadRequest('bad signature')
@@ -18,6 +20,7 @@ def create_key(request):
     return HttpResponse('OK')
 
 @require_POST
+@csrf_exempt
 def update_key(request, get_by='key'):
     if not verify_signature(request.POST):
         return HttpResponseBadRequest('bad signature')
@@ -34,3 +37,30 @@ def update_key(request, get_by='key'):
     db.keys.save(key, safe=True)
 
     return HttpResponse('OK')
+
+
+@require_POST
+@csrf_exempt
+def accept_key(request, key_uuid):
+    if not verify_signature(request.POST):
+        return HttpResponseBadRequest('bad signature')
+
+    try:
+        uuid = UUID(key_uuid)
+    except ValueError:
+        return HttpResponseBadRequest('bad uuid')
+
+    if u'status' not in request.POST:
+        return HttpResponseBadRequest('no status specified')
+
+    if u'email' not in request.POST:
+        return HttpResponseBadRequest('no email specified')
+
+    key_doc = {
+        '_id': key_uuid,
+        'status': request.POST[u'status'],
+        'email': request.POST[u'email']
+    }
+    db.keys.save(key_doc)
+    return HttpResponse('OK')
+
