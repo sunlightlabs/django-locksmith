@@ -5,7 +5,9 @@ from django.forms import Form, ModelForm, ValidationError, BooleanField, EmailFi
 from locksmith.common import (KEY_STATUSES,
                               PUB_STATUSES,
                               UNPUBLISHED,
-                              NEEDS_UPDATE)
+                              NEEDS_UPDATE,
+                              API_OPERATING_STATUSES,
+                              API_STATUSES)
 from locksmith.hub.tasks import push_key
 from taggit.managers import TaggableManager
 
