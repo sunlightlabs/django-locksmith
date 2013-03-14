@@ -6,8 +6,9 @@ class ApiAdmin(admin.ModelAdmin):
 
 admin.site.register(Api, ApiAdmin)
 
-
 class KeyAdmin(admin.ModelAdmin):
+    list_display = ('key', 'status', 'email', 'name', 'org_name', 'org_url')
+
     def save_model(self, request, obj, form, change):
         obj.save()
         obj.mark_for_update()
