@@ -2,6 +2,7 @@ import datetime
 from django.db import models
 from django.db.models.signals import post_save
 from django.forms import Form, ModelForm, ValidationError, BooleanField, EmailField
+from django.contrib.auth.models import User
 from locksmith.common import (KEY_STATUSES,
                               PUB_STATUSES,
                               UNPUBLISHED,
@@ -53,6 +54,8 @@ class Key(models.Model):
     '''
         API key to be handed out to Apis
     '''
+    user = models.OneToOneField(User, null=True, related_name='api_key')
+
     key = models.CharField(max_length=32)
     email = models.EmailField()
     alternate_email = models.EmailField(blank=True, null=True) #
