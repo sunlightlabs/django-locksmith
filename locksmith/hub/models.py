@@ -37,7 +37,7 @@ class Key(models.Model):
         API key to be handed out to Apis
     '''
     key = models.CharField(max_length=32)
-    email = models.EmailField()
+    email = models.EmailField(unique=True)
     status = models.CharField(max_length=1, choices=KEY_STATUSES, default='U')
 
     name = models.CharField('Name', max_length=100, blank=True)
