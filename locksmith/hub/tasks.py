@@ -9,10 +9,11 @@ from django.conf import settings
 ReplicatedApiNames = getattr(settings, 'LOCKSMITH_REPLICATED_APIS', [])
 
 @task(max_retries=5)
-def push_key(key):
-    for kps in key.pub_statuses.filter(api__push_enabled=True):
-        if kps.api.name in ReplicatedApiNames:
-            replicate_key.delay(key, kps.api)
+def push_key(key, replicate_too=True):
+    if replicate_too:
+        for kps in key.pub_statuses.filter(api__push_enabled=True):
+            if kps.api.name in ReplicatedApiNames:
+                replicate_key.delay(key, kps.api)
 
     endpoints = {UNPUBLISHED: 'create_key/', NEEDS_UPDATE: 'update_key/'}
     dirty = key.pub_statuses.exclude(status=PUBLISHED).filter(

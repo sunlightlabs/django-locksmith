@@ -12,10 +12,11 @@ from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib import messages
-from locksmith.common import get_signature, UNPUBLISHED
-from locksmith.hub.models import Api, Key, KeyForm, Report, ResendForm
-from locksmith.hub.tasks import push_key
-
+from locksmith.common import get_signature, PUB_STATUSES, UNPUBLISHED
+from locksmith.hub.models import Api, Key, KeyForm, Report, ResendForm, resolve_model
+from locksmith.hub.tasks import push_key, replicate_key
+from locksmith.hub.common import cycle_generator
+from django.db.models import Sum
 
 @require_POST
 def report_calls(request):
@@ -64,9 +65,14 @@ def reset_keys(request):
     if get_signature(request.POST, api_obj.signing_key) != request.POST['signature']:
         return HttpResponseBadRequest('bad signature')
 
-    api_obj.pub_statuses.update(status=UNPUBLISHED)
-    for key in Key.objects.all():
-        push_key.delay(key)
+    ReplicatedApiNames = getattr(settings, 'LOCKSMITH_REPLICATED_APIS', [])
+    if api_obj.name in ReplicatedApiNames:
+        for key in Key.objects.all():
+            replicate_key.delay(key, api_obj)
+    else:
+        api_obj.pub_statuses.update(status=UNPUBLISHED)
+        for key in Key.objects.all():
+            push_key.delay(key, replicate_too=False)
 
     return HttpResponse('OK')
 
