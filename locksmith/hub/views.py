@@ -15,7 +15,6 @@ from django.contrib import messages
 from locksmith.common import get_signature, PUB_STATUSES, UNPUBLISHED
 from locksmith.hub.models import Api, Key, KeyForm, Report, ResendForm
 from locksmith.hub.tasks import push_key, replicate_key
-from locksmith.hub.common import cycle_generator
 from django.db.models import Sum
 
 @require_POST
