@@ -52,6 +52,69 @@ def apis_list(request):
               for api in apis]
     return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
 
+@login_required
+def api_calls_monthly(request):
+    ignore_internal_keys = parse_bool_param(request, 'ignore_internal_keys', True)
+
+    keys_issued_period = _keys_issued_date_range()
+    earliest_month = (keys_issued_period['earliest'].year,
+                      keys_issued_period['earliest'].month)
+    latest_month = (keys_issued_period['latest'].year,
+                    keys_issued_period['latest'].month)
+
+    monthly = {}
+    for (year, month) in cycle_generator(cycle=(1, 12), begin=earliest_month, end=latest_month):
+        monthly[(year, month)] = {'year': year,
+                                  'month': month,
+                                  'calls': 0}
+
+    qry = Report.objects
+    if ignore_internal_keys:
+        qry = exclude_internal_key_reports(qry)
+    daily_aggs = qry.values('date').annotate(calls=Sum('calls'))
+    for daily in daily_aggs:
+        dt = daily['date']
+        month = (dt.year, dt.month)
+        monthly[month]['calls'] += daily['calls']
+
+    result = {
+        'monthly': monthly.values()
+    }
+    return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
+
+@login_required
+def api_calls_daily(request):
+    today = datetime.date.today()
+    a_year_ago = (today - datetime.timedelta(days=365))
+
+    ignore_internal_keys = parse_bool_param(request, 'ignore_internal_keys', True)
+    begin_date = parse_date_param(request, 'begin_date', a_year_ago)
+    end_date = parse_date_param(request, 'end_date', today)
+    if begin_date > end_date:
+        return HttpResponseBadRequest('begin_date must be before end_date')
+
+    cal = calendar.Calendar()
+    daily_calls = dict(((dt, {'date': dt.strftime('%Y-%m-%d'), 'calls': 0})
+                        for y in range(begin_date.year, end_date.year + 1)
+                        for m in range(1, 13)
+                        for dt in cal.itermonthdates(y, m)
+                        if dt.month == m
+                        and dt >= begin_date
+                        and dt <= end_date))
+
+    qry = Report.objects.filter(date__range=(begin_date,
+                                             end_date))
+    if ignore_internal_keys:
+        qry = exclude_internal_key_reports(qry)
+    daily_aggs = qry.values('date').annotate(calls=Sum('calls'))
+    for daily in daily_aggs:
+        dt = daily['date']
+        daily_calls[dt]['calls'] = daily['calls']
+
+    result = {
+        'daily': daily_calls.values()
+    }
+    return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
 
 @login_required
 def calls_to_api(request,
