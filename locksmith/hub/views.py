@@ -13,7 +13,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib import messages
 from locksmith.common import get_signature, PUB_STATUSES, UNPUBLISHED
-from locksmith.hub.models import Api, Key, KeyForm, Report, ResendForm, resolve_model
+from locksmith.hub.models import Api, Key, KeyForm, Report, ResendForm
 from locksmith.hub.tasks import push_key, replicate_key
 from locksmith.hub.common import cycle_generator
 from django.db.models import Sum
