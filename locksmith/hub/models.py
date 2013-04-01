@@ -112,9 +112,9 @@ class Report(models.Model):
     class Meta:
         db_table = 'locksmith_hub_report'
 
-def kps_callback(sender, instance, created, **kwargs):
+def kps_callback(sender, instance, created, raw, **kwargs):
     ''' create KeyPublicationStatus object for Keys/Apis '''
-    if created:
+    if created and not raw:
         if sender == Api:
             for key in Key.objects.all():
                 KeyPublicationStatus.objects.create(key=key, api=instance)
