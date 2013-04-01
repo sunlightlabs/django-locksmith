@@ -238,8 +238,8 @@ staff_required = user_passes_test(lambda u: u.is_staff)
 
 @staff_required
 def analytics_index(request,
-                        keys_issued_display='chart', keys_issued_interval='yearly',
-                        api_calls_display='chart'):
+                    keys_issued_display='chart', keys_issued_interval='yearly',
+                    api_calls_display='chart'):
     ignore_internal_keys = request.GET.get('ignore_internal_keys', True)
     ignore_deprecated_apis = request.GET.get('ignore_deprecated_apis', True)
     ignore_inactive_keys = request.GET.get('ignore_inactive_keys', True)
@@ -270,8 +270,12 @@ def analytics_index(request,
         'new_users': new_users,
         'six_month': six_month,
         'apis': apis,
+        'LOCKSMITH_BASE_TEMPLATE': settings.LOCKSMITH_BASE_TEMPLATE
     }
-    return render(request, 'locksmith/analytics_index.html', ctx)
+    template = getattr(settings,
+                       'LOCKSMITH_ANALYTICS_INDEX_TEMPLATE',
+                       'locksmith/analytics_index.html')
+    return render(request, template, ctx)
 
 @staff_required
 def api_analytics(request,
@@ -298,7 +302,10 @@ def api_analytics(request,
         'options': options,
         'json_options': json.dumps(options),
     }
-    return render(request, 'locksmith/api_analytics.html', ctx)
+    template = getattr(settings,
+                       'LOCKSMITH_API_ANALYTICS_TEMPLATE',
+                       'locksmith/api_analytics.html')
+    return render(request, template, ctx)
 
 @staff_required
 def key_list(request):
@@ -308,7 +315,10 @@ def key_list(request):
         'options': options,
         'json_options': json.dumps(options),
     }
-    return render(request, "locksmith/keys_list.html", ctx)
+    template = getattr(settings,
+                       'LOCKSMITH_KEYS_LIST_TEMPLATE',
+                       'locksmith/leys_list.html')
+    return render(request, template, ctx)
 
 @login_required
 def key_analytics(request, key):
@@ -329,7 +339,10 @@ def key_analytics(request, key):
     }
     ctx['json_options'] = json.dumps(ctx)
     ctx['key'] = key
-    return render(request, 'locksmith/key_analytics.html', ctx)
+    template = getattr(settings,
+                       'LOCKSMITH_KEY_ANALYTICS_TEMPLATE',
+                       'locksmith/key_analytics.html')
+    return render(request, template, ctx)
 
 
 @staff_required
@@ -366,5 +379,8 @@ def keys_leaderboard(request,
     if api is not None:
         ctx['api'] = {'id': api.id, 'name': api.name}
     ctx['json_options'] = json.dumps(ctx)
-    return render(request, 'locksmith/leaderboard.html', ctx)
+    template = getattr(settings,
+                       'LOCKSMITH_KEYS_LEADERBOARD_TEMPLATE',
+                       'locksmith/leaderboard.html')
+    return render(request, template, ctx)
 

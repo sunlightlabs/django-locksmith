@@ -37,10 +37,10 @@ class Api(models.Model):
     signing_key = models.CharField(max_length=32)
     url = models.URLField()
     push_enabled = models.BooleanField(default=True)
-    description = models.TextField('Description', blank=False)
+    description = models.TextField('Description', blank=True)
     status = models.IntegerField(choices=API_OPERATING_STATUSES, default=1)
-    mode = models.IntegerField(choices=API_STATUSES, default=1)
-    display_name = models.TextField('Display name of the API', blank=True, null=True)
+    mode = models.IntegerField(choices=list(API_STATUSES), default=1)
+    display_name = models.TextField('Display name of the API', blank=False, null=True)
     documentation_link = models.TextField('Link to this API\'s documentation', null=True, blank=True)
     tags = TaggableManager()
 
