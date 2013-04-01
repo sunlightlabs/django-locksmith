@@ -40,7 +40,7 @@
         <h4>Jump To API</h4>
         <ul>
             {% for a in apis %}
-                <li><a href="{% url "api_analytics" a.name %}">{{a.display_name}}</a></li>
+                <li><a href="{% url "api_analytics" a.name %}">{% firstof a.display_name a.name %}</a></li>
             {% endfor %}
         </ul>
     </div>
