@@ -1,17 +1,5 @@
-{% extends "base_full.html" %}
-
-{% block subnav %}
-    <div class="secondary-nav">
-        <nav>
-            <ul class="nav nav-pills">
-                <li><a href="{% url "analytics_index" %}">Analytics Home</a></li>
-                <li><a href="{% url "key_list"%}">Keys</a></li>
-                <li><a href="{% url "keys_leaderboard" %}">Leaderboard</a></li>
-            </ul>
-        </nav>
-    </div>
-{% endblock subnav %}
-
+{#{% extends "base_full.html" %}#}
+{% extends LOCKSMITH_BASE_TEMPLATE %}
 
 {% block css %}
     {{ block.super }}
