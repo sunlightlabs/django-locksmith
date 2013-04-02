@@ -79,6 +79,10 @@
             'settings': {
                 'apis': api_calls_chart,
                 'endpoints': endpoint_calls_chart
+            },
+            'post_update': function () {
+                api_calls_chart.refresh();
+                endpoint_calls_chart.refresh();
             }
         });
 

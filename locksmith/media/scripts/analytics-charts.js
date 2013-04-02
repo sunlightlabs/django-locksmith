@@ -455,6 +455,10 @@ function ReactiveSettingsHistoryIface (options) {
                 }
             }
         }
+
+        if (options.post_update) {
+            options.post_update.call(that, decoded);
+        }
     };
 
     var _collect_settings = function () {
@@ -480,7 +484,12 @@ function ReactiveSettingsHistoryIface (options) {
         var merged = _collect_settings();
         var encoded = _encode_state_anchor(merged);
         var url = window.location.protocol + '//' + window.location.host + window.location.pathname +  window.location.search + '#' + encoded;
-        history.pushState(encoded, null, url);
+        if (history.state != encoded) {
+            // We need to guard against duplicating state because
+            // the popstate event will also cause _update_history
+            // to be called.
+            history.pushState(encoded, null, url);
+        }
     };
 
     pairs(options.settings).forEach(function(pair){
@@ -537,7 +546,7 @@ function AnalyticsChart (options) {
     require_opt('data_fn');
     require_opt('target');
     var $target = $(opts.target);
-    var _data_deferred = null;
+    var _data_deferred = $.Deferred();
     var _data = null;
 
     var _properties = {};
@@ -684,14 +693,14 @@ function AnalyticsChart (options) {
         _display_loading();
         console.log('Refreshing for', $target.attr('id'));
 
-        if (_data_deferred != null) {
+        if (_data_deferred.state() == "pending") {
             console.log('Rejecting deferred data');
             _data_deferred.reject();
         }
-        var deferred = $.Deferred();
-        _data_deferred = deferred;
+
+        _data_deferred = $.Deferred();
         _data_deferred.promise().then(_data_callback);
-        opts['data_fn'].call(null, that, function(data){ deferred.resolve(data); });
+        opts['data_fn'].call(null, that, function(data){ _data_deferred.resolve(data); });
     };
     this.refresh = _refresh;
 

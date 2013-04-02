@@ -134,6 +134,10 @@ $(document).ready(function(){
                 'page': page_settings,
                 'calls': calls_chart,
                 'keys': keys_issued_chart
+            },
+            'post_update': function () {
+                calls_chart.refresh();
+                keys_issued_chart.refresh();
             }
         });
 

@@ -104,14 +104,10 @@ $(document).ready(function(){
         'settings': {
             'calls': api_calls_chart,
             'endpoints': endpoint_calls_chart
-        }
-    });
-    $(state_anchor_proxy).on('settings-updated', function(event, settings_iface, setting, value){
-        if (settings_iface.refresh) {
-            console.log("Refreshing", settings_iface.target().attr('id'), setting, value);
-            settings_iface.refresh();
-        } else {
-            console.log("Skipping refresh for", settings_iface.target().attr('id'));
+        },
+        'post_update': function (state) {
+            api_calls_chart.refresh();
+            endpoint_calls_chart.refresh();
         }
     });
 
