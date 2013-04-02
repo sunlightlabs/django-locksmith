@@ -76,6 +76,7 @@
         
         var state_anchor_proxy = ReactiveSettingsHistoryIface({
             'compression_vocabulary': ANALYTICS_VOCAB,
+            'replace_state': true,
             'settings': {
                 'apis': api_calls_chart,
                 'endpoints': endpoint_calls_chart

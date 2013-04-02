@@ -488,7 +488,11 @@ function ReactiveSettingsHistoryIface (options) {
             // We need to guard against duplicating state because
             // the popstate event will also cause _update_history
             // to be called.
-            history.pushState(encoded, null, url);
+            if (options.replace_state === true) {
+                history.replaceState(encoded, null, url);
+            } else {
+                history.pushState(encoded, null, url);
+            }
         }
     };
 
