@@ -301,6 +301,7 @@ def api_analytics(request,
         'api': api,
         'options': options,
         'json_options': json.dumps(options),
+        'LOCKSMITH_BASE_TEMPLATE': settings.LOCKSMITH_BASE_TEMPLATE
     }
     template = getattr(settings,
                        'LOCKSMITH_API_ANALYTICS_TEMPLATE',
@@ -314,6 +315,7 @@ def key_list(request):
     ctx = {
         'options': options,
         'json_options': json.dumps(options),
+        'LOCKSMITH_BASE_TEMPLATE': settings.LOCKSMITH_BASE_TEMPLATE
     }
     template = getattr(settings,
                        'LOCKSMITH_KEYS_LIST_TEMPLATE',
