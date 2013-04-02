@@ -37,7 +37,11 @@ def request_param_type_guard(request, param, parse_func, default=None):
         raise BadRequest(content='Unparsable {0} value: {1}'.format(param, untyped))
 
 def parse_date_param(request, param, default=None):
-    return request_param_type_guard(request, param, dateutil.parser.parse, default)
+    val = request_param_type_guard(request, param, dateutil.parser.parse, default)
+    if isinstance(val, datetime.datetime):
+        return val.date()
+    else:
+        return val
 
 def parse_bool_param(request, param, default=None):
     return request_param_type_guard(request, param, parse_bool, default)
@@ -52,7 +56,6 @@ def apis_list(request):
               for api in apis]
     return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
 
-@login_required
 def api_calls_monthly(request):
     ignore_internal_keys = parse_bool_param(request, 'ignore_internal_keys', True)
 
@@ -82,7 +85,6 @@ def api_calls_monthly(request):
     }
     return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
 
-@login_required
 def api_calls_daily(request):
     today = datetime.date.today()
     a_year_ago = (today - datetime.timedelta(days=365))
