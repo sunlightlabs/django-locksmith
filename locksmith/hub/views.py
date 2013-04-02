@@ -342,6 +342,7 @@ def key_analytics(request, key):
     }
     ctx['json_options'] = json.dumps(ctx)
     ctx['key'] = key
+    ctx['LOCKSMITH_BASE_TEMPLATE'] = settings.LOCKSMITH_BASE_TEMPLATE
     template = getattr(settings,
                        'LOCKSMITH_KEY_ANALYTICS_TEMPLATE',
                        'locksmith/key_analytics.html')
@@ -383,6 +384,7 @@ def keys_leaderboard(request,
     if api is not None:
         ctx['api'] = {'id': api.id, 'name': api.name}
     ctx['json_options'] = json.dumps(ctx)
+    ctx['LOCKSMITH_BASE_TEMPLATE'] = settings.LOCKSMITH_BASE_TEMPLATE
     template = getattr(settings,
                        'LOCKSMITH_KEYS_LEADERBOARD_TEMPLATE',
                        'locksmith/leaderboard.html')
