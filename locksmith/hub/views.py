@@ -337,7 +337,8 @@ def key_analytics(request, key):
                          for kps in key.pub_statuses.filter(api__push_enabled=True)],
         'endpoint_calls_display': 'chart',
         'api_calls_display': 'chart',
-        'api_calls_interval': 'yearly'
+        'api_calls_interval': 'yearly',
+        'LOCKSMITH_BASE_TEMPLATE': settings.LOCKSMITH_BASE_TEMPLATE
     }
     ctx['json_options'] = json.dumps(ctx)
     ctx['key'] = key
@@ -376,7 +377,8 @@ def keys_leaderboard(request,
             else:
                 month = 10
     ctx = {
-        'latest_qtr_begin': datetime.datetime(year, month, 1).strftime('%Y-%m-%d')
+        'latest_qtr_begin': datetime.datetime(year, month, 1).strftime('%Y-%m-%d'),
+        'LOCKSMITH_BASE_TEMPLATE': settings.LOCKSMITH_BASE_TEMPLATE
     }
     if api is not None:
         ctx['api'] = {'id': api.id, 'name': api.name}
