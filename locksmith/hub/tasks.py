@@ -75,5 +75,5 @@ def replicate_key(key, api):
         }
         print 'Caught exception while pushing key {k} to {a}: {e}'.format(**ctx)
         print 'Will retry'
-        replicate_key.retry_flag()
+        replicate_key.retry()
 
