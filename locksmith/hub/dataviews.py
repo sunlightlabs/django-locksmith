@@ -168,19 +168,25 @@ def calls_to_api_yearly(request,
     ignore_internal_keys = parse_bool_param(request, 'ignore_internal_keys', True)
 
     date_extents = _keys_issued_date_range()
-    earliest_year = date_extents['earliest'].year
-    latest_year = date_extents['latest'].year
+    if date_extents['earliest'] and date_extents['latest']:
+        earliest_year = date_extents['earliest'].year
+        latest_year = date_extents['latest'].year
 
-    qry = Report.objects.filter(api=api)
-    if ignore_internal_keys:
-        qry = exclude_internal_key_reports(qry)
-    agg = qry.aggregate(calls=Sum('calls'))
-    daily_aggs = qry.values('date').annotate(calls=Sum('calls'))
-    yearly = dict(((y, {'year': y, 'calls': 0})
-                   for y in range(earliest_year, latest_year + 1)))
-    for daily in daily_aggs:
-        yr = daily['date'].year
-        yearly[yr]['calls'] += daily['calls']
+        qry = Report.objects.filter(api=api)
+        if ignore_internal_keys:
+            qry = exclude_internal_key_reports(qry)
+        agg = qry.aggregate(calls=Sum('calls'))
+        daily_aggs = qry.values('date').annotate(calls=Sum('calls'))
+        yearly = dict(((y, {'year': y, 'calls': 0})
+                       for y in range(earliest_year, latest_year + 1)))
+        for daily in daily_aggs:
+            yr = daily['date'].year
+            yearly[yr]['calls'] += daily['calls']
+    else:
+        earliest_year = None
+        latest_year = None
+        agg = { 'calls': 0 }
+        yearly = {}
 
     result = {
         'api_id': api.id,
@@ -339,24 +345,34 @@ def calls_from_key_yearly(request, key_uuid):
         return HttpResponseForbidden()
 
     date_extents = key.reports.aggregate(earliest=Min('date'), latest=Max('date'))
-    earliest_year = date_extents['earliest'].year
-    latest_year = date_extents['latest'].year
+    if date_extents['earliest'] and date_extents['latest']:
+        earliest_year = date_extents['earliest'].year
+        latest_year = date_extents['latest'].year
 
-    # Group by date in the database
-    qry = key.reports.values('date').annotate(calls=Sum('calls'))
-    yearly = dict(((yr, {'year': yr, 'calls': 0})
-                   for yr in range(earliest_year, latest_year + 1)))
-    # When group by year in python
-    for agg in qry:
-        yr = agg['date'].year
-        yearly[yr]['calls'] += agg['calls']
+        # Group by date in the database
+        qry = key.reports.values('date').annotate(calls=Sum('calls'))
+        yearly = dict(((yr, {'year': yr, 'calls': 0})
+                       for yr in range(earliest_year, latest_year + 1)))
+        # When group by year in python
+        for agg in qry:
+            yr = agg['date'].year
+            yearly[yr]['calls'] += agg['calls']
 
-    result = {
-        'key': key_uuid,
-        'earliest_year': date_extents['earliest'].year,
-        'latest_year': date_extents['latest'].year,
-        'yearly': yearly.values()
-    }
+        result = {
+            'key': key_uuid,
+            'earliest_year': earliest_year,
+            'latest_year': latest_year,
+            'yearly': yearly.values()
+        }
+
+    else:
+        result = {
+            'key': key_uuid,
+            'earliest_year': None,
+            'latest_year': None,
+            'yearly': []
+        }
+
     return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
 
 def calls_from_key_monthly(request, key_uuid):
@@ -477,28 +493,35 @@ def keys_issued_yearly(request):
     ignore_internal_keys = parse_bool_param(request, 'ignore_internal_keys', True)
 
     date_extents = _keys_issued_date_range()
-    earliest_year = date_extents['earliest'].year
-    latest_year = date_extents['latest'].year
+    if date_extents['earliest'] and date_extents['latest']:
+        earliest_year = date_extents['earliest'].year
+        latest_year = date_extents['latest'].year
 
-    qry = Key.objects
-    if ignore_internal_keys:
-        qry = exclude_internal_keys(qry)
-    if ignore_inactive:
-        qry = qry.filter(status='A')
+        qry = Key.objects
+        if ignore_internal_keys:
+            qry = exclude_internal_keys(qry)
+        if ignore_inactive:
+            qry = qry.filter(status='A')
 
-    result = {
-        'earliest_year': earliest_year,
-        'latest_year': latest_year,
-        'yearly': []
-    }
-    for year in range(earliest_year, latest_year + 1):
-        yr_fro = datetime.date(year, 1, 1)
-        yr_to = datetime.date(year, 12, 31)
-        yr_agg = (qry.filter(issued_on__gte=yr_fro,
-                             issued_on__lte=yr_to)
-                     .aggregate(issued=Count('pk')))
-        result['yearly'].append({'year': year,
-                                 'issued': yr_agg['issued']})
+        result = {
+            'earliest_year': earliest_year,
+            'latest_year': latest_year,
+            'yearly': []
+        }
+        for year in range(earliest_year, latest_year + 1):
+            yr_fro = datetime.date(year, 1, 1)
+            yr_to = datetime.date(year, 12, 31)
+            yr_agg = (qry.filter(issued_on__gte=yr_fro,
+                                 issued_on__lte=yr_to)
+                         .aggregate(issued=Count('pk')))
+            result['yearly'].append({'year': year,
+                                     'issued': yr_agg['issued']})
+    else:
+        result = {
+            'earliest_year': None,
+            'latest_year': None,
+            'yearly': []
+        }
     return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
     
 @login_required
