@@ -587,11 +587,19 @@ function AnalyticsChart (options) {
     var _data_callback = function(data){
         console.log('Received data for', $target.attr('id'));
         _data = data;
-        if (that.get('display.mode') === 'chart')
+        if (data.length === 0)
+            _display_message('No data')
+        else if (that.get('display.mode') === 'chart')
             _display_chart();
         else if (that.get('display.mode') === 'table')
             _display_table();
         return that;
+    };
+
+    var _display_message = function (msg) {
+        $target.find(".message").show().find(".message-text").text(msg);
+        $target.find(".analytics-chart").hide();
+        $target.find(".loading-container").hide();
     };
 
     var _display_table = function(){

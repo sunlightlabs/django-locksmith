@@ -60,6 +60,8 @@ form.signup input.checkbox { width: 15px; float:left; margin-right: 15px; }
 #key-list { float: left; }
 #key-list_info { float:left; margin-top: 25px;}
 
+div.message { width: 90%; text-align: center; }
+div.message span.message-text { display: inline-block; font-size: 18px; font-weight: bold; margin: 40px; }
 
 /* Technique from: 
     https://gist.github.com/domsammut/4605377
