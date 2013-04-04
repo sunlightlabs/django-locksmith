@@ -130,6 +130,7 @@ $(document).ready(function(){
 
         var state_anchor_proxy = ReactiveSettingsHistoryIface({
             'compression_vocabulary': ANALYTICS_VOCAB,
+            'replace_state': true,
             'settings': {
                 'page': page_settings,
                 'calls': calls_chart,
