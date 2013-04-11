@@ -42,6 +42,7 @@ class Api(models.Model):
     mode = models.IntegerField(choices=list(API_STATUSES), default=1)
     display_name = models.TextField('Display name of the API', blank=False, null=True)
     documentation_link = models.TextField('Link to this API\'s documentation', null=True, blank=True)
+    querybuilder_link = models.TextField('Link to this API\'s query builder page', null=True, blank=True)
     tags = TaggableManager()
 
     def __unicode__(self):
