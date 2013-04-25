@@ -64,8 +64,8 @@ class Key(models.Model):
 
     name = models.CharField('Name', max_length=100, blank=True, null=True)
     org_name = models.CharField('Organization Name', max_length=100, blank=True, null=True)
-    org_url = models.CharField('Organization URL', blank=False, null=False, max_length=200)
-    usage = models.TextField('Intended Usage', blank=False, null=False)
+    org_url = models.CharField('Organization URL', blank=True, null=True, max_length=200)
+    usage = models.TextField('Intended Usage', blank=True, null=True)
 
     promotable = models.BooleanField(default=False)
     issued_on = models.DateTimeField(default=datetime.datetime.now, editable=False)
