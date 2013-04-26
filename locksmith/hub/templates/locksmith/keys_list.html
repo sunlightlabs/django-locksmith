@@ -55,7 +55,16 @@
                     { 'asSorting': ['desc', 'asc'] }
                 ],
                 'asSorting': false,
-                'aaSorting': [[2, 'desc']]
+                'aaSorting': [[2, 'desc']],
+                'fnInitComplete': function(osettings, json){
+                    var s_container = $('#key-list_length');
+                    var select = s_container.find('select').clone(true);
+                    s_container.find('label').remove().end().append('Select Entries: ').append(select);
+                    
+                    var f_container = $('#key-list_filter');
+                    var input = f_container.find('input').attr('placeholder', 'search users').clone(true);
+                    f_container.find('label').remove().end().append(input);
+                }
             });
         });
     </script>
