@@ -7,6 +7,7 @@
 <p class="tip">Please fill out the form below and an API key will be emailed to you.</p>
 
 <form method="post" class="signup" action=".">
+    <input type="hidden" name="user" value="{{user.id}}" />
     {% if form.non_field_errors %}
     <ul class="error">
         {{form.non_field_errors.as_ul}}
@@ -17,17 +18,29 @@
         {% for field in form.visible_fields %}
         <p class="error">{{field.errors}}</p>
         
-        {% if field.name == 'terms_of_service' %}
-            <li id="signup_cues">
-                <label><input class="checkbox" type="checkbox" name="terms_of_service" />I agree to the <a href="#tos"> Terms of Service</a></label>
+        {% if field.name == 'email' %}
+            <li><label for="id_email">Email</label>
+            <input id="id_email" maxlength="75" name="email" type="text" placeholder="{{user.email}}" />
             </li>
         {% else %}
-            {% if field.name == 'promotable' %}
-                 <li>
-                <label><input class="checkbox" type="checkbox" name="promotable" />Allow Sunlight to promote my project via social media, blog, or feature on a website?</label>
+            {% if field.name == 'name' %}
+                <li><label for="id_name">Name</label>
+                <input id="id_name" maxlength="100" name="name" type="text" placeholder="{{user.first_name}} {{user.last_name}}" />
                 </li>
             {% else %}
-                <li>{{field.label_tag}} {{field}}</li> 
+                {% if field.name == 'terms_of_service' %}
+                    <li id="signup_cues">
+                        <label><input class="checkbox" type="checkbox" name="terms_of_service" />I agree to the <a href="#tos"> Terms of Service</a></label>
+                    </li>
+                {% else %}
+                    {% if field.name == 'promotable' %}
+                        <li>
+                        <label><input class="checkbox" type="checkbox" name="promotable" />Allow Sunlight to promote my project via social media, blog, or feature on a website?</label>
+                        </li>
+                    {% else %}
+                        <li>{{field.label_tag}} {{field}}</li> 
+                    {% endif %}
+                {% endif %}
             {% endif %}
         {% endif %}
         {% endfor %}

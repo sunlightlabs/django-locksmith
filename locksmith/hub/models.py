@@ -1,7 +1,8 @@
 import datetime
 from django.db import models
 from django.db.models.signals import post_save
-from django.forms import Form, ModelForm, ValidationError, BooleanField, EmailField
+from django import forms
+#from django.forms import Form, ModelForm, ValidationError, BooleanField, EmailField
 from django.contrib.auth.models import User
 from locksmith.common import (KEY_STATUSES,
                               PUB_STATUSES,
@@ -127,22 +128,23 @@ post_save.connect(kps_callback, sender=Key)
 
 # Key registration form
 
-class KeyForm(ModelForm):
+class KeyForm(forms.ModelForm):
     class Meta:
         model = Key
-        exclude = ('key', 'issued_on', 'status', 'pub_status')
-
-    terms_of_service = BooleanField(required=False)
+        exclude = ('key', 'issued_on', 'status', 'pub_status', 'user')
+    
+    terms_of_service = forms.BooleanField(required=False)
+#    user = forms.CharField(widget=forms.HiddenInput())
 
     def clean_email(self):
         if Key.objects.filter(email=self.cleaned_data['email']).count():
-            raise ValidationError('Email address already registered')
+            raise forms.ValidationError('Email address already registered')
         return self.cleaned_data['email']
 
     def clean(self):
         if not self.cleaned_data['terms_of_service']:
-            raise ValidationError('Please read and agree to the Terms of Service')
+            raise forms.ValidationError('Please read and agree to the Terms of Service')
         return self.cleaned_data
 
-class ResendForm(Form):
-    email = EmailField()
+class ResendForm(forms.Form):
+    email = forms.EmailField()
