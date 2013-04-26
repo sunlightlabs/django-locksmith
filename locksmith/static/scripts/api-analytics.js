@@ -16,7 +16,13 @@ $(document).ready(function(){
                               return ['<a href="' + c.profile_url + '">' + c.email + '</a>', c.key, c.calls];
                           }),
                 'asSorting': false,
-                'aaSorting': [[2, 'desc']]
+                'aaSorting': [[2, 'desc']],
+                'fnInitComplete': function(osettings, json){
+                    $('#key-list_filter').prepend('<h3>Top 100 Users of the API</h3>')
+                    var input = $('#key-list_filter').find('input').attr('placeholder', "search users").clone(true);
+                    $('#key-list_filter > label').remove()
+                    $('#key-list_filter').append(input);
+                }
             });
 
         });

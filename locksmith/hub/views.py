@@ -75,7 +75,7 @@ def reset_keys(request):
 
 def register(request,
              email_template='locksmith/registration_email.txt',
-             registration_template='locksmith/register.html',
+             registration_template=settings.LOCKSMITH_REGISTER,
              registered_template='locksmith/registered.html',
             ):
     '''
@@ -92,12 +92,10 @@ def register(request,
             newkey.save()
 
             send_key_email(newkey, email_template)
-            return render_to_response(registered_template, {'key': newkey},
-                                      context_instance=RequestContext(request))
+            return render_to_response(registered_template, {'key': newkey, 'LOCKSMITH_BASE_TEMPLATE': settings.LOCKSMITH_BASE_TEMPLATE }, context_instance=RequestContext(request))
     else:
         form = KeyForm()
-    return render_to_response(registration_template, {'form':form},
-                              context_instance=RequestContext(request))
+    return render_to_response(registration_template, {'form':form, 'LOCKSMITH_BASE_TEMPLATE': settings.LOCKSMITH_BASE_TEMPLATE}, context_instance=RequestContext(request))
 
 def send_key_email(key, email_template):
     email_msg = render_to_string(email_template, {'key': key})
@@ -337,7 +335,8 @@ def key_analytics(request, key):
                          for kps in key.pub_statuses.filter(api__push_enabled=True)],
         'endpoint_calls_display': 'chart',
         'api_calls_display': 'chart',
-        'api_calls_interval': 'yearly'
+        'api_calls_interval': 'yearly',
+        'LOCKSMITH_BASE_TEMPLATE': settings.LOCKSMITH_BASE_TEMPLATE
     }
     ctx['json_options'] = json.dumps(ctx)
     ctx['key'] = key
@@ -377,7 +376,8 @@ def keys_leaderboard(request,
             else:
                 month = 10
     ctx = {
-        'latest_qtr_begin': datetime.datetime(year, month, 1).strftime('%Y-%m-%d')
+        'latest_qtr_begin': datetime.datetime(year, month, 1).strftime('%Y-%m-%d'),
+        'LOCKSMITH_BASE_TEMPLATE': settings.LOCKSMITH_BASE_TEMPLATE
     }
     if api is not None:
         ctx['api'] = {'id': api.id, 'name': api.name}

@@ -1,7 +1,8 @@
 import datetime
 from django.db import models
 from django.db.models.signals import post_save
-from django.forms import Form, ModelForm, ValidationError, BooleanField, EmailField
+from django import forms
+#from django.forms import Form, ModelForm, ValidationError, BooleanField, EmailField
 from django.contrib.auth.models import User
 from locksmith.common import (KEY_STATUSES,
                               PUB_STATUSES,
@@ -42,8 +43,8 @@ class Api(models.Model):
     mode = models.IntegerField(choices=list(API_STATUSES), default=1)
     display_name = models.TextField('Display name of the API', blank=False, null=True)
     documentation_link = models.TextField('Link to this API\'s documentation', null=True, blank=True)
+    tags = TaggableManager(blank=True)
     querybuilder_link = models.TextField('Link to this API\'s query builder page', null=True, blank=True)
-    tags = TaggableManager()
 
     def __unicode__(self):
         return self.name
@@ -64,8 +65,8 @@ class Key(models.Model):
 
     name = models.CharField('Name', max_length=100, blank=True, null=True)
     org_name = models.CharField('Organization Name', max_length=100, blank=True, null=True)
-    org_url = models.CharField('Organization URL', blank=False, null=False, max_length=200)
-    usage = models.TextField('Intended Usage', blank=False, null=False)
+    org_url = models.CharField('Organization URL', blank=True, null=True, max_length=200)
+    usage = models.TextField('Intended Usage', blank=True, null=True)
 
     promotable = models.BooleanField(default=False)
     issued_on = models.DateTimeField(default=datetime.datetime.now, editable=False)
@@ -127,22 +128,23 @@ post_save.connect(kps_callback, sender=Key)
 
 # Key registration form
 
-class KeyForm(ModelForm):
+class KeyForm(forms.ModelForm):
     class Meta:
         model = Key
-        exclude = ('key', 'issued_on', 'status', 'pub_status')
-
-    terms_of_service = BooleanField(required=False)
+        exclude = ('key', 'issued_on', 'status', 'pub_status', 'user')
+    
+    terms_of_service = forms.BooleanField(required=False)
+#    user = forms.CharField(widget=forms.HiddenInput())
 
     def clean_email(self):
         if Key.objects.filter(email=self.cleaned_data['email']).count():
-            raise ValidationError('Email address already registered')
+            raise forms.ValidationError('Email address already registered')
         return self.cleaned_data['email']
 
     def clean(self):
         if not self.cleaned_data['terms_of_service']:
-            raise ValidationError('Please read and agree to the Terms of Service')
+            raise forms.ValidationError('Please read and agree to the Terms of Service')
         return self.cleaned_data
 
-class ResendForm(Form):
-    email = EmailField()
+class ResendForm(forms.Form):
+    email = forms.EmailField()
