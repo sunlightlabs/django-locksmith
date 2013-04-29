@@ -41,6 +41,7 @@ class Api(models.Model):
     description = models.TextField('Description', blank=True)
     status = models.IntegerField(choices=API_OPERATING_STATUSES, default=1)
     mode = models.IntegerField(choices=list(API_STATUSES), default=1)
+    status_message = models.TextField('A more detailed status message', null=True, blank=True)
     display_name = models.TextField('Display name of the API', blank=False, null=True)
     documentation_link = models.TextField('Link to this API\'s documentation', null=True, blank=True)
     tags = TaggableManager(blank=True)
