@@ -5,7 +5,7 @@ from collections import defaultdict
 from django.conf import settings
 from django.core.mail import send_mail
 from django.db.models import Sum, Max
-from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFound
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFound, Http404
 from django.shortcuts import get_object_or_404, render_to_response, render
 from django.template import RequestContext
 from django.template.loader import render_to_string
@@ -325,7 +325,8 @@ def key_analytics(request, key):
     key = get_object_or_404(Key, key=key)
 
     if request.user.email != key.email and request.user.is_staff != True:
-        return render(request, 'locksmith/key_analytics_unauthorized.html', {'LOCKSMITH_BASE_TEMPLATE': settings.LOCKSMITH_BASE_TEMPLATE})
+        raise Http404
+#        return render(request, 'locksmith/key_analytics_unauthorized.html', {'LOCKSMITH_BASE_TEMPLATE': settings.LOCKSMITH_BASE_TEMPLATE})
 
     ctx = {
         'key': key.key,
