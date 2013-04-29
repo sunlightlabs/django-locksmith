@@ -37,7 +37,7 @@ figure.analytics-chart { position: relative; margin: 0; }
 #leaderboard .icon-arrow-up,
 #leaderboard .icon-minus,
 #leaderboard .icon-star,
-#leaderboard .icon-star-empty { opacity: 0.6; margin: 6px; auto; }
+#leaderboard .icon-star-empty { opacity: 1.0; margin: 6px; auto; }
 
 #calls, #endpoints, #users { min-height: 450px; margin-top:40px; }
 .dataTables_filter { margin-bottom: 20px; }
