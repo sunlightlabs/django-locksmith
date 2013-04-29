@@ -325,7 +325,7 @@ def key_analytics(request, key):
     key = get_object_or_404(Key, key=key)
 
     if request.user.email != key.email and request.user.is_staff != True:
-        return render(request, 'locksmith/key_analytics_unauthorized.html')
+        return render(request, 'locksmith/key_analytics_unauthorized.html', {'LOCKSMITH_BASE_TEMPLATE': settings.LOCKSMITH_BASE_TEMPLATE})
 
     ctx = {
         'key': key.key,
