@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "locksmith/base.html" %}
 {% block title %}API Registration{% endblock title %}
 
 {% block content %}
@@ -6,23 +6,46 @@
 <h2 class="withTip">Sign Up</h2>
 <p class="tip">Please fill out the form below and an API key will be emailed to you.</p>
 
-<form method="post" action=".">
+<p>Already registered? <a href="{% url "resend" %}">Resend Key</a></p>
+<form method="post" class="signup" action=".">
+    <input type="hidden" name="user" value="{{user.id}}" />
     {% if form.non_field_errors %}
-    <ul class="error">
         {{form.non_field_errors.as_ul}}
-        <li>Already registered? <a href="{% url resend %}">Resend Key</a></li>
-    </ul>
     {% endif %}
     <ul>
         {% for field in form.visible_fields %}
-        {% if field.name != 'terms_of_service' %}
-        <p class="error">{{field.errors}}</p>
-        <li>{{field.label_tag}} {{field}}</li> 
+        
+        {% if field.name == 'email' %}
+            <li>
+
+            <label for="id_email">Email</label>
+            <input id="id_email" maxlength="75" name="email" type="text" value="{{user.email}}" />
+            {{field.errors}}
+            </li>
+        {% else %}
+            {% if field.name == 'name' %}
+                <li><label for="id_name">Name</label>
+                <input id="id_name" maxlength="100" name="name" type="text" value="{{user.first_name}} {{user.last_name}}" />
+                {{field.errors}}
+                </li>
+            {% else %}
+                {% if field.name == 'terms_of_service' %}
+                    <li id="signup_cues">
+                        <label><input class="checkbox" type="checkbox" name="terms_of_service" />I agree to the <a href="#tos"> Terms of Service</a>{{field.errors}}</label>
+                    </li>
+                {% else %}
+                    {% if field.name == 'promotable' %}
+                        <li>
+                        <label><input class="checkbox" type="checkbox" name="promotable" checked="checked" />Allow Sunlight to promote my project via social media, blog, or feature on a website? {{field.errors}}</label>
+                        </li>
+                    {% else %}
+                        <li>{{field.label_tag}} {{field}} {{field.errors}}</li> 
+                    {% endif %}
+                {% endif %}
+            {% endif %}
         {% endif %}
         {% endfor %}
-    <li id="signup_cues">
-        <label><input class="checkbox" type="checkbox" name="terms_of_service" />I agree to the <a href="#tos"> Terms of Service</a></label>
-    </li>
+    
     <li>
         <button class="signUp" id="user_submit" type="submit" value="Sign Up" name="commit">
             <span>Sign Up</span>

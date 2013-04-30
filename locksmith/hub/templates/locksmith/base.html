@@ -1,7 +1,18 @@
-{% extends "base.html" %}
+{% extends LOCKSMITH_BASE_TEMPLATE %}
 
-{% block extrahead %}
-    <script src="{{MEDIA_URL}}scripts/jquery.min.js" type="text/javascript"></script>
-    <script src="{{MEDIA_URL}}scripts/highcharts.js" type="text/javascript"></script>
-    <script src="{{MEDIA_URL}}scripts/excanvas.compiled.js" type="text/javascript"></script>
+{% block css %}
+    {{ block.super }}
+    <link href="{{STATIC_URL}}styles/locksmith.css" rel="stylesheet" media="screen">
 {% endblock %}
+
+{% block js %}
+    {{ block.super }}
+    <script src="{{STATIC_URL}}scripts/underscore-min.js" type="text/javascript"></script>
+    <script src="{{STATIC_URL}}scripts/jquery-1.8.3.min.js" type="text/javascript"></script>
+    <script src="{{STATIC_URL}}scripts/highcharts.js" type="text/javascript"></script>
+    <script src="{{STATIC_URL}}scripts/excanvas.compiled.js" type="text/javascript"></script>
+    <script src="{{STATIC_URL}}bootstrap/js/bootstrap.js" type="text/javascript"></script>
+{% endblock %}
+
+{% block content %}
+{% endblock content %}

@@ -1,10 +1,11 @@
+import json
 import datetime
 import uuid
 from collections import defaultdict
 from django.conf import settings
 from django.core.mail import send_mail
-from django.db.models import Sum, Max
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.db.models import Sum
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFound, Http404
 from django.shortcuts import get_object_or_404, render_to_response, render
 from django.template import RequestContext
 from django.template.loader import render_to_string
@@ -13,9 +14,9 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib import messages
 from locksmith.common import get_signature, PUB_STATUSES, UNPUBLISHED
-from locksmith.hub.models import Api, Key, KeyForm, Report, ResendForm
 from locksmith.hub.tasks import push_key, replicate_key
-from django.db.models import Sum
+from locksmith.hub.models import Api, Key, KeyForm, Report, ResendForm, resolve_model
+from locksmith.hub.common import cycle_generator
 
 @require_POST
 def report_calls(request):
@@ -47,7 +48,7 @@ def report_calls(request):
         if not c:
             report.calls = calls
             report.save()
-    except Exception, e:
+    except Exception:
         raise
 
     return HttpResponse('OK')
@@ -78,7 +79,7 @@ def reset_keys(request):
 
 def register(request,
              email_template='locksmith/registration_email.txt',
-             registration_template='locksmith/register.html',
+             registration_template=settings.LOCKSMITH_REGISTER,
              registered_template='locksmith/registered.html',
             ):
     '''
@@ -95,12 +96,10 @@ def register(request,
             newkey.save()
 
             send_key_email(newkey, email_template)
-            return render_to_response(registered_template, {'key': newkey},
-                                      context_instance=RequestContext(request))
+            return render_to_response(registered_template, {'key': newkey, 'LOCKSMITH_BASE_TEMPLATE': settings.LOCKSMITH_BASE_TEMPLATE }, context_instance=RequestContext(request))
     else:
         form = KeyForm()
-    return render_to_response(registration_template, {'form':form},
-                              context_instance=RequestContext(request))
+    return render_to_response(registration_template, {'form':form, 'LOCKSMITH_BASE_TEMPLATE': settings.LOCKSMITH_BASE_TEMPLATE}, context_instance=RequestContext(request))
 
 def send_key_email(key, email_template):
     email_msg = render_to_string(email_template, {'key': key})
@@ -210,26 +209,6 @@ def _dictlist_to_lists(dl, *keys):
             lists[i].append(x)
     return lists
 
-def _cycle_generator(cycle, step=1, begin=(0, 0), end=None):
-    '''
-        Generates pairs of values representing a cycle. E.g. clock hours for a day could
-        could be generated with:
-            _cycle_generator(cycle=(1, 12), step=1, begin=(0, 1), end=(23, 12))
-                => (0, 1), (0, 2) ... (0, 12), (1, 1), (1, 2)
-    '''
-    (cycle_begin, cycle_end) = cycle
-    (major, minor) = begin
-    (end_major, end_minor) = end if end is not None else (None, None)
-
-    while True:
-        if end is not None and (major > end_major or (major == end_major and minor > end_minor)):
-            return
-        yield (major, minor)
-        minor += step
-        if minor > cycle_end:
-            major += 1
-            minor = cycle_begin
-
 def _cumulative_by_date(model, datefield):
     '''
         Given a model and date field, generate monthly cumulative totals.
@@ -248,7 +227,7 @@ def _cumulative_by_date(model, datefield):
     
     accumulator = 0 
     cumulative_counts = []
-    for (year, month) in _cycle_generator(cycle=(1, 12), begin=earliest_month, end=latest_month):
+    for (year, month) in cycle_generator(cycle=(1, 12), begin=earliest_month, end=latest_month):
         mcount = monthly_counts.get((year, month), 0)
         accumulator += mcount
         cumulative_counts.append([datetime.date(year, month, 1), accumulator])
@@ -260,90 +239,157 @@ def _cumulative_by_date(model, datefield):
 staff_required = user_passes_test(lambda u: u.is_staff)
 
 @staff_required
-def analytics_index(request):
-    c = {}
-    c['total_calls'] = 0
-    c['total_month_calls'] = 0
-    c['total_ytd_calls'] = 0
+def analytics_index(request,
+                    keys_issued_display='chart', keys_issued_interval='yearly',
+                    api_calls_display='chart'):
+    ignore_internal_keys = request.GET.get('ignore_internal_keys', True)
+    ignore_deprecated_apis = request.GET.get('ignore_deprecated_apis', True)
+    ignore_inactive_keys = request.GET.get('ignore_inactive_keys', True)
 
-    now = datetime.datetime.now()
-    month_ago = now - datetime.timedelta(30)
+    new_users = Key.objects.filter(issued_on__gte=(datetime.datetime.today()+datetime.timedelta(days=-14))).order_by('-issued_on')
 
-    apis = Api.objects.all().annotate(total_calls=Sum('reports__calls'))
-    for api in apis:
-        api.month_calls = api.reports.filter(date__gte=month_ago).aggregate(calls=Sum('calls'))['calls']
-        api.ytd_calls = api.reports.filter(date__year=now.year).aggregate(calls=Sum('calls'))['calls']
-        c['total_calls'] += api.total_calls or 0
-        c['total_month_calls'] += api.month_calls or 0
-        c['total_ytd_calls'] += api.ytd_calls or 0
-    c['apis'] = apis
+    six_month = Key.objects.filter(issued_on__gte=(datetime.datetime.today()+datetime.timedelta(days=-4, weeks=-24)), issued_on__lte=(datetime.datetime.today()+datetime.timedelta(days=3, weeks=-24))).order_by('-issued_on')
+    six_month_stats = []
 
-    c['keys_total'] = Key.objects.all().count()
-    c['keys_month'] = Key.objects.filter(issued_on__gte=month_ago).count()
-    c['keys_ytd'] = Key.objects.filter(issued_on__year=now.year).count()
-    c['keys_cumulative'] = _cumulative_by_date(Key, 'issued_on')
+    for sm in six_month:
+        six_month_stats.append((sm, Report.objects.filter(key_id=sm.id).aggregate(Sum('calls'))['calls__sum'] ))
 
-    return render_to_response('locksmith/analytics_index.html', c,
-                              context_instance=RequestContext(request))
+    six_month = sorted(six_month_stats, key=lambda tup: tup[1], reverse=True)
+
+    apis = Api.objects.order_by('display_name') 
+
+    options = {
+        'ignore_internal_keys': ignore_internal_keys,
+        'ignore_deprecated_apis': ignore_deprecated_apis,
+        'ignore_inactive_keys': ignore_inactive_keys,
+        'api_calls_display': api_calls_display,
+        'keys_issued_display': keys_issued_display,
+        'keys_issued_interval': keys_issued_interval
+    }
+    ctx = {
+        'options': options,
+        'json_options': json.dumps(options),
+        'new_users': new_users,
+        'six_month': six_month,
+        'apis': apis,
+        'LOCKSMITH_BASE_TEMPLATE': settings.LOCKSMITH_BASE_TEMPLATE
+    }
+    template = getattr(settings,
+                       'LOCKSMITH_ANALYTICS_INDEX_TEMPLATE',
+                       'locksmith/analytics_index.html')
+    return render(request, template, ctx)
 
 @staff_required
-def api_analytics(request, apiname, year=None, month=None):
-    api = get_object_or_404(Api, name=apiname)
-    endpoint_q = api.reports.values('endpoint').annotate(calls=Sum('calls')).order_by('-calls')
-    user_q = api.reports.values('key__email').exclude(key__status='S').annotate(calls=Sum('calls')).order_by('-calls')
-    date_q = api.reports.values('date').annotate(calls=Sum('calls')).order_by('date')
+def api_analytics(request,
+                      api_calls_display='chart', api_calls_interval='yearly',
+                      api_id=None, api_name=None):
+    if api_id is None and api_name is None:
+        return HttpResponseBadRequest('Must specify API id or name.')
 
-    date_constraint = {}
-    if year:
-        date_constraint['date__year'] = year
-        if month:
-            date_constraint['date__month'] = month
-        endpoint_q = endpoint_q.filter(**date_constraint)
-        user_q = user_q.filter(**date_constraint)
-        date_q = date_q.filter(**date_constraint)
+    try:
+        api = resolve_model(Api, [('id', api_id), ('name', api_name)])
+    except Api.DoesNotExist:
+        return HttpResponseNotFound('The requested API was not found.')
 
-    dates = api.reports.filter(**date_constraint).dates('date', 'month')
-    monthlies = []
-    for d in dates:
-        item = api.reports.filter(date__year=d.year, date__month=d.month).aggregate(calls=Sum('calls'))
-        item['date'] = d
-        monthlies.append(item)
+    ignore_internal_keys = request.GET.get('ignore_internal_keys', True)
 
-    c = {'api': api, 'year': year, 'month': month}
-    c['endpoints'], c['endpoint_calls'] = _dictlist_to_lists(endpoint_q, 'endpoint', 'calls')
-    #c['users'], c['user_calls'] = _dictlist_to_lists(user_q[:50], 'key__email', 'calls')
-    c['user_calls'] = user_q[:50]
-    c['monthlies'] = monthlies
-    c['timeline'] = date_q
-
-    return render_to_response('locksmith/api_analytics.html', c,
-                              context_instance=RequestContext(request))
+    options = {
+        'api': { 'id': api.id, 'name': api.name },
+        'ignore_internal_keys': ignore_internal_keys,
+        'api_calls_display': api_calls_display,
+        'api_calls_interval': api_calls_interval
+    }
+    ctx = {
+        'api': api,
+        'options': options,
+        'json_options': json.dumps(options),
+        'LOCKSMITH_BASE_TEMPLATE': settings.LOCKSMITH_BASE_TEMPLATE
+    }
+    template = getattr(settings,
+                       'LOCKSMITH_API_ANALYTICS_TEMPLATE',
+                       'locksmith/api_analytics.html')
+    return render(request, template, ctx)
 
 @staff_required
 def key_list(request):
+    options = {
+    }
+    ctx = {
+        'options': options,
+        'json_options': json.dumps(options),
+        'LOCKSMITH_BASE_TEMPLATE': settings.LOCKSMITH_BASE_TEMPLATE
+    }
+    template = getattr(settings,
+                       'LOCKSMITH_KEYS_LIST_TEMPLATE',
+                       'locksmith/leys_list.html')
+    return render(request, template, ctx)
 
-    min_calls = int(request.GET.get('min_calls', 1))
-
-    keys = Key.objects.all().annotate(calls=Sum('reports__calls'),
-                                      latest_call=Max('reports__date'))
-    keys = keys.filter(calls__gte=min_calls)
-
-    context = {'keys': keys, 'min_calls': min_calls}
-
-    return render_to_response('locksmith/keys_list.html', context,
-                              context_instance=RequestContext(request))
-
-@staff_required
+@login_required
 def key_analytics(request, key):
     key = get_object_or_404(Key, key=key)
-    endpoint_q = key.reports.values('api__name', 'endpoint').annotate(calls=Sum('calls')).order_by('-calls')
-    endpoints = [{'endpoint':'.'.join((d['api__name'], d['endpoint'])),
-                  'calls': d['calls']} for d in endpoint_q]
-    date_q = key.reports.values('date').annotate(calls=Sum('calls')).order_by('date')
 
-    c = {'key': key}
-    c['endpoints'], c['endpoint_calls'] = _dictlist_to_lists(endpoints, 'endpoint', 'calls')
-    c['timeline'] = date_q
+    if request.user.email != key.email and request.user.is_staff != True:
+        raise Http404
+#        return render(request, 'locksmith/key_analytics_unauthorized.html', {'LOCKSMITH_BASE_TEMPLATE': settings.LOCKSMITH_BASE_TEMPLATE})
 
-    return render_to_response('locksmith/key_analytics.html', c,
-                              context_instance=RequestContext(request))
+    ctx = {
+        'key': key.key,
+        'pub_statuses': [{'api': {'name': kps.api.name},
+                          'status': kps.status,
+                          'status_label': PUB_STATUSES[kps.status][1]}
+                         for kps in key.pub_statuses.filter(api__push_enabled=True)],
+        'endpoint_calls_display': 'chart',
+        'api_calls_display': 'chart',
+        'api_calls_interval': 'yearly',
+        'LOCKSMITH_BASE_TEMPLATE': settings.LOCKSMITH_BASE_TEMPLATE
+    }
+    ctx['json_options'] = json.dumps(ctx)
+    ctx['key'] = key
+    ctx['LOCKSMITH_BASE_TEMPLATE'] = settings.LOCKSMITH_BASE_TEMPLATE
+    template = getattr(settings,
+                       'LOCKSMITH_KEY_ANALYTICS_TEMPLATE',
+                       'locksmith/key_analytics.html')
+    return render(request, template, ctx)
+
+
+@staff_required
+def keys_leaderboard(request,
+                     year=None, month=None,
+                     api_id=None, api_name=None):
+    try:
+        api = resolve_model(Api, [('id', api_id), ('name', api_name)])
+    except Api.DoesNotExist:
+        api = None
+
+    if year is not None and month is not None:
+        year = int(year)
+        month = int(month)
+        if month not in range(1, 13):
+            return HttpResponseBadRequest("Month must be between 1 and 12, was {m}".format(m=unicode(month)))
+    else:
+        year = datetime.date.today().year
+        month = datetime.date.today().month
+        #adjust start of quarter back 3 months, so we don't include partially measured, current month
+        if month > 3:
+            month -= 3
+        else:
+            year -= 1
+            if month == 3:
+                month = 12
+            if month == 2:
+                month = 11
+            else:
+                month = 10
+    ctx = {
+        'latest_qtr_begin': datetime.datetime(year, month, 1).strftime('%Y-%m-%d'),
+        'LOCKSMITH_BASE_TEMPLATE': settings.LOCKSMITH_BASE_TEMPLATE
+    }
+    if api is not None:
+        ctx['api'] = {'id': api.id, 'name': api.name}
+    ctx['json_options'] = json.dumps(ctx)
+    ctx['LOCKSMITH_BASE_TEMPLATE'] = settings.LOCKSMITH_BASE_TEMPLATE
+    template = getattr(settings,
+                       'LOCKSMITH_KEYS_LEADERBOARD_TEMPLATE',
+                       'locksmith/leaderboard.html')
+    return render(request, template, ctx)
+

@@ -1,0 +1,261 @@
+svg text {
+    font-family: 'Droid Sans';
+    text-rendering: optimizeLegibility;
+}
+
+figure.analytics-chart { position: relative; margin: 0; }
+.analytics-chart { min-height: 400px; height: 450px; height: auto !important; fill: transparent; stroke: black; }
+.analytics-chart figcaption
+    { font-weight: bold; font-size: 16px; letter-spacing: 110%; }
+.analytics-chart g.bars rect.bar { fill: white; stroke: rgb(80, 80, 220); }
+.analytics-chart g.axis > g > text { stroke: none; fill: #6C6764; font-weight: normal; font-size: 12px; }
+.analytics-chart line.x.gridline { stroke: rgb(200, 200, 200); }
+.analytics-chart line.y.gridline { stroke: rgb(200, 200, 200); }
+.analytics-chart path.domain { stroke: rgb(200, 200, 200); fill: none; }
+.analytics-chart line.x.gridline { stroke: rgb(200, 200, 200); }
+.analytics-chart line.y.gridline { stroke: rgb(200, 200, 200); }
+.analytics-chart .tooltip { z-index: 9999; background-image; none; background-color: rgb(250, 250, 250); border: solid 2px rgb(80, 80, 200); }
+
+.analytics-table td.dependent { text-align: right; }
+.analytics-table .total { font-weight: bold; }
+
+.reactive-settings .spacer { margin: 0 1em; color: rgb(200, 200, 200); }
+.reactive-settings .spacer-narrow { margin: 0 0.5em; }
+.reactive-settings .spacer-wide { margin: 0 3em; }
+
+#leaderboard table { float: right; width: 300px; margin: 5px; }
+
+#leaderboard caption { border-style: solid; border-color: transparent; border-width: 0 0 10px 0; font-size: 125%; font-weight: bold; text-align: left; }
+#leaderboard td { overflow: hidden; }
+#leaderboard th, #leaderboard td { padding: 0; margin: 0; }
+#leaderboard td.rank { max-width: 10px; padding: 5px; text-align: right; }
+#leaderboard td.diff { max-width: 10px; padding: 5px; text-align: center; }
+#leaderboard td.email { max-width: 190px; }
+#leaderboard a.key { color: #66615E; }
+#leaderboard .highlight { font-weight; bold; background-color: yellow; }
+#leaderboard .icon-arrow-down,
+#leaderboard .icon-arrow-up,
+#leaderboard .icon-minus,
+#leaderboard .icon-star,
+#leaderboard .icon-star-empty { opacity: 1.0; margin: 6px; auto; }
+
+#calls, #endpoints, #users { min-height: 450px; margin-top:40px; }
+.dataTables_filter { margin-bottom: 20px; }
+#key-list  { width: 945px; } 
+
+.expand { display:block; }
+form.signup input, form.signup textarea { width: 400px; }
+form.signup input.checkbox { width: 15px; float:left; margin-right: 15px; }
+#graphs span.btn-group { margin-right: 25px; margin-left: 10px; }
+#graphs .well-small { float:left; width: 870px; }
+#graphs span.labeltext { margin-top: 13px; }
+#graphs figure { clear: both; }
+#graphs figcaption, #graphs caption { margin: 20px auto; width: 400px; font-weight: bold; color: #66615E; }
+#graphs button.btn { padding: 5px; margin: 5px; font-size: 1em; background-color: #E6E6E6; color: black; background-image:none;}
+#graphs button.active { color: white; background-color: #CB610B; }
+#graphs table { min-width: 945px; margin-bottom: 55px; margin-top:65px;}
+
+#key-list_wrapper select { width: 50px; }
+#key-list_paginate { margin-top: 20px; }
+#key-list { float: left; }
+#key-list_info { float:left; margin-top: 25px;}
+
+div.message { width: 90%; text-align: center; }
+div.message span.message-text { display: inline-block; font-size: 18px; font-weight: bold; margin: 40px; }
+
+/* Technique from: 
+    https://gist.github.com/domsammut/4605377
+    http://codepen.io/domsammut/pen/eJbly
+*/
+@keyframes rotate-loading {
+    0% {
+        transform: rotate(0deg);
+        -ms-transform: rotate(0deg);
+        -webkit-transform: rotate(0deg);
+        -o-transform: rotate(0deg);
+        -moz-transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+        -ms-transform: rotate(360deg);
+        -webkit-transform: rotate(360deg);
+        -o-transform: rotate(360deg);
+        -moz-transform: rotate(360deg);
+    }
+}
+@-moz-keyframes rotate-loading {
+    0%  {
+        transform: rotate(0deg);
+        -ms-transform: rotate(0deg);
+        -webkit-transform: rotate(0deg);
+        -o-transform: rotate(0deg);
+        -moz-transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+        -ms-transform: rotate(360deg);
+        -webkit-transform: rotate(360deg);
+        -o-transform: rotate(360deg);
+        -moz-transform: rotate(360deg);
+    }
+}
+@-webkit-keyframes rotate-loading {
+    0% { 
+        transform: rotate(0deg);
+        -ms-transform: rotate(0deg);
+        -webkit-transform: rotate(0deg);
+        -o-transform: rotate(0deg);
+        -moz-transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+        -ms-transform: rotate(360deg);
+        -webkit-transform: rotate(360deg);
+        -o-transform: rotate(360deg);
+        -moz-transform: rotate(360deg);
+    }
+}
+@-o-keyframes rotate-loading {
+    0%  {
+        transform: rotate(0deg);
+        -ms-transform: rotate(0deg);
+        -webkit-transform: rotate(0deg);
+        -o-transform: rotate(0deg);
+        -moz-transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+        -ms-transform: rotate(360deg);
+        -webkit-transform: rotate(360deg);
+        -o-transform: rotate(360deg);
+        -moz-transform: rotate(360deg);
+    }
+}
+@keyframes rotate-loading {
+    0%  {
+        transform: rotate(0deg);
+        -ms-transform: rotate(0deg);
+        -webkit-transform: rotate(0deg);
+        -o-transform: rotate(0deg);
+        -moz-transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+        -ms-transform: rotate(360deg);
+        -webkit-transform: rotate(360deg);
+        -o-transform: rotate(360deg);
+        -moz-transform: rotate(360deg);
+    }
+}
+@-moz-keyframes rotate-loading {
+    0%  {
+        transform: rotate(0deg);
+        -ms-transform: rotate(0deg);
+        -webkit-transform: rotate(0deg);
+        -o-transform: rotate(0deg);
+        -moz-transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+        -ms-transform: rotate(360deg);
+        -webkit-transform: rotate(360deg);
+        -o-transform: rotate(360deg);
+        -moz-transform: rotate(360deg);
+    }
+}
+@-webkit-keyframes rotate-loading {
+    0%  {
+        transform: rotate(0deg);
+        -ms-transform: rotate(0deg);
+        -webkit-transform: rotate(0deg);
+        -o-transform: rotate(0deg);
+        -moz-transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+        -ms-transform: rotate(360deg);
+        -webkit-transform: rotate(360deg);
+        -o-transform: rotate(360deg);
+        -moz-transform: rotate(360deg);
+    }
+}
+@-o-keyframes rotate-loading {
+
+    0%  {
+        transform: rotate(0deg);
+        -ms-transform: rotate(0deg);
+        -webkit-transform: rotate(0deg);
+        -o-transform: rotate(0deg);
+        -moz-transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+        -ms-transform: rotate(360deg);
+        -webkit-transform: rotate(360deg);
+        -o-transform: rotate(360deg);
+        -moz-transform: rotate(360deg);
+    }
+}
+@keyframes loading-text-opacity {
+    0%   {opacity: 1;}
+    20%  {opacity: 0;}
+    50%  {opacity: 0;}
+    100% {opacity: 1;}
+}
+@-moz-keyframes loading-text-opacity {
+    0%   {opacity: 1;}
+    20%  {opacity: 0;}
+    50%  {opacity: 0;}
+    100% {opacity: 1;}
+}
+@-webkit-keyframes loading-text-opacity {
+    0%   {opacity: 1;}
+    20%  {opacity: 0;}
+    50%  {opacity: 0;}
+    100% {opacity: 1;}
+}
+@-o-keyframes loading-text-opacity {
+    0%   {opacity: 1;}
+    20%  {opacity: 0;}
+    50%  {opacity: 0;}
+    100% {opacity: 1;}
+}
+.loading-container,
+.loading {
+    height: 100px;
+    position: relative;
+    width: 100px;
+    border-radius: 100%;
+}
+.loading-container {
+    margin: 40px auto;
+}
+.loading {
+    border: 2px solid transparent;
+    border-color: transparent #6C6764 transparent #6C6764;
+    -moz-animation: rotate-loading 1.5s linear 0s infinite normal;
+    -moz-transform-origin: 50% 50%;
+    -o-animation: rotate-loading 1.5s linear 0s infinite normal;
+    -o-transform-origin: 50% 50%;
+    -webkit-animation: rotate-loading 1.5s linear 0s infinite normal;
+    -webkit-transform-origin: 50% 50%;
+    animation: rotate-loading 1.5s linear 0s infinite normal;
+    transform-origin: 50% 50%;
+}
+.loading-text {
+    -moz-animation: loading-text-opacity 2s linear 0s infinite normal;
+    -o-animation: loading-text-opacity 2s linear 0s infinite normal;
+    -webkit-animation: loading-text-opacity 2s linear 0s infinite normal;
+    animation: loading-text-opacity 2s linear 0s infinite normal;
+    color: #635f5c;
+    font-family: "Helvetica Neue", "Helvetica", "arial";
+    font-size: 12px;
+    font-weight: bold;
+    margin-top: 45px;
+    opacity: 1;
+    position: absolute;
+    text-align: center;
+    text-transform: uppercase;
+    top: 0;
+    width: 100px;
+}
