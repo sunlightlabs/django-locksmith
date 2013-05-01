@@ -19,9 +19,16 @@ All code is under a BSD-style license, see LICENSE for details.
 Requirements
 ============
 
+For locksmith.hub:
+* python >= 2.6
+* Django >= 1.4
+* South >= 0.7.6
+* django-taggit
+* celery >= 3.0.16
+
+For locksmith.auth and locksmith.mongoauth:
 * python >= 2.5
 * Django >= 1.2
-* django-taggit
 
 locksmith.hub
 ==============
@@ -39,7 +46,23 @@ In ``AUTHENTICATION_BACKENDS`` add 'locksmith.hub.auth_backend.LocksmithBackend'
 
 This will make the locksmith.hub models and management command available and allow users to sign in using their email and apikey.
 
-Additionally there is one optional setting: ``LOCKSMITH_EMAIL_SUBJECT`` which if set will be used as the subject of the email sent when users request a key. (defaults to 'API Registration')
+Optional settings:
+
+``LOCKSMITH_EMAIL_SUBJECT``: if set will be used as the subject of the email sent when users request a key. (defaults to 'API Registration')
+``LOCKSMITH_REPLICATED_APIS``: Locksmith has two key synchronization mechanisms. The older, stateful mechanism is used by default. To opt into using the newer, stateless mechanism for an API, add the name of the API here. This is a temporary setting. In 0.8 all APIs will use the new mechanism and this setting will prompt a deprecation warning.
+
+Templates
+---------
+The locksmith.hub app provides a set of front-end templates that can be integrated into your website. To provide for maximum flexibility, these templates extend your project base template. You should specify the path to that base template using ``LOCKSMITH_BASE_TEMPLATE``.
+
+Each of the locksmith.hub views allow you to specify a view to render instead of the default. This allows you to use {% include %} tags in both the base and top-level template. If you need to functionality you can override each view's template using these settings:
+
+``LOCKSMITH_ANALYTICS_INDEX_TEMPLATE``
+``LOCKSMITH_API_ANALYTICS_TEMPLATE``
+``LOCKSMITH_KEY_ANALYTICS_TEMPLATE``
+``LOCKSMITH_KEYS_LIST_TEMPLATE``
+``LOCKSMITH_KEYS_LEADERBOARD_TEMPLATE``
+``LOCKSMITH_REGISTER_TEMPLATE``
 
 URLs
 ----

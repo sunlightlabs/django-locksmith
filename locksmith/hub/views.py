@@ -79,7 +79,7 @@ def reset_keys(request):
 
 def register(request,
              email_template='locksmith/registration_email.txt',
-             registration_template=settings.LOCKSMITH_REGISTER,
+             registration_template=getattr(settings, 'LOCKSMITH_REGISTER_TEMPLATE', 'locksmith/register.html'),
              registered_template='locksmith/registered.html',
             ):
     '''
