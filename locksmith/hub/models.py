@@ -57,7 +57,7 @@ class Key(models.Model):
     '''
         API key to be handed out to Apis
     '''
-    user = models.OneToOneField(User, null=True, related_name='api_key')
+    user = models.OneToOneField(User, null=True, blank=True, related_name='api_key')
 
     key = models.CharField(max_length=32)
     email = models.EmailField(unique=True)
