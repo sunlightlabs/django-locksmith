@@ -8,6 +8,7 @@ admin.site.register(Api, ApiAdmin)
 
 class KeyAdmin(admin.ModelAdmin):
     list_display = ('key', 'status', 'email', 'name', 'org_name', 'org_url')
+    search_fields = ('key', 'email', 'name', 'org_name')
 
     def save_model(self, request, obj, form, change):
         obj.save()
