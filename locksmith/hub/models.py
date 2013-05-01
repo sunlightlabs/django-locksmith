@@ -44,6 +44,7 @@ class Api(models.Model):
     status_message = models.TextField('A more detailed status message', null=True, blank=True)
     display_name = models.TextField('Display name of the API', blank=False, null=True)
     documentation_link = models.TextField('Link to this API\'s documentation', null=True, blank=True)
+    tools_text = models.TextField('Tools this API powers', null=True, blank=True)
     tags = TaggableManager(blank=True)
     querybuilder_link = models.TextField('Link to this API\'s query builder page', null=True, blank=True)
 
