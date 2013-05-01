@@ -19,7 +19,7 @@
 {% block content %}
 <div class="key-status pull-right">
     <h4 class="withTip">{{key.get_status_display}}</h4>
-    <span class="tip">Issue Date <span>{{key.issued_on|date}}</span></span>
+    <span class="tip">Issued <span>{{key.issued_on|date}}</span></span>
 </div>
 <h2 class="withTip">Statistics for {{key.name}}</h2>
 <span class="tip">{{key.key}}</span>
