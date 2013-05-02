@@ -125,7 +125,7 @@ def resend(request,
                 if key.status == 'U':
                     send_key_email(key, reg_email_template)
                 else:
-                    send_key_email(key, resend_email_template)
+                    send_key_email(key, reg_email_template)
                 resp['key'] = key
             except Key.DoesNotExist:
                 resp['nokey'] = True
