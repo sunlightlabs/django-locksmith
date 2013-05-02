@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 
 setup(name='django-locksmith',
-      version='0.7.3',
+      version='0.7.4',
       description='Django apps for API authentication and centralized authorization',
       author='James Turk',
       author_email='jturk@sunlightfoundation.com',
@@ -15,5 +15,5 @@ setup(name='django-locksmith',
                                   'static/datatables/images/*',
                                   'static/bootstrap/js/*.js', 'static/bootstrap/css/*.css',
                                   'static/bootstrap/img/*.png'],
-                    'locksmith.hub': ['templates/locksmith/*.html']},
+                    'locksmith.hub': ['templates/locksmith/*.html', 'templates/locksmith/*.txt']},
 )
