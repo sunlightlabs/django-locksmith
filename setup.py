@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 
 setup(name='django-locksmith',
-      version='0.7.2',
+      version='0.7.3',
       description='Django apps for API authentication and centralized authorization',
       author='James Turk',
       author_email='jturk@sunlightfoundation.com',
