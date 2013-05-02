@@ -10,6 +10,6 @@ setup(name='django-locksmith',
       license='BSD',
       url='http://github.com/sunlightlabs/django-locksmith/',
       packages=find_packages(),
-      package_data={'locksmith': ['media/scripts/*.js'],
+      package_data={'locksmith': ['static/scripts/*.js'],
                     'locksmith.hub': ['templates/locksmith/*.html']},
 )
