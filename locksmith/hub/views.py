@@ -102,7 +102,7 @@ def register(request,
     return render_to_response(registration_template, {'form':form, 'LOCKSMITH_BASE_TEMPLATE': settings.LOCKSMITH_BASE_TEMPLATE}, context_instance=RequestContext(request))
 
 def send_key_email(key, email_template):
-    email_msg = render_to_string(email_template, {'key': key})
+    email_msg = render_to_string(email_template, {'key': key, 'LOCKSMITH_BASE_TEMPLATE': settings.LOCKSMITH_BASE_TEMPLATE})
     email_subject = getattr(settings, 'LOCKSMITH_EMAIL_SUBJECT',
                             'API Registration')
     send_mail(email_subject, email_msg, settings.DEFAULT_FROM_EMAIL,
@@ -111,8 +111,8 @@ def send_key_email(key, email_template):
 
 def resend(request,
            reg_email_template='locksmith/registration_email.txt',
-           resend_email_template='locksmith/resend_email.txt',
-           resend_template='locksmith/resend.html',
+           resend_email_template='locksmith/resend.html',
+           resend_template=getattr(settings, 'LOCKSMITH_RESEND_TEMPLATE', 'locksmith/resend.html'),
           ):
     resp = {}
 
@@ -132,6 +132,8 @@ def resend(request,
         resp['form'] = form
     else:
         resp['form'] = ResendForm()
+
+    resp['LOCKSMITH_BASE_TEMPLATE'] = settings.LOCKSMITH_BASE_TEMPLATE
 
     return render(request, resend_template, resp)
 
