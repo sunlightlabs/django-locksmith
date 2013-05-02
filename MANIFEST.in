@@ -2,4 +2,5 @@ include README.rst
 include LICENSE
 include CHANGELOG
 recursive-include locksmith/hub/templates *.html
-recursive-include locksmith/media/scripts *.js
+recursive-include locksmith/static *.js *.css *.png *.ico
+
