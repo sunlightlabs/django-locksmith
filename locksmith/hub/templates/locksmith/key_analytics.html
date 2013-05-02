@@ -1,6 +1,7 @@
 {% extends "locksmith/base.html" %}
 {% load humanize %}
 {% load charthelpers %}
+{% load linkifpossible %}
 
 {% block bodyclass %}analytics{% endblock %}
 
@@ -19,7 +20,7 @@
 {% block content %}
 <div class="key-status pull-right">
     <h4 class="withTip">{{key.get_status_display}}</h4>
-    <span class="tip">Issue Date <span>{{key.issued_on|date}}</span></span>
+    <span class="tip">Issued <span>{{key.issued_on|date}}</span></span>
 </div>
 <h2 class="withTip">Statistics for {{key.name}}</h2>
 <span class="tip">{{key.key}}</span>
@@ -28,7 +29,9 @@
 <dl>
     <dt>Name</dd> <dd>{{key.name}}</dd>
     <dt>Email</dt> <dd>{{key.email}}</dd>
-    <dt>Organization Name</dd> <dd><a href="{{key.org_url}}">{{key.org_name}}</a></dd>
+    {% with key.org_url|linkifpossible as org_url %}
+    <dt>Organization Name</dd> <dd>{% if org_url %}<a href="{{org_url}}">{{key.org_name}}</a>{% else %}{{key.org_name}}{% endif %}</dd>
+    {% endwith %}
     <dt>Usage</dt> <dd>{{key.usage}}</dd>
 
 </dl>
