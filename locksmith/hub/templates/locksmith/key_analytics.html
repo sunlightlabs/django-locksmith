@@ -1,6 +1,7 @@
 {% extends "locksmith/base.html" %}
 {% load humanize %}
 {% load charthelpers %}
+{% load linkifpossible %}
 
 {% block bodyclass %}analytics{% endblock %}
 
@@ -28,7 +29,9 @@
 <dl>
     <dt>Name</dd> <dd>{{key.name}}</dd>
     <dt>Email</dt> <dd>{{key.email}}</dd>
-    <dt>Organization Name</dd> <dd><a href="{{key.org_url}}">{{key.org_name}}</a></dd>
+    {% with key.org_url|linkifpossible as org_url %}
+    <dt>Organization Name</dd> <dd>{% if org_url %}<a href="{{org_url}}">{{key.org_name}}</a>{% else %}{{key.org_name}}{% endif %}</dd>
+    {% endwith %}
     <dt>Usage</dt> <dd>{{key.usage}}</dd>
 
 </dl>
