@@ -78,7 +78,7 @@ def reset_keys(request):
 
 
 def register(request,
-             email_template='locksmith/registration_email.txt',
+             email_template='locksmith/registration_email.html',
              registration_template=getattr(settings, 'LOCKSMITH_REGISTER_TEMPLATE', 'locksmith/register.html'),
              registered_template=getattr(settings, 'LOCKSMITH_REGISTERED_TEMPLATE', 'locksmith/registered.html'),
             ):
@@ -111,7 +111,7 @@ def send_key_email(key, email_template):
 
 def resend(request,
            reg_email_template='locksmith/registration_email.txt',
-           resend_email_template='locksmith/resend.html',
+           resend_email_template='locksmith/registration_email.txt',
            resend_template=getattr(settings, 'LOCKSMITH_RESEND_TEMPLATE', 'locksmith/resend.html'),
           ):
     resp = {}
