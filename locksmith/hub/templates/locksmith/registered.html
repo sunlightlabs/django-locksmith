@@ -1,9 +1,9 @@
-{% extends "base.html" %}
+{% extends "locksmith/base.html" %}
 {% block title %}API Registration Successful!{% endblock title %}
 
 {% block content %}
 <h2>API Registration Successful</h2>
-
+<p>Please check your email on instructions for activating your API key.</p>
 <dl>
     <dt>Email:</dt><dd>{{key.email}}</dd>
     <dt>Name:</dt><dd>{{key.name}}</dd>
