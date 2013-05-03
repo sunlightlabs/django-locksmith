@@ -144,7 +144,7 @@ def confirm_registration(request, key, template="locksmith/confirmed.html"):
 
         visiting this URL marks a Key as ready for use
     '''
-    context = {}
+    context = {'LOCKSMITH_BASE_TEMPLATE': settings.LOCKSMITH_BASE_TEMPLATE}
     try:
         context['key'] = key_obj = Key.objects.get(key=key)
         if key_obj.status != 'U':
