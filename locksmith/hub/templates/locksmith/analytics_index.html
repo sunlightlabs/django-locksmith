@@ -25,11 +25,11 @@
         <h3>New Users in the Last Two Weeks</h3>
         <table class="entry-content" style="height:300px; display:block; overflow-y:hidden;" >
         <thead>
-        <tr><th>User</th><th>Email</th><th>Description</th><th>Status</th></tr>
+        <tr><th>Email</th><th>Description</th><th>Status</th></tr>
         </thead>
         <tbody>
         {% for user in new_users %}
-            <tr><td>{{user.name}}</td><td><a href="{% url "key_analytics" user.key %}">{{user.email}}</a></td><td>{{user.usage}}</td><td>{{user.status}}</td></tr>
+            <tr><td><a href="{% url "key_analytics" user.key %}">{{user.email}}</a></td><td>{{user.usage}}</td><td>{{user.status}}</td></tr>
         {% endfor %}
         </tbody>
         </table>
