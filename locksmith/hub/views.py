@@ -111,7 +111,6 @@ def send_key_email(key, email_template):
 
 def resend(request,
            reg_email_template='locksmith/registration_email.txt',
-           resend_email_template='locksmith/registration_email.txt',
            resend_template=getattr(settings, 'LOCKSMITH_RESEND_TEMPLATE', 'locksmith/resend.html'),
           ):
     resp = {}
