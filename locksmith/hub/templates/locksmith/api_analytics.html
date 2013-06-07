@@ -14,6 +14,7 @@
 {% block meta %}
     <link id="calls-to-api-yearly" href="{% url 'calls-to-api-yearly' api.name %}" rel="" type="application/json">
     <link id="calls-to-api-monthly" href="{% url 'calls-to-api-monthly' api.name %}" rel="" type="application/json">
+    <link id="calls-to-api-daily" href="{% url 'calls-to-api-daily' api.name %}" rel="" type="application/json">
     <link id="callers-of-api" href="{% url 'callers-of-api' api.name %}" rel="" type="application/json">
     <link id="calls-to-api-by-endpoint" href="{% url 'calls-to-api-by-endpoint' api.name %}" rel="" type="application/json">
 {% endblock meta %}
@@ -33,7 +34,10 @@
             </span>
             <span class="pull-left labeltext">Change Time Period:</span>
             <span class="pull-left btn-group" data-toggle="buttons-radio">
-                <button class="btn"
+                <button class="btn api-calls-internal-btn"
+                        data-setting="chart.interval"
+                        data-value="daily">Daily</button>
+                <button class="btn api-calls-internal-btn"
                         data-setting="chart.interval"
                         data-value="monthly">Monthly</button>
                 <button class="btn api-calls-internal-btn"

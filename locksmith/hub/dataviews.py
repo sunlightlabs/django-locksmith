@@ -235,6 +235,46 @@ def calls_to_api_monthly(request,
     }
     return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
 
+
+@login_required
+def calls_to_api_daily(request,
+                         api_id=None, api_name=None):
+    if api_id is None and api_name is None:
+        return HttpResponseBadRequest('Must specify API id or name.')
+
+    try:
+        api = resolve_model(Api, [('id', api_id), ('name', api_name)])
+    except Api.DoesNotExist:
+        return HttpResponseNotFound('The requested API was not found.')
+
+    ignore_internal_keys = parse_bool_param(request, 'ignore_internal_keys', True)
+    year = parse_int_param(request, 'year')
+    end_date = parse_date_param(request, 'end_date')
+    begin_date = end_date - datetime.timedelta(days=7)
+
+    qry = Report.objects.filter(api=api)
+    if ignore_internal_keys:
+        qry = exclude_internal_key_reports(qry)
+    qry = qry.filter(date__gte=begin_date,
+                     date__lte=end_date)
+    agg = qry.aggregate(calls=Sum('calls'))
+
+    daily_aggs = qry.values('date').annotate(calls=Sum('calls'))
+
+    
+    result = {
+        'api_id': api.id,
+        'api_name': api.name,
+        'calls': agg['calls'],
+        'daily': []
+    }
+
+    for d in daily_aggs:
+        result['daily'].append({ 'date': d['date'].strftime('%m-%d-%Y'), 'calls': d['calls']})
+
+    return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
+
+
 @staff_required
 def keys(request):
     """Lists API keys. Compatible with jQuery DataTables."""

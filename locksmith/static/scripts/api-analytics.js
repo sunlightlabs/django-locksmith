@@ -84,7 +84,26 @@ $(document).ready(function(){
                     return [m['month'], m['calls']];
                 }));
              });
+        }else if (chart.get('chart.interval') === 'daily') {
+            var today = new Date();
+            params['end_date'] = today.toString('MM-dd-yyyy');
+            params['end_date'] = '02-02-2012';
+            console.log(params);
+            var url = $("link#calls-to-api-daily").attr("href");
+            $.getJSON(url, params)
+             .done(function(calls){
+                chart.independent_label('Day')
+                     .dependent_label('Calls')
+                     .title('API Calls by Day for ' + params['end_date'])
+                     .table_row_tmpl('.daily-table-row-tmpl')
+                     .independent_format(function(x){ return x })
+                     .dependent_format(methodcaller('toLocaleString'));
+                callback(calls['daily'].map(function(m){
+                    return [m['date'], m['calls']];
+                }));
+             });
         }
+
     };
 
     var api_calls_chart = new AnalyticsChart({
