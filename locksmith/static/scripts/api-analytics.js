@@ -87,13 +87,13 @@ $(document).ready(function(){
         }else if (chart.get('chart.interval') === 'daily') {
             var today = new Date();
             params['end_date'] = today.toString('MM-dd-yyyy');
-            console.log(params);
+            params['end_date'] = '02-02-2012';
             var url = $("link#calls-to-api-daily").attr("href");
             $.getJSON(url, params)
              .done(function(calls){
                 chart.independent_label('Day')
                      .dependent_label('Calls')
-                     .title('API Calls by Day for ' + params['end_date'])
+                     .title('API Calls by Day for the Week Ending on ' + params['end_date'])
                      .table_row_tmpl('.daily-table-row-tmpl')
                      .independent_format(function(x){ return x })
                      .dependent_format(methodcaller('toLocaleString'));
