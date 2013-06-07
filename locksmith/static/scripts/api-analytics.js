@@ -87,7 +87,6 @@ $(document).ready(function(){
         }else if (chart.get('chart.interval') === 'daily') {
             var today = new Date();
             params['end_date'] = today.toString('MM-dd-yyyy');
-            params['end_date'] = '02-02-2012';
             console.log(params);
             var url = $("link#calls-to-api-daily").attr("href");
             $.getJSON(url, params)
