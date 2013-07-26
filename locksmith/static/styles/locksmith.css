@@ -63,6 +63,7 @@ form.signup input.checkbox { width: 15px; float:left; margin-right: 15px; }
 div.message { width: 90%; text-align: center; }
 div.message span.message-text { display: inline-block; font-size: 18px; font-weight: bold; margin: 40px; }
 
+.values { clear: both; float: left;}
 /* Technique from: 
     https://gist.github.com/domsammut/4605377
     http://codepen.io/domsammut/pen/eJbly

@@ -94,6 +94,40 @@ $(document).ready(function(){
         });
     };
 
+    var get_all_calls = function(chart, callback){
+        var params = {
+            'ignore_deprecated': (page_settings.get('deprecated.apis') === 'excluded'),
+            'ignore_internal_keys': (page_settings.get('internal.keys') === 'excluded')
+        };
+        if (chart.get('chart.interval') === 'monthly') {
+            var url = $("link#all-calls").attr("href");
+            params['year'] = chart.get('year');
+            $.getJSON(url, params)
+            .then(function(total_calls){
+                chart.title('Total Calls by Month for ' + chart.set('year'))
+                     .independent_format(function(x){ return month_abbrevs[x-1]; })
+                     .table_row_tmpl('.monthly-table-row-tmpl');
+                callback(total_calls['monthly'].map(function(mo){
+                        return [mo['month'], mo['calls']];
+                    }));
+            });
+        }
+        else {
+            console.log('not monthly')
+            var url = $("link#all-calls").attr("href");
+                $.getJSON(url, params)
+                .then(function(total_calls){
+                    console.log('Recieved total calls data');
+                    chart.title('Total Calls By Year')
+                        .independent_format(methodcaller('toString', 10))
+                        .table_row_tmpl('.yearly-table-row-tmpl');
+                    callback(total_calls.map(function(yr){
+                        return [yr['year'], yr['total']];
+                    }));
+                });
+            }
+    }
+
     fetch_api_list()
     .then(function(){
         var calls_chart = new AnalyticsChart({
@@ -105,6 +139,20 @@ $(document).ready(function(){
         .set('time.period', options.apis_by_call_period || 'all-time')
         .margin({'top': 0, 'bottom': 20, 'left': 110, 'right': 0});
 
+        var all_calls_chart = new AnalyticsChart({
+            'target': '#allcalls',
+            'data_fn': get_all_calls
+        })
+        .set('chart.type', 'bar')
+        .set('display.mode', options.all_calls_display || 'chart')
+        .set('time.period',  options.all_calls_interval || 'yearly')
+        .margin({'top': 0, 'bottom': 20, 'left': 110, 'right': 0})
+        .update({
+            'chart.type': 'bar',
+            'display.mode': options.all_calls_issued_display || 'chart',
+            'chart.interval': options.all_calls_issued_interval || 'yearly'
+        })
+        .set('year', Date.today().getFullYear())
 
         var keys_issued_chart = new AnalyticsChart({
             'target': '#keys',
@@ -118,7 +166,8 @@ $(document).ready(function(){
         .set('year', Date.today().getFullYear())
         .margin({'top': 0, 'bottom': 20, 'left': 80, 'right': 0});
 
-        $('#calls').on('dataClick', function (event, dataElement) {
+
+       $('#calls').on('dataClick', function (event, dataElement) {
             var url = '/api/analytics/api/' + $(dataElement).attr('data-independent') + '/';
             window.location.href = url;
         });
@@ -143,6 +192,7 @@ $(document).ready(function(){
         });
 
         calls_chart.show();
+        all_calls_chart.show();
         keys_issued_chart.show();
     });
 });

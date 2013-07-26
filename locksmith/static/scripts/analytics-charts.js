@@ -1,4 +1,15 @@
 // Based on: http://bl.ocks.org/3766585
+var intcomma = function(value) {
+    // inspired by django.contrib.humanize.intcomma
+    var origValue = String(value);
+    var newValue = origValue.replace(/^(-?\d+)(\d{3})/, '$1,$2');
+    if (origValue == newValue){
+        return newValue;
+    } else {
+        return intcomma(newValue);
+    }
+};
+
 function barChart () {
   var margin = {top: 50, right: 50, bottom: 50, left: 50},
       width = 420,
@@ -44,12 +55,13 @@ function barChart () {
                  .style('opacity', '1.0')
                  .style('top', mouse[1] + 10 + 'px')
                  .style('left', mouse[0] + 10 + 'px')
-                 .text(yTickFormat(d[0]) + ': ' + xTickFormat(d[1]));
+                 .text(yTickFormat(d[0]) + ': ' + intcomma(xTickFormat(d[1])));
       };
       var hide_tooltip = function(d){
           tooltip.style('visibility', 'hidden');
       };
 
+          
       // Select the svg element, if it exists.
       var svg = d3.select(this).selectAll("svg").data([data]);
 
@@ -83,8 +95,10 @@ function barChart () {
          .on('mouseover', show_tooltip)
          .on('mousemove', show_tooltip)
          .on('mouseout', hide_tooltip)
-         .on('click', hide_tooltip);
-
+         .on('click', hide_tooltip)
+        // .on('dblclick', toggle_stats);
+         
+      
     // x axis at the bottom of the chart
      g.select(".y.axis")
         .attr("transform", "translate(0, 0)")
@@ -224,12 +238,12 @@ function columnChart() {
                  .style('opacity', '1.0')
                  .style('top', mouse[1] + 10 + 'px')
                  .style('left', mouse[0] + 10 + 'px')
-                 .text(xTickFormat(d[0]) + ': ' + yTickFormat(d[1]));
+                 .text(xTickFormat(d[0]) + ': ' + intcomma(yTickFormat(d[1])));
       };
       var hide_tooltip = function(d){
           tooltip.style('visibility', 'hidden');
       };
-
+      
       // Select the svg element, if it exists.
       var svg = d3.select(this).selectAll("svg").data([data]);
 
@@ -251,7 +265,8 @@ function columnChart() {
 
      // Update the bars.
       var bar = svg.select(".bars").selectAll(".bar").data(data);
-      bar.enter().append("rect");
+      bar.enter().append("rect").append("text").attr("x", function(d) {return X(d);}).attr("y", function(d, i){ return d[1] < 0 ? Y0() : Y(d); }).text(function(d){ return d;});
+
       bar.exit().remove();
       bar.attr("class", function(d, i) { return d[1] < 0 ? "bar negative" : "bar positive"; })
          .attr("x", function(d) { return X(d); })
@@ -263,7 +278,8 @@ function columnChart() {
          .on('mouseover', show_tooltip)
          .on('mousemove', show_tooltip)
          .on('mouseout', hide_tooltip)
-         .on('click', hide_tooltip);
+         .on('click', hide_tooltip)
+       //  .on('dblclick', toggle_stats);
 
     // x axis at the bottom of the chart
      g.select(".x.axis")
@@ -390,6 +406,7 @@ function ReactiveSettingsIface (target) {
     this.set = function (k, v) { return _setting(k, v, true); };
     this.update = function (obj) {
         console.log('Updating', $target.attr('id'), 'from', JSON.stringify(obj));
+        jQuery('#' + $target.attr('id')).find('.value').remove();
         for (var k in obj) {
             _setting(k, obj[k]);
         }
@@ -406,7 +423,39 @@ function ReactiveSettingsIface (target) {
         var obj = {};
         obj[k] = v;
         that.update(obj);
+
     });
+
+    $target.find('button.values').click(function(event){
+        jQuery(this).siblings('figure').find('rect.bar').each(function(index) { 
+          var d = jQuery(this);
+          if ($target.find('.bar_value_' + d.attr('data-independent')).length == 0){
+            var group = d.parents('figure')[0];
+            var offset = d.position();
+            var width = d.attr('width');
+           if (_settings['chart.type'] === 'bar'){
+              var top = parseInt(offset.top) + 5 + 'px'
+              var left = parseInt(offset.left) + parseInt(width) + 5 + 'px'
+           } else if (_settings['chart.type'] === 'column'){
+              var top = offset.top - 25 +  'px';
+              var left = offset.left + 10 + 'px';
+           }
+            if (d.attr('data-dependent') != 0) {
+              d3.select(group)
+                .append('div')
+                .attr('class', 'value bar_value_' + d.attr('data-independent'))
+                .style('visibility', 'visible')
+                .style('opacity', '1.0')
+                .style('position', 'absolute')
+                .style('top',  top)
+                .style('left', left)
+                .text(intcomma(d.attr('data-dependent')));
+            }
+          } else {
+            $target.find('.bar_value_' + d.attr('data-independent')).remove();
+          }
+      })
+    })
 
     $target.find("button[data-setting]").each(function(){
         // Keep a lookup of the buttons for updating the UI later
@@ -416,6 +465,7 @@ function ReactiveSettingsIface (target) {
         _buttons[k] = lst;
         $(this).click(function(event){
             that.buttons.trigger('click', this);
+
         });
     });
     this.buttons = $(_buttons);
@@ -603,6 +653,7 @@ function AnalyticsChart (options) {
     };
 
     var _display_table = function(){
+
         var $table = $target.find("table.analytics-table");
         $table.find("tbody").empty();
         _data.forEach(function(pair){
@@ -712,6 +763,7 @@ function AnalyticsChart (options) {
 
         _data_deferred = $.Deferred();
         _data_deferred.promise().then(_data_callback);
+
         opts['data_fn'].call(null, that, function(data){ _data_deferred.resolve(data); });
     };
     this.refresh = _refresh;

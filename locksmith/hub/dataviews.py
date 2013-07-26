@@ -118,6 +118,37 @@ def api_calls_daily(request):
     }
     return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
 
+
+@login_required
+def all_calls(request):
+    if request.GET.has_key('year'):
+        year = int(request.GET['year'])
+        qry = Report.objects.filter(date__gte=datetime.date(year, 1, 1),
+                                    date__lte=datetime.date(year, 12, 31))
+        agg = qry.aggregate(calls=Sum('calls'))
+
+        daily_aggs = qry.values('date').annotate(calls=Sum('calls'))
+        monthly = dict(((m, {'month': m, 'calls': 0})
+                    for m in range(1, 13)))
+
+        for daily in daily_aggs:
+            month = daily['date'].month
+            monthly[month]['calls'] += daily['calls']
+
+        result = {
+            'calls': agg['calls'],
+            'monthly': monthly.values(),
+            'year': year
+        }
+        return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
+    else:
+        yearly = Report.objects.raw("select id, extract(YEAR from  reported_time) as year, SUM(calls) as total from locksmith_hub_report group by extract(YEAR from reported_time)")
+        calls = []
+        for y in yearly:
+            calls.append({'year': y.year, 'total': int(y.total)})
+        return HttpResponse(content=json.dumps(calls), status=200, content_type='application/json')
+
+
 @login_required
 def calls_to_api(request,
                  api_id=None, api_name=None):
