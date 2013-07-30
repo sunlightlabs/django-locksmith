@@ -33,6 +33,7 @@
     <dt>Organization Name</dd> <dd>{% if org_url %}<a href="{{org_url}}">{{key.org_name}}</a>{% else %}{{key.org_name}}{% endif %}</dd>
     {% endwith %}
     <dt>Usage</dt> <dd>{{key.usage}}</dd>
+    <dt><a href="{% url "key_edit" key.key %}">Edit Profile</a></dt>
 
 </dl>
 </div>

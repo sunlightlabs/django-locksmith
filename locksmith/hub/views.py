@@ -6,7 +6,7 @@ from django.conf import settings
 from django.core.mail import send_mail
 from django.db.models import Sum
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFound, Http404
-from django.shortcuts import get_object_or_404, render_to_response, render
+from django.shortcuts import get_object_or_404, render_to_response, render, redirect
 from django.template import RequestContext
 from django.template.loader import render_to_string
 from django.views.decorators.http import require_POST
@@ -352,6 +352,32 @@ def key_analytics(request, key):
                        'locksmith/key_analytics.html')
     return render(request, template, ctx)
 
+@login_required
+def key_edit(request, key):
+    key = get_object_or_404(Key, key=key)
+    if request.user.email != key.email and request.user.is_staff != True:
+        raise Http404
+
+    if request.method == 'GET':
+        template =getattr(settings, 
+                          'LOCKSMITH_KEY_EDIT_TEMPLATE',
+                          'locksmith/key_edit.html')
+        ctx = {
+            'key': key,
+            'LOCKSMITH_BASE_TEMPLATE': settings.LOCKSMITH_BASE_TEMPLATE,
+        }
+        return render(request, template, ctx)
+    elif request.method == 'POST':
+        name = request.POST['name'] or key.name
+        org_name = request.POST['orgname'] or key.org_name
+        usage = request.POST['usage'] or key.usage
+
+        key.name = name
+        key.org_name = org_name
+        key.usage = usage
+        key.save()
+
+        return redirect('key_analytics', key=key.key)
 
 @staff_required
 def keys_leaderboard(request,

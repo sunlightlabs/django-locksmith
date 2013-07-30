@@ -1,0 +1,32 @@
+{% extends "locksmith/base.html" %}
+{% load humanize %}
+{% load charthelpers %}
+{% load linkifpossible %}
+
+{% block bodyclass %}analytics{% endblock %}
+
+{% block css %}
+    {{ block.super }}
+
+    <link href="{{STATIC_URL}}styles/locksmith.css" rel="stylesheet" type="text/css">
+{% endblock css %}
+
+{% block content %}
+<div class="key-status pull-right">
+    <h4 class="withTip">{{key.get_status_display}}</h4>
+    <span class="tip">Issued <span>{{key.issued_on|date}}</span></span>
+</div>
+<h2 class="withTip">Editing {{key.name}}'s Profile</h2>
+<span class="tip">{{key.key}}</span>
+
+<div class="span6 content">
+
+    <form action="{% url 'key_edit' key.key %}" method="POST" id="key-edit">
+        <label for="name">Name: </label><input type="text" name="name" placeholder="{{key.name}}" />
+        <label for="orgname">Organization Name: </label><input type="text" name="orgname" placeholder="{{key.org_name}}" />
+        <label for="usage">Usage: </label><textarea type="text" name="usage" placeholder="{{key.usage}}" /></textarea>
+        <button class="btn" type="submit" style="clear:both;">Submit</button>
+    </form>
+</div>
+
+{% endblock %}

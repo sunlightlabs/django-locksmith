@@ -20,6 +20,7 @@ analytics = patterns('locksmith.hub.views',
     url(r'^keys/(?P<api_name>[-\w]+)/leaderboard/$', 'keys_leaderboard'),
     url(r'^api/(?P<api_name>[-\w]+)/$', 'api_analytics', name='api_analytics'),
     url(r'^key/(?P<key>\w+)/$', 'key_analytics', name='key_analytics'),
+    url(r'^key/(?P<key>\w+)/edit/$', 'key_edit', name='key_edit')
 )
 
 analytics_data = patterns('locksmith.hub.dataviews',
