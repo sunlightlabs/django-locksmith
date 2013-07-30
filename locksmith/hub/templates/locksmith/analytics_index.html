@@ -263,6 +263,14 @@
             </div>
             <div class="clear"></div>
         </div>
+        <div id="timeperiod">
+            <h3>Download Calls for Any Period:</h3>
+            <form id="formcalls" action="{% url 'calls-range' %}" method="GET">
+                <label for="begin">Begin: </label><input type="text" name="begin" placeholder="mm/dd/yyyy" />
+                <label for="end">End: </label><input type="text" name="end" placeholder="mm/dd/yyyy" />
+                <button type="submit" class="btn">Submit</button>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -288,7 +296,6 @@
             return false;
         });        
 
-        
 
     </script>
 

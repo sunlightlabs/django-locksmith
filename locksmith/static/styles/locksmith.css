@@ -64,6 +64,8 @@ div.message { width: 90%; text-align: center; }
 div.message span.message-text { display: inline-block; font-size: 18px; font-weight: bold; margin: 40px; }
 
 .values { clear: both; float: left;}
+#formcalls label, #formcalls input { display: inline; margin-right: 15px;}
+#timeperiod { margin-top: 60px;}
 /* Technique from: 
     https://gist.github.com/domsammut/4605377
     http://codepen.io/domsammut/pen/eJbly

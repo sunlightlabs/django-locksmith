@@ -1,7 +1,7 @@
 import json
 import datetime
 import calendar
-
+import csv
 import dateutil.parser
 
 from django.db.models import Sum, Count, Min, Max, Q
@@ -118,8 +118,35 @@ def api_calls_daily(request):
     }
     return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
 
+@staff_required
+def calls_range(request):
+    if request.GET.has_key('begin'):
+        begin = request.GET['begin']
 
-@login_required
+        if request.GET.has_key('end'):
+            end = request.GET['end']
+            end_date = datetime.datetime.strptime(end, '%m/%d/%Y') 
+        else:
+            end_date = datetime.date()
+        #try:
+        begin_date = datetime.datetime.strptime(begin,'%m/%d/%Y')
+
+        resp = HttpResponse(status=200, content_type='text/csv')     
+        resp['Content-Disposition'] = 'attachment; filename="api_calls_%s_%s"' % (begin, end)
+
+        qry = Report.objects.filter(date__gte=begin_date, date__lte=end_date).extra(select={'day': 'date(date)'}).values('day').annotate(total=Count('date')).order_by('date')
+        writer = csv.writer(resp)
+        writer.writerow(['Day', 'Total Calls'])
+        for day in qry:
+            import logging; logging.debug(day)
+            writer.writerow([day['day'], day['total']])
+        return resp
+
+        #except:
+          #  return HttpResponse(content=json.dumps({"error": "Invalid Date Format"}), status=500, content_type='application/json')  
+
+
+@staff_required
 def all_calls(request):
     if request.GET.has_key('year'):
         year = int(request.GET['year'])
