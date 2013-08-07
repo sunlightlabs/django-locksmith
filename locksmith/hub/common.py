@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.conf import settings
 
 def cycle_generator(cycle, step=1, begin=(0, 0), end=None):
@@ -34,3 +35,16 @@ def exclude_internal_key_reports(qry):
     if getattr(settings, 'INTERNAL_EMAIL_PATTERN', None):
         qry = qry.exclude(key__email__endswith=settings.INTERNAL_EMAIL_PATTERN)
     return qry
+
+def restrict_to_internal_key_reports(qry):
+    internal_orgs = getattr(settings, 'INTERNAL_ORGANIZATIONS', None)
+    internal_email_pattern = getattr(settings, 'INTERNAL_EMAIL_PATTERN', None)
+    if internal_orgs and internal_email_pattern:
+        qry = qry.filter(Q(key__org_name__in=settings.INTERNAL_ORGANIZATIONS)
+                       | Q(key__email__endswith=settings.INTERNAL_EMAIL_PATTERN))
+    elif internal_orgs:
+        qry = qry.filter(key__org_name__in=settings.INTERNAL_ORGANIZATIONS)
+    elif internal_email_pattern:
+        qry = qry.filter(key__email__endswith=settings.INTERNAL_EMAIL_PATTERN)
+    return qry
+
