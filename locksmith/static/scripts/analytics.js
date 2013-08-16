@@ -16,7 +16,6 @@ $(document).ready(function(){
                             .set('internal.keys', 'excluded');
 
     var get_keys_issued = function (chart, callback) {
-        console.log('Fetching keys_issued data');
         var chart_interval = chart.get('chart.interval');
         var params = {
             'ignore_internal_keys': (page_settings.get('internal.keys') === 'excluded')
@@ -25,7 +24,6 @@ $(document).ready(function(){
             var url = $("link#keys-issued-yearly").attr("href");
             $.getJSON(url, params)
             .then(function(keys_issued){
-                console.log('Recieved keys_issued data');
                 chart.title('Keys Issued By Year')
                      .independent_format(methodcaller('toString', 10))
                      .table_row_tmpl('.yearly-table-row-tmpl');
@@ -38,7 +36,6 @@ $(document).ready(function(){
             params['year'] = chart.get('year');
             $.getJSON(url, params)
             .then(function(keys_issued){
-                console.log('Recieved keys_issued data');
                 chart.title('Keys Issued by Month for ' + chart.set('year'))
                      .independent_format(function(x){ return month_abbrevs[x-1]; })
                      .table_row_tmpl('.monthly-table-row-tmpl');
@@ -106,6 +103,9 @@ $(document).ready(function(){
             .then(function(total_calls){
                 chart.title('Total Calls by Month for ' + chart.set('year'))
                      .independent_format(function(x){ return month_abbrevs[x-1]; })
+                     .independent_label('Month')
+                     .dependent_format(intcomma)
+                     .dependent_label('Calls')
                      .table_row_tmpl('.monthly-table-row-tmpl');
                 callback(total_calls['monthly'].map(function(mo){
                         return [mo['month'], mo['calls']];
@@ -113,16 +113,17 @@ $(document).ready(function(){
             });
         }
         else {
-            console.log('not monthly')
             var url = $("link#all-calls").attr("href");
                 $.getJSON(url, params)
                 .then(function(total_calls){
-                    console.log('Recieved total calls data');
                     chart.title('Total Calls By Year')
+                        .independent_label('Year')
                         .independent_format(methodcaller('toString', 10))
+                        .dependent_format(intcomma)
+                        .dependent_label('Calls')
                         .table_row_tmpl('.yearly-table-row-tmpl');
-                    callback(total_calls.map(function(yr){
-                        return [yr['year'], yr['total']];
+                    callback(total_calls.yearly.map(function(yr){
+                        return [yr['year'], yr['calls']];
                     }));
                 });
             }
@@ -148,11 +149,11 @@ $(document).ready(function(){
         .set('time.period',  options.all_calls_interval || 'yearly')
         .margin({'top': 0, 'bottom': 20, 'left': 110, 'right': 0})
         .update({
-            'chart.type': 'bar',
+            'chart.type': 'column',
             'display.mode': options.all_calls_issued_display || 'chart',
             'chart.interval': options.all_calls_issued_interval || 'yearly'
         })
-        .set('year', Date.today().getFullYear())
+        .set('year', Date.today().getFullYear());
 
         var keys_issued_chart = new AnalyticsChart({
             'target': '#keys',
@@ -175,6 +176,7 @@ $(document).ready(function(){
         page_settings.buttons.click(function(event){
             calls_chart.refresh();
             keys_issued_chart.refresh();
+            all_calls_chart.refresh();
         });
 
         var state_anchor_proxy = ReactiveSettingsHistoryIface({
@@ -183,11 +185,13 @@ $(document).ready(function(){
             'settings': {
                 'page': page_settings,
                 'calls': calls_chart,
-                'keys': keys_issued_chart
+                'keys': keys_issued_chart,
+                'all_calls': all_calls_chart
             },
             'post_update': function () {
                 calls_chart.refresh();
                 keys_issued_chart.refresh();
+                all_calls_chart.refresh();
             }
         });
 

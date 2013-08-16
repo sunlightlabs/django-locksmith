@@ -86,7 +86,6 @@
         try {
             return decodeURIComponent(escape(window.atob(b)));
         } catch (e) {
-            console.log('Unable to decode', b);
             throw e;
         }
     };
@@ -108,6 +107,7 @@
         ['page', 'P'],
         ['calls', 'C'],
         ['keys', 'K'],
+        ['all_calls', 'AC'],
 
         ['included', 'I'],
         ['excluded', 'E'],
@@ -118,6 +118,8 @@
         ['monthly', 'm'],
         ['chart', 'c'],
         ['table', 't'],
+        ['column', 'v'],
+        ['bar', 'n'],
 
         ['chart.type', 'ct'],
         ['chart.interval', 'ci'],
@@ -155,5 +157,17 @@
             }
         }
         return d;
+    };
+
+    // Based on: http://bl.ocks.org/3766585
+    var intcomma = function(value) {
+        // inspired by django.contrib.humanize.intcomma
+        var origValue = String(value);
+        var newValue = origValue.replace(/^(-?\d+)(\d{3})/, '$1,$2');
+        if (origValue == newValue){
+            return newValue;
+        } else {
+            return intcomma(newValue);
+        }
     };
 

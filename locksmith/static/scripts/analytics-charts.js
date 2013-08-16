@@ -1,15 +1,3 @@
-// Based on: http://bl.ocks.org/3766585
-var intcomma = function(value) {
-    // inspired by django.contrib.humanize.intcomma
-    var origValue = String(value);
-    var newValue = origValue.replace(/^(-?\d+)(\d{3})/, '$1,$2');
-    if (origValue == newValue){
-        return newValue;
-    } else {
-        return intcomma(newValue);
-    }
-};
-
 function barChart () {
   var margin = {top: 50, right: 50, bottom: 50, left: 50},
       width = 420,
@@ -55,7 +43,7 @@ function barChart () {
                  .style('opacity', '1.0')
                  .style('top', mouse[1] + 10 + 'px')
                  .style('left', mouse[0] + 10 + 'px')
-                 .text(yTickFormat(d[0]) + ': ' + intcomma(xTickFormat(d[1])));
+                 .text(yTickFormat(d[0]) + ': ' + xTickFormat(d[1]));
       };
       var hide_tooltip = function(d){
           tooltip.style('visibility', 'hidden');
@@ -238,7 +226,7 @@ function columnChart() {
                  .style('opacity', '1.0')
                  .style('top', mouse[1] + 10 + 'px')
                  .style('left', mouse[0] + 10 + 'px')
-                 .text(xTickFormat(d[0]) + ': ' + intcomma(yTickFormat(d[1])));
+                 .text(xTickFormat(d[0]) + ': ' + yTickFormat(d[1]));
       };
       var hide_tooltip = function(d){
           tooltip.style('visibility', 'hidden');
@@ -405,7 +393,6 @@ function ReactiveSettingsIface (target) {
     this.get = function (k) { return _setting(k); };
     this.set = function (k, v) { return _setting(k, v, true); };
     this.update = function (obj) {
-        console.log('Updating', $target.attr('id'), 'from', JSON.stringify(obj));
         jQuery('#' + $target.attr('id')).find('.value').remove();
         for (var k in obj) {
             _setting(k, obj[k]);
@@ -449,7 +436,7 @@ function ReactiveSettingsIface (target) {
                 .style('position', 'absolute')
                 .style('top',  top)
                 .style('left', left)
-                .text(intcomma(d.attr('data-dependent')));
+                .text(d.attr('data-dependent'));
             }
           } else {
             $target.find('.bar_value_' + d.attr('data-independent')).remove();
@@ -491,7 +478,6 @@ function ReactiveSettingsHistoryIface (options) {
         if (options.compression_vocabulary) {
             decoded = vocab_translate_object(decoded, ANALYTICS_VOCAB);
         }
-        console.log("Decoded", anchor, " -> ", decoded);
         return decoded;
     };
 
@@ -526,7 +512,6 @@ function ReactiveSettingsHistoryIface (options) {
             encoded = vocab_translate_object(obj, ANALYTICS_VOCAB);
         }
         encoded = unicode_to_base64(JSON.stringify(encoded));
-        console.log("Encoded", obj, " -> ", encoded);
         return encoded;
     };
 
@@ -555,9 +540,7 @@ function ReactiveSettingsHistoryIface (options) {
     var _initial_popstate = true;
     var _initial_url = window.location.href;
     $(window).bind('popstate', function(event){
-        console.log('popstate');
         if ((_initial_popstate === true) && (window.location.href == _initial_popstate)) {
-            console.log("Ignoring initial popstate.");
             _initial_popstate = false;
             return;
         }
@@ -579,8 +562,6 @@ function ReactiveSettingsHistoryIface (options) {
         history.replaceState(encoded, null, window.location.href);
     }
 
-    console.log('ReactiveSettingsHistoryIface activated for',
-                keys(options.settings).join(', '));
     return that;
 };
 
@@ -635,7 +616,6 @@ function AnalyticsChart (options) {
     ReactiveSettingsIface.call(this, options['target']);
 
     var _data_callback = function(data){
-        console.log('Received data for', $target.attr('id'));
         _data = data;
         if (data.length === 0)
             _display_message('No data')
@@ -754,10 +734,8 @@ function AnalyticsChart (options) {
 
     var _refresh = function(){
         _display_loading();
-        console.log('Refreshing for', $target.attr('id'));
 
         if (_data_deferred.state() == "pending") {
-            console.log('Rejecting deferred data');
             _data_deferred.reject();
         }
 

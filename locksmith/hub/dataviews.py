@@ -148,10 +148,16 @@ def calls_range(request):
 
 @staff_required
 def all_calls(request):
+    ignore_deprecated = parse_bool_param(request, 'ignore_deprecated', False)
+    ignore_internal_keys = parse_bool_param(request, 'ignore_internal_keys', True)
     if request.GET.has_key('year'):
         year = int(request.GET['year'])
         qry = Report.objects.filter(date__gte=datetime.date(year, 1, 1),
                                     date__lte=datetime.date(year, 12, 31))
+        if ignore_deprecated == True:
+            qry = qry.filter(api__push_enabled=True)
+        if ignore_internal_keys:
+            qry = exclude_internal_key_reports(qry)
         agg = qry.aggregate(calls=Sum('calls'))
 
         daily_aggs = qry.values('date').annotate(calls=Sum('calls'))
@@ -169,11 +175,28 @@ def all_calls(request):
         }
         return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
     else:
-        yearly = Report.objects.raw("select id, extract(YEAR from  reported_time) as year, SUM(calls) as total from locksmith_hub_report group by extract(YEAR from reported_time)")
-        calls = []
-        for y in yearly:
-            calls.append({'year': y.year, 'total': int(y.total)})
-        return HttpResponse(content=json.dumps(calls), status=200, content_type='application/json')
+        #yearly = Report.objects.raw("select id, extract(YEAR from  reported_time) as year, SUM(calls) as total from locksmith_hub_report group by extract(YEAR from reported_time)")
+
+        qry = Report.objects
+        if ignore_deprecated == True:
+            qry = qry.filter(api__push_enabled=True)
+        if ignore_internal_keys:
+            qry = exclude_internal_key_reports(qry)
+        daily_aggs = qry.values('date').annotate(calls=Sum('calls'))
+
+        yearly = {}
+        for daily in daily_aggs:
+            yr = daily['date'].year
+            if yr not in yearly:
+                yearly[yr] = {'year': yr, 'calls': 0}
+            yearly[yr]['calls'] += daily['calls']
+
+        result = {
+            'earliest_year': min(yearly.keys()),
+            'latest_year': max(yearly.keys()),
+            'yearly': yearly.values()
+        }
+        return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
 
 
 @login_required
