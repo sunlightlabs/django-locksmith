@@ -5,14 +5,12 @@ import csv
 import dateutil.parser
 
 from django.db.models import Sum, Count, Min, Max, Q
-from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFound
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFound, HttpResponseForbidden
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required, user_passes_test
 from locksmith.hub.models import Api, Key, Report, resolve_model
 from locksmith.hub.common import cycle_generator, exclude_internal_keys, exclude_internal_key_reports
 from unusual.http import BadRequest
-
-from django.conf import settings
 
 staff_required = user_passes_test(lambda u: u.is_staff)
 
@@ -329,7 +327,6 @@ def calls_to_api_daily(request,
         return HttpResponseNotFound('The requested API was not found.')
 
     ignore_internal_keys = parse_bool_param(request, 'ignore_internal_keys', True)
-    year = parse_int_param(request, 'year')
     end_date = parse_date_param(request, 'end_date')
     begin_date = end_date - datetime.timedelta(days=7)
 
@@ -456,6 +453,7 @@ def calls_by_endpoint(request, api_id=None, api_name=None):
     }
     return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
 
+@login_required
 def calls_from_key_yearly(request, key_uuid):
     try:
         key = Key.objects.get(key=key_uuid)
