@@ -290,6 +290,8 @@ def calls_to_api_monthly(request,
 
     ignore_internal_keys = parse_bool_param(request, 'ignore_internal_keys', True)
     year = parse_int_param(request, 'year')
+    if year is None:
+        return HttpResponseBadRequest("You must specify a year parameter.")
 
     qry = Report.objects.filter(api=api)
     if ignore_internal_keys:
@@ -504,6 +506,9 @@ def calls_from_key_monthly(request, key_uuid):
         return HttpResponseForbidden()
 
     year = parse_int_param(request, 'year')
+    if year is None:
+        return HttpResponseBadRequest("You must specify a year parameter.")
+
     qry = key.reports.filter(date__gte=datetime.date(year, 1, 1),
                              date__lte=datetime.date(year, 12, 31))
     qry = qry.values('date').annotate(calls=Sum('calls'))
@@ -646,6 +651,8 @@ def keys_issued_yearly(request):
 @login_required
 def keys_issued_monthly(request):
     year = parse_int_param(request, 'year')
+    if year is None:
+        return HttpResponseBadRequest("You must specify a year parameter.")
     ignore_inactive = parse_bool_param(request, 'ignore_inactive', False)
     ignore_internal_keys = parse_bool_param(request, 'ignore_internal_keys', True)
 
