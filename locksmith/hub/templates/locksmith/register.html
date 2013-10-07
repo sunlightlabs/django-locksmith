@@ -8,6 +8,7 @@
 
 <p>Already registered? <a href="{% url "resend" %}">Resend Key</a></p>
 <form method="post" class="signup" action=".">
+    {% csrf_token %}
     <input type="hidden" name="user" value="{{user.id}}" />
     {% if form.non_field_errors %}
         {{form.non_field_errors.as_ul}}
