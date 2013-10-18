@@ -368,7 +368,12 @@ def keys(request):
     columns = ['key', 'email', 'calls', 'latest_call', 'issued_on']
     qry = Key.objects
     if sSearch not in (None, ''):
-        qry = qry.filter(Q(key__icontains=sSearch) | Q(email__icontains=sSearch))
+        qry = qry.filter(Q(key__icontains=sSearch)
+                         | Q(email__icontains=sSearch)
+                         | Q(name__icontains=sSearch)
+                         | Q(usage__icontains=sSearch)
+                         | Q(org_name__icontains=sSearch)
+                         | Q(org_url__icontains=sSearch))
     qry = qry.values('key', 'email', 'issued_on').annotate(calls=Sum('reports__calls'),
                                                            latest_call=Max('reports__date'))
     qry = qry.filter(calls__isnull=False)
