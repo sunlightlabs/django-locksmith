@@ -371,7 +371,6 @@ def keys(request):
         qry = qry.filter(Q(key__icontains=sSearch)
                          | Q(email__icontains=sSearch)
                          | Q(name__icontains=sSearch)
-                         | Q(usage__icontains=sSearch)
                          | Q(org_name__icontains=sSearch)
                          | Q(org_url__icontains=sSearch))
     qry = qry.values('key', 'email', 'issued_on').annotate(calls=Sum('reports__calls'),

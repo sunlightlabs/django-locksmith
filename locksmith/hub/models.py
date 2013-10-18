@@ -60,14 +60,17 @@ class Key(models.Model):
     '''
     user = models.OneToOneField(User, null=True, blank=True, related_name='api_key')
 
-    key = models.CharField(max_length=32)
+    key = models.CharField(max_length=32, db_index=True)
     email = models.EmailField(unique=True)
     alternate_email = models.EmailField(blank=True, null=True) #
     status = models.CharField(max_length=1, choices=KEY_STATUSES, default='U')
 
-    name = models.CharField('Name', max_length=100, blank=True, null=True)
-    org_name = models.CharField('Organization Name', max_length=100, blank=True, null=True)
-    org_url = models.CharField('Organization URL', blank=True, null=True, max_length=200)
+    name = models.CharField('Name', max_length=100, blank=True, null=True,
+                            db_index=True)
+    org_name = models.CharField('Organization Name', max_length=100,
+                                blank=True, null=True, db_index=True)
+    org_url = models.CharField('Organization URL', blank=True, null=True,
+                               max_length=200, db_index=True)
     usage = models.TextField('Intended Usage', blank=True, null=True)
 
     promotable = models.BooleanField(default=False)
