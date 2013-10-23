@@ -20,13 +20,13 @@
             <li>
 
             <label for="id_email">Email</label>
-            <input id="id_email" maxlength="75" name="email" type="text" value="{{user.email}}" />
+            <input id="id_email" maxlength="75" name="email" type="text" value="{% firstof form.email.value user.email %}" />
             {{field.errors}}
             </li>
         {% else %}
             {% if field.name == 'name' %}
                 <li><label for="id_name">Name</label>
-                <input id="id_name" maxlength="100" name="name" type="text" value="{{user.first_name}} {{user.last_name}}" />
+                <input id="id_name" maxlength="100" name="name" type="text" value="{% firstof form.name.value user.get_full_name %}" />
                 {{field.errors}}
                 </li>
             {% else %}
