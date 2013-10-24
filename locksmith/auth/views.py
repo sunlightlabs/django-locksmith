@@ -47,11 +47,6 @@ def accept_key(request, key_uuid):
     if not verify_signature(request.POST):
         return HttpResponseBadRequest('bad signature')
 
-    try:
-        uuid = UUID(key_uuid)
-    except ValueError:
-        return HttpResponseBadRequest('bad uuid')
-
     if u'status' not in request.POST:
         return HttpResponseBadRequest('no status specified')
 
