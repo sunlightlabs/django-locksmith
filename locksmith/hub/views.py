@@ -13,6 +13,7 @@ from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib import messages
+from functools import wraps
 from locksmith.common import get_signature, PUB_STATUSES, UNPUBLISHED
 from locksmith.hub.tasks import push_key, replicate_key
 from locksmith.hub.models import Api, Key, KeyForm, Report, ResendForm, resolve_model
@@ -225,8 +226,8 @@ def _cumulative_by_date(model, datefield):
 
     earliest_month = min(monthly_counts.iterkeys())
     latest_month = max(monthly_counts.iterkeys())
-    
-    accumulator = 0 
+
+    accumulator = 0
     cumulative_counts = []
     for (year, month) in cycle_generator(cycle=(1, 12), begin=earliest_month, end=latest_month):
         mcount = monthly_counts.get((year, month), 0)
@@ -237,7 +238,16 @@ def _cumulative_by_date(model, datefield):
 
 # analytics views -- all require staff permission
 
-staff_required = user_passes_test(lambda u: u.is_staff)
+def staff_required(view):
+    @login_required
+    @wraps(view)
+    def _view(request, *args, **kwargs):
+        if not request.user.is_staff:
+            return render(request, settings.LOCKSMITH_UNAUTHORIZED_TEMPLATE)
+
+        return view(request, *args, **kwargs)
+
+    return _view
 
 @staff_required
 def analytics_index(request,
@@ -257,7 +267,7 @@ def analytics_index(request,
 
     six_month = sorted(six_month_stats, key=lambda tup: tup[1], reverse=True)
 
-    apis = Api.objects.order_by('display_name') 
+    apis = Api.objects.order_by('display_name')
 
     options = {
         'ignore_internal_keys': ignore_internal_keys,
@@ -359,7 +369,7 @@ def key_edit(request, key):
         raise Http404
 
     if request.method == 'GET':
-        template =getattr(settings, 
+        template =getattr(settings,
                           'LOCKSMITH_KEY_EDIT_TEMPLATE',
                           'locksmith/key_edit.html')
         ctx = {

@@ -53,9 +53,9 @@ Optional settings:
 
 Templates
 ---------
-The locksmith.hub app provides a set of front-end templates that can be integrated into your website. To provide for maximum flexibility, these templates extend your project base template. You should specify the path to that base template using ``LOCKSMITH_BASE_TEMPLATE``.
+The locksmith.hub app provides a set of front-end templates that can be integrated into your website. To provide for maximum flexibility, these templates extend your project base template. You should specify the path to that base template using ``LOCKSMITH_BASE_TEMPLATE``. You should also specify a template to display when the user lacks authorization for the given view by setting ``LOCKSMITH_UNAUTHORIZED_TEMPLATE``.
 
-Each of the locksmith.hub views allow you to specify a view to render instead of the default. This allows you to use {% include %} tags in both the base and top-level template. If you need to functionality you can override each view's template using these settings:
+Each of the locksmith.hub views allow you to specify a view to render instead of the default. This allows you to use {% include %} tags in both the base and top-level template. If you need to, you can override each view's template using these settings:
 
 ``LOCKSMITH_ANALYTICS_INDEX_TEMPLATE``
 ``LOCKSMITH_API_ANALYTICS_TEMPLATE``
