@@ -77,6 +77,23 @@ def reset_keys(request):
 
     return HttpResponse('OK')
 
+@require_POST
+def check_key(request):
+    '''
+        POST endpoint determining whether or not a key exists and is valid
+    '''
+    api_objs = list(Api.objects.filter(name=request.POST['api']))
+    if not api_objs:
+        return HttpResponseBadRequest('Must specify valid API')
+
+    # check the signature
+    if get_signature(request.POST, api_objs[0].signing_key) != request.POST['signature']:
+        return HttpResponseBadRequest('bad signature')
+
+    get_object_or_404(Key, key=request.POST['key'], status='A')
+
+    return HttpResponse('OK')
+
 
 def register(request,
              email_template='locksmith/registration_email.txt',
