@@ -6,6 +6,7 @@ accounts = patterns('locksmith.hub.views',
     url(r'^profile/$', 'profile', name='profile'),
     url(r'^confirmkey/(?P<key>[0-9a-f]{32})/$', 'confirm_registration',
         name='api_confirm'),
+    url(r'^checkkey/$', 'check_key', name='check_key'),
 )
 
 analytics = patterns('locksmith.hub.views',
