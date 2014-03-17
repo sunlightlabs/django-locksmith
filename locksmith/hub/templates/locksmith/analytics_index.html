@@ -13,6 +13,8 @@
 {% block meta %}
     <link id="keys-issued-yearly" href="{% url 'keys-issued-yearly' %}" rel="" type="application/json">
     <link id="keys-issued-monthly" href="{% url 'keys-issued-monthly' %}" rel="" type="application/json">
+    <link id="active-keys-yearly" href="{% url 'active-keys-yearly' %}" rel="" type="application/json">
+    <link id="active-keys-monthly" href="{% url 'active-keys-monthly' %}" rel="" type="application/json">
     <link id="api-list" href="{% url 'api-list' %}" rel="" type="application/json">
     <link id="apis-by-calls" href="{% url 'apis-by-calls' %}" rel="" type="application/json">
     <link id="all-calls" href="{% url 'all-calls' %}" rel="" type="application/json">
@@ -141,19 +143,20 @@
                 </tbody>
             </table>
             <div class="clear"></div>
-
         </div>
 
+
+        {% include "locksmith/yearly_monthly_column_chart.html" with title="All Calls Over Time" scoping_id="allcalls" %}
+
+        {% comment %}
         <div id="allcalls">
             <h3>All Calls Over Time </h3>
 
-            <div class="well well-small">
-                <span class="labeltext pull-left">Switch View:</span>
+            <div class="well well-small analytics-chart-buttons">
+                <span class="pull-left labeltext">Switch View:</span>
                 <span class="pull-left btn-group" data-toggle="buttons-radio">
-                    <button class="btn" data-setting="display.mode" data-value="table"
-                        >Table</button>
-                    <button class="btn" data-setting="display.mode" data-value="chart"
-                        >Chart</button>
+                    <button class="btn" data-setting="display.mode" data-value="table">Table</button>
+                    <button class="btn" data-setting="display.mode" data-value="chart">Chart</button>
                 </span>
                 <span class="pull-left labeltext">Change Time Period:</span>
                 <span class="pull-left btn-group" data-toggle="buttons-radio">
@@ -203,8 +206,12 @@
             <div class="clear"></div>
 
         </div>
+        {% endcomment %}
 
 
+        {% include "locksmith/yearly_monthly_column_chart.html" with title="Keys Issued" scoping_id="keys" %}
+
+        {% comment %}
         <div id="keys">
             <h3>Keys Issued</h3>
 
@@ -263,6 +270,10 @@
             </div>
             <div class="clear"></div>
         </div>
+        {% endcomment %}
+
+        {% include "locksmith/yearly_monthly_column_chart.html" with title="Active Keys" scoping_id="activekeys" %}
+
         <div id="timeperiod">
             <h3>Download Calls for Any Period:</h3>
             <form id="formcalls" action="{% url 'calls-range' %}" method="GET">

@@ -1,0 +1,56 @@
+        <div id="{{ scoping_id }}">
+            <h3>{{ title }}</h3>
+
+            <div class="well well-small">
+                <span class="labeltext pull-left">Switch View:</span>
+                <span class="pull-left btn-group" data-toggle="buttons-radio">
+                    <button class="btn" data-setting="display.mode" data-value="table">Table</button>
+                    <button class="btn" data-setting="display.mode" data-value="chart">Chart</button>
+                </span>
+                <span class="pull-left labeltext">Change Time Period:</span>
+                <span class="pull-left btn-group" data-toggle="buttons-radio">
+                    <button class="btn"
+                            data-setting="chart.interval"
+                            data-value="monthly">Monthly</button>
+                    <button class="btn api-calls-internal-btn"
+                            data-setting="chart.interval"
+                            data-value="yearly">Yearly</button>
+                </span>
+                <div class="clear"></div>
+            </div>
+            <button class="btn values">Show Values</button>
+            <div class="clear"></div>
+            <div class="loading-container" style="display: none;">
+                <div class="loading"></div>
+                <div class="loading-text">Loading...</div>
+            </div>
+            <div class="message" style="display: none;"><span class="message-text"></span></div>
+
+            <figure class="analytics-chart pull-right span9"><figcaption></figcaption></figure>
+            <table class="table table-striped table-bordered analytics-table pull-right span9">
+                <caption></caption>
+                <thead>
+                    <tr><th class="independent"></th>
+                        <th class="dependent"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+            <script type="text/jquery-template" class="yearly-table-row-tmpl">
+                <tr>
+                    <td><button class="btn independent"></button></td>
+                    <td class="dependent"></td>
+                </tr>
+            </script>
+            <script type="text/jquery-template" class="monthly-table-row-tmpl">
+                <tr>
+                    <td class="independent"></td>
+                    <td class="dependent"></td>
+                </tr>
+            </script>
+            <script type="text/jquery-template" class="table-total-row-tmpl">
+                <tr class="total"> <td>Total:</td> <td class="dependent"></td> </tr>
+            </script>
+            <div class="clear"></div>
+        </div>

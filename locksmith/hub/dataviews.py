@@ -3,7 +3,9 @@ import datetime
 import calendar
 import csv
 import dateutil.parser
+from operator import itemgetter
 
+from django.core.cache import cache
 from django.db.models import Sum, Count, Min, Max, Q
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFound, HttpResponseForbidden
 from django.core.urlresolvers import reverse
@@ -116,6 +118,110 @@ def api_calls_daily(request):
     }
     return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
 
+
+def generic_aggregation(src_qry, key, agg_func):
+    groups = dict()
+    for record in src_qry:
+        grp_key = key(record) if callable(key) else key
+        if grp_key not in groups:
+            groups[grp_key] = []
+        groups[grp_key].append(record)
+    return dict(((grp_key, agg_func(grp_key, records))
+                 for (grp_key, records) in groups.iteritems()))
+
+
+def _active_keys_by_month(ignore_internal_keys, monthly_minimum, cached=True):
+    """
+    Returns a dict of (year, month) -> active_keys. The dict will contain a key
+    for each month observed in the data.
+    """
+
+    cache_key = '_active_keys_by_month({0!r},{1!r})[{date!s}]'.format(ignore_internal_keys,
+                                                                      monthly_minimum,
+                                                                      date=datetime.date.today())
+    if cached == True:
+        result = cache.get(cache_key)
+        return result
+
+    keys_issued_period = _keys_issued_date_range()
+
+    # We first do a (date, key) aggregation for the number of daily calls.
+    # We would do monthly aggregation here if we were using a newer version
+    # of django with ORM month accessors. This rolls up the per-method reports.
+    calls_by_key = Report.objects
+    if ignore_internal_keys:
+        calls_by_key = exclude_internal_key_reports(calls_by_key)
+    calls_by_key = (calls_by_key.values('date', 'key__key', 'key__email')
+                                .annotate(calls=Sum('calls'))
+                                .order_by('-calls'))
+
+    # Aggregate the daily aggregates into monthly aggregates (still on a per-key
+    # basis). This facilitates filtering keys by monthly usage.
+    grp_by = lambda r: (r['date'].year, r['date'].month, r['key__key'])
+    def sum_calls(grp, records):
+        return {'calls': sum([r['calls'] for r in records])}
+    calls_per_key_monthly = generic_aggregation(calls_by_key,
+                                                key=grp_by,
+                                                agg_func=sum_calls)
+    calls_per_key_monthly1 = ((grp, agg)
+                              for (grp, agg) in calls_per_key_monthly.iteritems()
+                              if agg['calls'] >= monthly_minimum)
+
+    # Now aggregate the (year, month, key) into the size of (year, month) groups.
+    grp_by_month = lambda ((year, month, key), agg): (year, month)
+    active_keys_per_month = generic_aggregation(calls_per_key_monthly1,
+                                                key=grp_by_month,
+                                                agg_func=lambda grp, records: len(records))
+    cache.set(cache_key, active_keys_per_month, timeout=(60 * 60 * 25))
+    return active_keys_per_month
+
+
+def active_api_keys_monthly(request):
+    year = parse_int_param(request, 'year')
+    if year is None:
+        return HttpResponseBadRequest("You must specify a year parameter.")
+    ignore_internal_keys = parse_bool_param(request, 'ignore_internal_keys', True)
+    monthly_minimum = parse_int_param(request, 'monthly_minimum', 100)
+
+    by_month = _active_keys_by_month(ignore_internal_keys, monthly_minimum)
+
+
+    # Here we generate a list, ordered by month, with a default entry for
+    # months without observations.
+    active_keys_per_month = [{'year': year,
+                              'month': month,
+                              'active_keys': by_month.get((year, month), 0)}
+                             for month in range(1, 13)]
+
+    result = {
+        'monthly': active_keys_per_month
+    }
+    return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
+
+
+def active_api_keys_yearly(request):
+    keys_issued_period = _keys_issued_date_range()
+    ignore_internal_keys = parse_bool_param(request, 'ignore_internal_keys', True)
+    monthly_minimum = parse_int_param(request, 'monthly_minimum', 100)
+
+    by_month = _active_keys_by_month(ignore_internal_keys, monthly_minimum)
+
+    def max_active_keys(grp, values):
+        return max((active_keys for ((year, month), active_keys) in values))
+    by_year = generic_aggregation(by_month.iteritems(),
+                                  key=lambda ((year, _1), _2): year,
+                                  agg_func=max_active_keys)
+
+    active_keys_by_year = [{'year': year,
+                            'active_keys': by_year.get(year, 0)}
+                           for year in range(keys_issued_period['earliest'].year,
+                                             keys_issued_period['latest'].year + 1)]
+    result = {
+        'yearly': active_keys_by_year
+    }
+    return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
+
+
 @staff_required
 def calls_range(request):
     if request.GET.has_key('begin'):
@@ -123,13 +229,13 @@ def calls_range(request):
 
         if request.GET.has_key('end'):
             end = request.GET['end']
-            end_date = datetime.datetime.strptime(end, '%m/%d/%Y') 
+            end_date = datetime.datetime.strptime(end, '%m/%d/%Y')
         else:
             end_date = datetime.date()
         #try:
         begin_date = datetime.datetime.strptime(begin,'%m/%d/%Y')
 
-        resp = HttpResponse(status=200, content_type='text/csv')     
+        resp = HttpResponse(status=200, content_type='text/csv')
         resp['Content-Disposition'] = 'attachment; filename="api_calls_%s_%s"' % (begin, end)
 
         qry = Report.objects.filter(date__gte=begin_date, date__lte=end_date).extra(select={'day': 'date(date)'}).values('day').annotate(total=Count('date')).order_by('date')
@@ -341,7 +447,7 @@ def calls_to_api_daily(request,
 
     daily_aggs = qry.values('date').annotate(calls=Sum('calls'))
 
-    
+
     result = {
         'api_id': api.id,
         'api_name': api.name,
@@ -651,7 +757,7 @@ def keys_issued_yearly(request):
             'yearly': []
         }
     return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
-    
+
 @login_required
 def keys_issued_monthly(request):
     year = parse_int_param(request, 'year')

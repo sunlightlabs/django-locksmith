@@ -26,6 +26,8 @@ $(document).ready(function(){
             .then(function(keys_issued){
                 chart.title('Keys Issued By Year')
                      .independent_format(methodcaller('toString', 10))
+                     .independent_label('Year')
+                     .dependent_label('Keys')
                      .table_row_tmpl('.yearly-table-row-tmpl');
                 callback(keys_issued['yearly'].map(function(yr){
                     return [yr['year'], yr['issued']];
@@ -36,11 +38,50 @@ $(document).ready(function(){
             params['year'] = chart.get('year');
             $.getJSON(url, params)
             .then(function(keys_issued){
-                chart.title('Keys Issued by Month for ' + chart.set('year'))
+                chart.title('Keys Issued by Month for ' + chart.get('year'))
                      .independent_format(function(x){ return month_abbrevs[x-1]; })
+                     .independent_label('Month')
+                     .dependent_label('Keys')
                      .table_row_tmpl('.monthly-table-row-tmpl');
                 callback(keys_issued['monthly'].map(function(m){
                     return [m['month'], m['issued']];
+                }));
+            });
+        }
+    };
+
+    var get_active_keys = function (chart, callback) {
+        var chart_interval = chart.get('chart.interval');
+        var params = {
+            'ignore_internal_keys': (page_settings.get('internal.keys') === 'excluded')
+        };
+        if (chart_interval === 'yearly') {
+            var url = $("link#active-keys-yearly").attr("href");
+            $.getJSON(url, params)
+            .then(function(active_keys){
+                chart.title('Active Key High-water Mark by Year')
+                     .independent_format(methodcaller('toString', 10))
+                     .independent_label('Year')
+                     .dependent_label('Keys')
+                     .table_row_tmpl('.yearly-table-tow-tmpl');
+                callback(active_keys['yearly'].map(function(yr){
+                    return [yr['year'], yr['active_keys']];
+                }));
+            });
+        } else if (chart_interval === 'monthly') {
+            var url = $("link#active-keys-monthly").attr("href");
+            params['year'] = chart.get('year');
+            $.getJSON(url, params)
+            .then(function(active_keys){
+                chart.title('Active Keys by Month for ' + chart.get('year'))
+                     .independent_format(function(x){ return month_abbrevs[x-1]; })
+                     .independent_label('Month')
+                     .dependent_label('Keys')
+                     .table_row_tmpl('.monthly-table-row-tmpl');
+                callback(active_keys['monthly'].filter(function(m){
+                    return (m['year'] == chart.get('year'));
+                }).map(function(m){
+                    return [m['month'], m['active_keys']];
                 }));
             });
         }
@@ -86,7 +127,9 @@ $(document).ready(function(){
                         });
             pairs.sort(itemcomparer(0, methodcaller('localeCompare')));
             chart.title(title)
-                 .dependent_format(methodcaller('toLocaleString'));
+                 .dependent_format(methodcaller('toLocaleString'))
+                 .dependent_label('API')
+                 .independent_label('Calls');
             callback(pairs);
         });
     };
@@ -167,8 +210,19 @@ $(document).ready(function(){
         .set('year', Date.today().getFullYear())
         .margin({'top': 0, 'bottom': 20, 'left': 80, 'right': 0});
 
+        var active_keys_chart = new AnalyticsChart({
+            'target': '#activekeys',
+            'data_fn': get_active_keys
+        })
+        .update({
+            'chart.type': 'column',
+            'display.mode': options.active_keys_display || 'chart',
+            'chart.interval': options.active_keys_interval || 'yearly'
+        })
+        .set('year', Date.today().getFullYear())
+        .margin({'top': 0, 'bottom': 20, 'left': 80, 'right': 0});
 
-       $('#calls').on('dataClick', function (event, dataElement) {
+        $('#calls').on('dataClick', function (event, dataElement) {
             var url = '/api/analytics/api/' + $(dataElement).attr('data-independent') + '/';
             window.location.href = url;
         });
@@ -176,6 +230,7 @@ $(document).ready(function(){
         page_settings.buttons.click(function(event){
             calls_chart.refresh();
             keys_issued_chart.refresh();
+            active_keys_chart.refresh();
             all_calls_chart.refresh();
         });
 
@@ -186,11 +241,13 @@ $(document).ready(function(){
                 'page': page_settings,
                 'calls': calls_chart,
                 'keys': keys_issued_chart,
-                'all_calls': all_calls_chart
+                'all_calls': all_calls_chart,
+                'active_keys': active_keys_chart
             },
             'post_update': function () {
                 calls_chart.refresh();
                 keys_issued_chart.refresh();
+                active_keys_chart.refresh();
                 all_calls_chart.refresh();
             }
         });
@@ -198,5 +255,6 @@ $(document).ready(function(){
         calls_chart.show();
         all_calls_chart.show();
         keys_issued_chart.show();
+        active_keys_chart.show();
     });
 });

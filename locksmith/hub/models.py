@@ -12,7 +12,7 @@ from locksmith.common import (KEY_STATUSES,
                               API_STATUSES)
 from locksmith.hub.tasks import push_key
 from taggit.managers import TaggableManager
-    
+
 def resolve_model(model, fields):
     """
     model: Model class
@@ -137,7 +137,7 @@ class KeyForm(forms.ModelForm):
     class Meta:
         model = Key
         exclude = ('key', 'issued_on', 'status', 'pub_status', 'user')
-    
+
     terms_of_service = forms.BooleanField(required=False)
 #    user = forms.CharField(widget=forms.HiddenInput())
 
