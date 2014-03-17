@@ -285,6 +285,7 @@ def analytics_index(request,
     six_month = sorted(six_month_stats, key=lambda tup: tup[1], reverse=True)
 
     apis = Api.objects.order_by('display_name')
+    active_key_footnote="A key is considered active if it has at least {} calls in the month.".format(settings.LOCKSMITH_KEY_ACTIVITY_THRESHOLD)
 
     options = {
         'ignore_internal_keys': ignore_internal_keys,
@@ -299,6 +300,7 @@ def analytics_index(request,
         'json_options': json.dumps(options),
         'new_users': new_users,
         'six_month': six_month,
+        'active_key_footnote': active_key_footnote,
         'apis': apis,
         'LOCKSMITH_BASE_TEMPLATE': settings.LOCKSMITH_BASE_TEMPLATE
     }

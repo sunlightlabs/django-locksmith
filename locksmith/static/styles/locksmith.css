@@ -18,6 +18,7 @@ figure.analytics-chart { position: relative; margin: 0; }
 
 .analytics-table td.dependent { text-align: right; }
 .analytics-table .total { font-weight: bold; }
+div.analytics-chart-footnote { text-align: right; font-style: italic; }
 
 .reactive-settings .spacer { margin: 0 1em; color: rgb(200, 200, 200); }
 .reactive-settings .spacer-narrow { margin: 0 0.5em; }

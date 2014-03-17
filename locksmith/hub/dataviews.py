@@ -14,6 +14,8 @@ from locksmith.hub.models import Api, Key, Report, resolve_model
 from locksmith.hub.common import cycle_generator, exclude_internal_keys, exclude_internal_key_reports
 from unusual.http import BadRequest
 
+from django.conf import settings
+
 staff_required = user_passes_test(lambda u: u.is_staff)
 
 def _keys_issued_date_range():
@@ -141,7 +143,8 @@ def _active_keys_by_month(ignore_internal_keys, monthly_minimum, cached=True):
                                                                       date=datetime.date.today())
     if cached == True:
         result = cache.get(cache_key)
-        return result
+        if result is not None:
+            return result
 
     keys_issued_period = _keys_issued_date_range()
 
@@ -181,7 +184,7 @@ def active_api_keys_monthly(request):
     if year is None:
         return HttpResponseBadRequest("You must specify a year parameter.")
     ignore_internal_keys = parse_bool_param(request, 'ignore_internal_keys', True)
-    monthly_minimum = parse_int_param(request, 'monthly_minimum', 100)
+    monthly_minimum = parse_int_param(request, 'monthly_minimum', settings.LOCKSMITH_KEY_ACTIVITY_THRESHOLD)
 
     by_month = _active_keys_by_month(ignore_internal_keys, monthly_minimum)
 
@@ -202,7 +205,7 @@ def active_api_keys_monthly(request):
 def active_api_keys_yearly(request):
     keys_issued_period = _keys_issued_date_range()
     ignore_internal_keys = parse_bool_param(request, 'ignore_internal_keys', True)
-    monthly_minimum = parse_int_param(request, 'monthly_minimum', 100)
+    monthly_minimum = parse_int_param(request, 'monthly_minimum', settings.LOCKSMITH_KEY_ACTIVITY_THRESHOLD)
 
     by_month = _active_keys_by_month(ignore_internal_keys, monthly_minimum)
 
