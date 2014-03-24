@@ -1,5 +1,5 @@
 from locksmith.common import apicall
-import urllib2
+from six.moves.urllib.error import HTTPError
 
 try:
     from django.conf import settings
@@ -17,7 +17,7 @@ def check_key(key, signing_key=SIGNING_KEY, api=API_NAME, endpoint=ENDPOINT):
             api=api, key=key
         )
         return True
-    except urllib2.HTTPError as e:
+    except HTTPError as e:
         if e.code == 404:
             return None
         else:

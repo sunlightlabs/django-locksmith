@@ -47,15 +47,15 @@ def accept_key(request, key_uuid):
     if not verify_signature(request.POST):
         return HttpResponseBadRequest('bad signature')
 
-    if u'status' not in request.POST:
+    if 'status' not in request.POST:
         return HttpResponseBadRequest('no status specified')
 
-    if u'email' not in request.POST:
+    if 'email' not in request.POST:
         return HttpResponseBadRequest('no email specified')
 
     (key, created) = ApiKey.objects.get_or_create(key=key_uuid)
-    key.status = request.POST[u'status']
-    key.email = request.POST[u'email']
+    key.status = request.POST['status']
+    key.email = request.POST['email']
     key.save()
     return HttpResponse('OK')
 

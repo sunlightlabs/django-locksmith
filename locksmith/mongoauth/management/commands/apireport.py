@@ -1,9 +1,10 @@
 import datetime
-from urlparse import urljoin
+from urllib.parse import urljoin
 from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
 from locksmith.common import apicall
 from locksmith.mongoauth.db import db
+from six.moves.urllib.parse import urljoin
 
 class Command(BaseCommand):
     help = "Push a given day's logs up to the analytics hub"
@@ -16,7 +17,7 @@ class Command(BaseCommand):
             yesterday = datetime.datetime.now() - datetime.timedelta(days=1)
             date = yesterday.strftime('%Y-%m-%d')
 
-        print 'pushing logs for %s' % date
+        print('pushing logs for %s' % date)
 
         dt_begin = datetime.datetime.strptime(date, '%Y-%m-%d')
         dt_end = dt_begin + datetime.timedelta(days=1)

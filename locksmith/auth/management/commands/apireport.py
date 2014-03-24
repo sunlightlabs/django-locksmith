@@ -1,9 +1,9 @@
 import datetime
-from urlparse import urljoin
 from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
 from django.db.models import get_model, Count
 from locksmith.common import apicall
+from six.moves.urllib.parse import urljoin
 
 APP = getattr(settings, 'LOCKSMITH_STATS_APP', 'api')
 MODEL = getattr(settings, 'LOCKSMITH_STATS_MODEL', 'LogEntry')
@@ -26,7 +26,7 @@ class Command(BaseCommand):
             # set date to yesterday if not passed in
             yesterday = datetime.datetime.now() - datetime.timedelta(days=1)
             date = yesterday.strftime('%Y-%m-%d')
-        print 'pushing logs for %s' % date
+        print('pushing logs for %s' % date)
 
         # construct database query
         qs = LogModel.objects.extra(where=["date_trunc('day', {0}) = '{1}'".format(DATE_FIELD, date)]).order_by()

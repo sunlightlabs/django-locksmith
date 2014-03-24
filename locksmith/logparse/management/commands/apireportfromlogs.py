@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from locksmith.logparse.report import submit_report
 from django.conf import settings
-from urlparse import urljoin
+from six.moves.urllib.parse import urljoin
 import datetime
 
 LOG_PATH = getattr(settings, 'LOCKSMITH_LOG_PATH', '/var/log/nginx/access.log')
@@ -24,7 +24,7 @@ class Command(BaseCommand):
         else:
             parsed_date = (datetime.datetime.now() - datetime.timedelta(days=1)).date()
         
-        print 'pushing logs for %s' % parsed_date.strftime('%Y-%m-%d')
+        print('pushing logs for %s' % parsed_date.strftime('%Y-%m-%d'))
         
         total_submitted = submit_report(
             log_path = LOG_PATH,
@@ -37,4 +37,4 @@ class Command(BaseCommand):
             locksmith_endpoint = urljoin(settings.LOCKSMITH_HUB_URL, 'report_calls/')
         )
         
-        print 'submitted %s hits' % total_submitted
+        print('submitted %s hits' % total_submitted)
