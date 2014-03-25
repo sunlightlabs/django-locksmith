@@ -223,7 +223,7 @@ def _dictlist_to_lists(dl, *keys):
     for item in dl:
         for i, key in enumerate(keys):
             x = item[key]
-            if isinstance(x, str):
+            if isinstance(x, unicode):
                 x = str(x)
             lists[i].append(x)
     return lists
@@ -241,8 +241,8 @@ def _cumulative_by_date(model, datefield):
     if len(monthly_counts) == 0:
         return []
 
-    earliest_month = min(monthly_counts.keys())
-    latest_month = max(monthly_counts.keys())
+    earliest_month = min(monthly_counts.iterkeys())
+    latest_month = max(monthly_counts.iterkeys())
 
     accumulator = 0
     cumulative_counts = []
@@ -420,8 +420,8 @@ def keys_leaderboard(request,
     if year is not None and month is not None:
         year = int(year)
         month = int(month)
-        if month not in list(range(1, 13)):
-            return HttpResponseBadRequest("Month must be between 1 and 12, was {m}".format(m=str(month)))
+        if month not in range(1, 13):
+            return HttpResponseBadRequest("Month must be between 1 and 12, was {m}".format(m=unicode(month)))
     else:
         year = datetime.date.today().year
         month = datetime.date.today().month

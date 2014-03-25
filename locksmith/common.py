@@ -1,8 +1,6 @@
 import hashlib
 import hmac
-from six import text_type
-from six.moves.urllib.request import urlopen
-from six.moves.urllib.parse import urlencode
+import urllib, urllib2
 
 def enum(name, **enums):
     E = type(name or 'Enum', (), enums)
@@ -40,22 +38,19 @@ PUB_STATUSES = (
     (NEEDS_UPDATE, 'Needs Update'),
 )
 
-def _bytes(val):
-    if isinstance(val, bytes):
-        val = text_type(val)
-    return val.encode('utf-8')
-
 def get_signature(params, signkey):
     # sorted k,v pairs of everything but signature
-    data = sorted([(k, _bytes(v) for k,v in params.items() if k != 'signature'])
-    qs = urlencode(data)
+    data = sorted([(k,unicode(v).encode('utf-8'))
+                   for k,v in params.iteritems()
+                   if k != 'signature'])
+    qs = urllib.urlencode(data)
     return hmac.new(str(signkey), qs, hashlib.sha1).hexdigest()
 
 def apicall(url, signkey, **params):
     params['signature'] = get_signature(params, signkey)
-    data = sorted([(k,v) for k,v in params.items()])
-    body = urlencode(data)
-    urlopen(url, body)
+    data = sorted([(k,v) for k,v in params.iteritems()])
+    body = urllib.urlencode(data)
+    urllib2.urlopen(url, body)
 
 # taken from http://djangosnippets.org/snippets/564/
 from hashlib import sha1
