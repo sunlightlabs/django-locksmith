@@ -1,6 +1,6 @@
 import datetime
-from urlparse import urljoin
-import urllib2
+from urllib.parse import urljoin
+import urllib.request, urllib.error, urllib.parse
 from django.core.management.base import NoArgsCommand
 from django.core.mail import mail_managers
 from django.conf import settings
@@ -28,7 +28,7 @@ class Command(NoArgsCommand):
                 actions[kps.status] += 1
                 kps.status = PUBLISHED
                 kps.save()
-            except urllib2.HTTPError, e:
+            except urllib.error.HTTPError as e:
                 msg = 'endpoint=%s, signing_key=%s, api=%s, key=%s, email=%s, status=%s\n error: %s'
                 msg = msg % (endpoint, kps.api.signing_key, kps.api.name,
                              kps.key.key, kps.key.email, kps.key.status, e.read())
@@ -40,8 +40,8 @@ class Command(NoArgsCommand):
                 msg = '--------------\n\n'.join(failures)
                 mail_managers('%s failures during pushkeys' % len(failures), msg)
         elif verbosity == 2:
-            print 'Published %s new keys, updated %s keys. (%s failures)' % (
-                actions[UNPUBLISHED], actions[NEEDS_UPDATE], len(failures))
+            print('Published %s new keys, updated %s keys. (%s failures)' % (
+                actions[UNPUBLISHED], actions[NEEDS_UPDATE], len(failures)))
             for f in failures:
-                print f
+                print(f)
 

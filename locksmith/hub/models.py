@@ -101,7 +101,7 @@ class KeyPublicationStatus(models.Model):
         db_table = 'locksmith_hub_keypublicationstatus'
 
     def __unicode__(self):
-        return u'api={0!r} key={1!r} status={2}'.format(self.api.name,
+        return 'api={0!r} key={1!r} status={2}'.format(self.api.name,
                                                         self.key.key,
                                                         self.status)
 

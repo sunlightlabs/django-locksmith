@@ -15,6 +15,7 @@ from locksmith.hub.common import cycle_generator, exclude_internal_keys, exclude
 from unusual.http import BadRequest
 
 from django.conf import settings
+import collections
 
 staff_required = user_passes_test(lambda u: u.is_staff)
 
@@ -23,10 +24,10 @@ def _keys_issued_date_range():
 
 def _years():
     extents = _keys_issued_date_range()
-    return range(extents['earliest'].year, extents['latest'].year + 1)
+    return list(range(extents['earliest'].year, extents['latest'].year + 1))
 
 def parse_bool(p):
-    return unicode(p).lower() in ['y', 't', 'yes', 'true']
+    return str(p).lower() in ['y', 't', 'yes', 'true']
 
 def request_param_type_guard(request, param, parse_func, default=None):
     untyped = request.GET.get(param) or request.POST.get(param)
@@ -83,7 +84,7 @@ def api_calls_monthly(request):
         monthly[month]['calls'] += daily['calls']
 
     result = {
-        'monthly': monthly.values()
+        'monthly': list(monthly.values())
     }
     return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
 
@@ -116,7 +117,7 @@ def api_calls_daily(request):
         daily_calls[dt]['calls'] = daily['calls']
 
     result = {
-        'daily': daily_calls.values()
+        'daily': list(daily_calls.values())
     }
     return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
 
@@ -124,12 +125,12 @@ def api_calls_daily(request):
 def generic_aggregation(src_qry, key, agg_func):
     groups = dict()
     for record in src_qry:
-        grp_key = key(record) if callable(key) else key
+        grp_key = key(record) if isinstance(key, collections.Callable) else key
         if grp_key not in groups:
             groups[grp_key] = []
         groups[grp_key].append(record)
     return dict(((grp_key, agg_func(grp_key, records))
-                 for (grp_key, records) in groups.iteritems()))
+                 for (grp_key, records) in groups.items()))
 
 
 def _active_keys_by_month(ignore_internal_keys, monthly_minimum, cached=True):
@@ -167,11 +168,11 @@ def _active_keys_by_month(ignore_internal_keys, monthly_minimum, cached=True):
                                                 key=grp_by,
                                                 agg_func=sum_calls)
     calls_per_key_monthly1 = ((grp, agg)
-                              for (grp, agg) in calls_per_key_monthly.iteritems()
+                              for (grp, agg) in calls_per_key_monthly.items()
                               if agg['calls'] >= monthly_minimum)
 
     # Now aggregate the (year, month, key) into the size of (year, month) groups.
-    grp_by_month = lambda ((year, month, key), agg): (year, month)
+    grp_by_month = lambda year_month_key_agg: (year_month_key_agg[0][0], year_month_key_agg[0][1])
     active_keys_per_month = generic_aggregation(calls_per_key_monthly1,
                                                 key=grp_by_month,
                                                 agg_func=lambda grp, records: len(records))
@@ -211,8 +212,8 @@ def active_api_keys_yearly(request):
 
     def max_active_keys(grp, values):
         return max((active_keys for ((year, month), active_keys) in values))
-    by_year = generic_aggregation(by_month.iteritems(),
-                                  key=lambda ((year, _1), _2): year,
+    by_year = generic_aggregation(iter(by_month.items()),
+                                  key=lambda year__1__2: year__1__2[0][0],
                                   agg_func=max_active_keys)
 
     active_keys_by_year = [{'year': year,
@@ -227,10 +228,10 @@ def active_api_keys_yearly(request):
 
 @staff_required
 def calls_range(request):
-    if request.GET.has_key('begin'):
+    if 'begin' in request.GET:
         begin = request.GET['begin']
 
-        if request.GET.has_key('end'):
+        if 'end' in request.GET:
             end = request.GET['end']
             end_date = datetime.datetime.strptime(end, '%m/%d/%Y')
         else:
@@ -257,7 +258,7 @@ def calls_range(request):
 def all_calls(request):
     ignore_deprecated = parse_bool_param(request, 'ignore_deprecated', False)
     ignore_internal_keys = parse_bool_param(request, 'ignore_internal_keys', True)
-    if request.GET.has_key('year'):
+    if 'year' in request.GET:
         year = int(request.GET['year'])
         qry = Report.objects.filter(date__gte=datetime.date(year, 1, 1),
                                     date__lte=datetime.date(year, 12, 31))
@@ -277,7 +278,7 @@ def all_calls(request):
 
         result = {
             'calls': agg['calls'],
-            'monthly': monthly.values(),
+            'monthly': list(monthly.values()),
             'year': year
         }
         return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
@@ -301,7 +302,7 @@ def all_calls(request):
         result = {
             'earliest_year': min(yearly.keys()),
             'latest_year': max(yearly.keys()),
-            'yearly': yearly.values()
+            'yearly': list(yearly.values())
         }
         return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
 
@@ -382,7 +383,7 @@ def calls_to_api_yearly(request,
         'earliest_year': earliest_year,
         'latest_year': latest_year,
         'calls': agg['calls'],
-        'yearly': yearly.values()
+        'yearly': list(yearly.values())
     }
     return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
 
@@ -421,7 +422,7 @@ def calls_to_api_monthly(request,
         'api_id': api.id,
         'api_name': api.name,
         'calls': agg['calls'],
-        'monthly': monthly.values()
+        'monthly': list(monthly.values())
     }
     return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
 
@@ -596,7 +597,7 @@ def calls_from_key_yearly(request, key_uuid):
             'key': key_uuid,
             'earliest_year': earliest_year,
             'latest_year': latest_year,
-            'yearly': yearly.values()
+            'yearly': list(yearly.values())
         }
 
     else:
@@ -635,7 +636,7 @@ def calls_from_key_monthly(request, key_uuid):
     result = {
         'key': key_uuid,
         'year': year,
-        'monthly': monthly.values()
+        'monthly': list(monthly.values())
     }
     return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
 
@@ -788,7 +789,7 @@ def keys_issued_monthly(request):
     result = {
         'year': year,
         'issued': agg['issued'],
-        'monthly': monthly.values()
+        'monthly': list(monthly.values())
     }
     return HttpResponse(content=json.dumps(result), status=200, content_type='application/json')
 
@@ -846,7 +847,7 @@ def _leaderboard_diff(alist, blist):
             blookup[key]['rank_diff'] = blookup[key]['rank'] - alookup[key]['rank']
         else:
             blookup[key]['rank_diff'] = None
-    return blookup.values()
+    return list(blookup.values())
 
 @staff_required
 def quarterly_leaderboard(request, year, month,
