@@ -3,7 +3,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
 from django.db.models import get_model, Count
 from locksmith.common import apicall
-from six.moves.urllib.parse import urljoin
+from django.utils.six.moves.urllib.parse import urljoin
 
 APP = getattr(settings, 'LOCKSMITH_STATS_APP', 'api')
 MODEL = getattr(settings, 'LOCKSMITH_STATS_MODEL', 'LogEntry')

@@ -1,8 +1,8 @@
 import hashlib
 import hmac
-from six import text_type
-from six.moves.urllib.request import urlopen
-from six.moves.urllib.parse import urlencode
+from django.utils.six import text_type
+from django.utils.six.moves.urllib.request import urlopen
+from django.utils.six.moves.urllib.parse import urlencode
 
 def enum(name, **enums):
     E = type(name or 'Enum', (), enums)

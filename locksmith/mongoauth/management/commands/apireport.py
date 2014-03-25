@@ -4,7 +4,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
 from locksmith.common import apicall
 from locksmith.mongoauth.db import db
-from six.moves.urllib.parse import urljoin
+from django.utils.six.moves.urllib.parse import urljoin
 
 class Command(BaseCommand):
     help = "Push a given day's logs up to the analytics hub"

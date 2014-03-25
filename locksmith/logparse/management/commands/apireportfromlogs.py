@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from locksmith.logparse.report import submit_report
 from django.conf import settings
-from six.moves.urllib.parse import urljoin
+from django.utils.six.moves.urllib.parse import urljoin
 import datetime
 
 LOG_PATH = getattr(settings, 'LOCKSMITH_LOG_PATH', '/var/log/nginx/access.log')

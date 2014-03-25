@@ -2,7 +2,7 @@ import datetime
 from django.core.management.base import NoArgsCommand, CommandError
 from django.conf import settings
 from locksmith.common import apicall
-from six.moves.urllib.parse import urljoin
+from django.utils.six.moves.urllib.parse import urljoin
 
 class Command(NoArgsCommand):
     help = "reset all keys, triggering a request for all keys from the hub"

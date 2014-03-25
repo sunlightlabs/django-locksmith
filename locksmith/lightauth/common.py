@@ -1,5 +1,5 @@
 from locksmith.common import apicall
-from six.moves.urllib.error import HTTPError
+from django.utils.six.moves.urllib.error import HTTPError
 
 try:
     from django.conf import settings
