@@ -47,7 +47,7 @@ def _bytes(val):
 
 def get_signature(params, signkey):
     # sorted k,v pairs of everything but signature
-    data = sorted([(k, _bytes(v) for k,v in params.items() if k != 'signature'])
+    data = sorted([(k, _bytes(v)) for k,v in params.items() if k != 'signature'])
     qs = urlencode(data)
     return hmac.new(str(signkey), qs, hashlib.sha1).hexdigest()
 
