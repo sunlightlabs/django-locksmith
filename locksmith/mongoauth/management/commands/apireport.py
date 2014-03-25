@@ -1,5 +1,4 @@
 import datetime
-from urllib.parse import urljoin
 from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
 from locksmith.common import apicall
