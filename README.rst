@@ -76,7 +76,7 @@ They can be added to your urls.py with the following line:
 This adds an accounts/ path that contains user-facing urls and an analytics/ path that adds analytics views that are only accessible by staff members.
 
 
-locksmith.auth and locksmith.mongoauth
+locksmith.auth, locksmith.mongoauth, and locksmith.lightauth
 ======================================
 
 locksmith.auth and locksmith.mongoauth serve the same purpose and are basically interchangable.
@@ -85,11 +85,13 @@ Both apps provide URL endpoints and a management command that aim to make writin
 
 In most places below they are interchangable and are denoted as ``locksmith.(mongo)auth``, use ``locksmith.mongoauth`` if you prefer your keys/logs to be stored in MongoDB, and use ``locksmith.auth`` if you prefer to use standard Django models.
 
+locksmith.lightauth is a lighter-weight alternative to locksmith.auth and locksmith.mongoauth that doesn't maintain any local data about the state of shared API keys; instead, it queries the hub every time it sees a new key, and caches valid keys for 24 hours (invalid keys aren't cached). This has the advantage that no pushing is involved and no consistent state has to be maintained, so deployment is simpler, but it has the disadvantage that performance is slightly worse the first time a new key is encountered during a given day, and that propagation of invalidation of a key might take as long as 24 hours. locksmith.lightauth also has no machinery for tracking or reporting API usage.
+
 Installation
 ------------
 
-* add 'locksmith.(mongo)auth' to ``INSTALLED_APPS``
-* add a line like: (r'^api/', include('locksmith.(mongo)auth.urls')) to urls.py
+* add 'locksmith.(mongo/light)auth' to ``INSTALLED_APPS``
+* for auth or mongoauth, add a line like: (r'^api/', include('locksmith.(mongo)auth.urls')) to urls.py
 
 Add the following settings to your settings.py:
 
@@ -100,7 +102,7 @@ Add the following settings to your settings.py:
 ``LOCKSMITH_API_NAME``
     name of this locksmith instance
 
-You can optionally enable the ``APIKeyMiddleware`` by adding ``'locksmith.(mongo)auth.middleware.APIKeyMiddleware'`` to your ``MIDDLEWARE_CLASSES``.  This middleware makes use of two more optional settings:
+You can optionally enable the ``APIKeyMiddleware`` by adding ``'locksmith.(mongo/light)auth.middleware.APIKeyMiddleware'`` to your ``MIDDLEWARE_CLASSES``.  This middleware makes use of two more optional settings:
 
 ``LOCKSMITH_QS_PARAM``
     Query String parameter to check for API key (default: apikey)
