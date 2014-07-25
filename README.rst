@@ -77,7 +77,7 @@ This adds an accounts/ path that contains user-facing urls and an analytics/ pat
 
 
 locksmith.auth, locksmith.mongoauth, and locksmith.lightauth
-======================================
+============================================================
 
 locksmith.auth and locksmith.mongoauth serve the same purpose and are basically interchangable.
 
@@ -145,7 +145,9 @@ If using ``locksmith.auth`` the ``locksmith.auth.models.ApiKey`` model is used t
 
 If using ``locksmith.mongoauth`` a collection named ``locksmith.keys`` will be created with '_id', 'status', and 'email' fields.
 
-When a user passes a key to your API you should check if such an ``ApiKey`` object exists and if it is active (ie. status='A') before serving the request.  This check is handled automatically if you are using the provided ``APIKeyMiddleware``.
+If using either of these apps, when a user passes a key to your API you should check if such an ``ApiKey`` object exists and if it is active (ie. status='A') before serving the request.  This check is handled automatically if you are using the provided ``APIKeyMiddleware``.
+
+``locksmith.lightauth`` has no models or collections, but does require that a Django cache backend be configured if using the supplied middleware. To manually check whether a key is valid, a ``check_key`` function is supplied in ``locksmith.lightauth.common``. Note that its results aren't automatically cached, so you may want to cache them if you anticipate checking the same key repeatedly.
 
 Reporting Statistics
 --------------------
