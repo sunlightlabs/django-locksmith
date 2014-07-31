@@ -1,4 +1,4 @@
-from django.conf.urls.defaults import *
+from django.conf.urls import *
 
 accounts = patterns('locksmith.hub.views',
     url(r'^register/$', 'register', name='api_registration'),
