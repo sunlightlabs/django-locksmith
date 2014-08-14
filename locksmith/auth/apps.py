@@ -1,4 +1,4 @@
-from django.apps import apps
+from django.apps import AppConfig
 
-class LocksmithAuthConfig(apps.AuthConfig):
+class LocksmithAuthConfig(AppConfig):
     label = 'locksmith_auth'
