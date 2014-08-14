@@ -54,7 +54,7 @@ def get_signature(params, signkey):
 def apicall(url, signkey, **params):
     params['signature'] = get_signature(params, signkey)
     data = sorted([(k,v) for k,v in params.items()])
-    body = urlencode(data)
+    body = _bytes(urlencode(data))
     urlopen(url, body)
 
 # taken from http://djangosnippets.org/snippets/564/
