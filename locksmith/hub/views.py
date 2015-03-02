@@ -351,7 +351,7 @@ def key_list(request):
     }
     template = getattr(settings,
                        'LOCKSMITH_KEYS_LIST_TEMPLATE',
-                       'locksmith/leys_list.html')
+                       'locksmith/keys_list.html')
     return render(request, template, ctx)
 
 @login_required
